@@ -841,7 +841,13 @@ function renderPlanForMonth(key){
   });
   renderPlanSummary(key);
 }
-function addPlanItem(monthKey, pid){ const desc = prompt('Descrição da conta (ex: Consórcio)'); if(!desc) return; const val = Number(prompt('Valor (R$)','0')) || 0; const item = { id: uid('pl'), desc, value: val, state:0 }; state.planejamento[monthKey].periods[pid].items.push(item); saveLocal(); renderPlanItems(monthKey, pid); renderPlanSummary(monthKey); }
+function addPlanItem(monthKey, pid){ const desc = prompt('Descrição da conta (ex: Consórcio)'); if(!desc) return; let input = prompt('Valor (R$)','0');
+if (!input) return;
+
+input = input.replace(/\./g, '').replace(',', '.'); 
+// remove pontos e troca vírgula por ponto
+
+const val = parseFloat(input) || 0; const item = { id: uid('pl'), desc, value: val, state:0 }; state.planejamento[monthKey].periods[pid].items.push(item); saveLocal(); renderPlanItems(monthKey, pid); renderPlanSummary(monthKey); }
 function renderPlanItems(monthKey, pid){ const itemsDiv = el('#items_'+pid); if(!itemsDiv) return; itemsDiv.innerHTML = ''; const items = state.planejamento[monthKey].periods[pid].items || []; items.forEach(it=>{ const row = document.createElement('div'); row.style.display='flex'; row.style.alignItems='center'; row.style.justifyContent='space-between'; row.style.padding='6px 0'; row.innerHTML = `<div style="display:flex;gap:8px;align-items:center"><div class="checkbox-tri" onclick="togglePlanItem('${monthKey}','${pid}','${it.id}')">${it.state===1?'✔':(it.state===2?'✖':'')}</div><div>${it.desc} — <span class="small">${formatMoney(it.value)}</span></div></div>
       <div><button class="btn-ghost" onclick="editPlanItem('${monthKey}','${pid}','${it.id}')">Editar</button> <button class="btn-ghost" onclick="removePlanItem('${monthKey}','${pid}','${it.id}')">Excluir</button></div>`; itemsDiv.appendChild(row); }); }
 function togglePlanItem(monthKey,pid,itemId){ const it = state.planejamento[monthKey].periods[pid].items.find(x=>x.id===itemId); if(!it) return; it.state = (it.state + 1) % 3; saveLocal(); renderPlanItems(monthKey,pid); renderPlanSummary(monthKey); }
