@@ -1,13 +1,13 @@
 /* enhancements.js
    Adiciona:
-   - Aba "Ativos & Passivos" (criar/editar/transações/grafico pequeno)
-   - Botões de ocultar por aba
-   - Botões de ocultar áreas do Dashboard
-   Design inalterado. Não destrutivo.
+   - Aba "Ativos & Passivos" (criar/editar/transa��es/grafico pequeno)
+   - Bot�es de ocultar por aba
+   - Bot�es de ocultar �reas do Dashboard
+   Design inalterado. N�o destrutivo.
 */
 
 (function(){
-  // ---------- UTILITÁRIOS / FALBACKS ----------
+  // ---------- UTILIT�RIOS / FALBACKS ----------
   const has = (name) => typeof window[name] === 'function';
   const el = (s) => document.querySelector(s);
   const els = (s) => Array.from(document.querySelectorAll(s));
@@ -51,7 +51,7 @@
   }
 
   function applyAreaHides(){
-    // mapping of known area ids to selectors — if the selectors exist, hide them
+    // mapping of known area ids to selectors � if the selectors exist, hide them
     const map = {
       'dash_top_stats': '#dash_top_stats',
       'dash_result': '#dash_result',
@@ -77,7 +77,7 @@
 
   // ---------- UI INSERTION ----------
   function insertPrivacyControls(){
-    // locate dashboard header area — safe fallback: insert near h2 with text "Dashboard"
+    // locate dashboard header area � safe fallback: insert near h2 with text "Dashboard"
     const dashboardH2 = Array.from(document.querySelectorAll('h2')).find(h=>/Dashboard/i.test(h.innerText));
     if(!dashboardH2) return;
     // don't insert twice
@@ -142,7 +142,7 @@
         <div id="assetsList" style="margin-top:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px"></div>
 
         <div style="margin-top:18px">
-          <h3>Transações por Ativo</h3>
+          <h3>Transa��es por Ativo</h3>
           <div id="assetTxPanel" style="margin-top:8px"></div>
         </div>
       </div>
@@ -189,7 +189,7 @@
       const name = (page.querySelector('#ap_name').value || '').trim();
       const type = page.querySelector('#ap_type').value;
       const cost = Number(page.querySelector('#ap_cost').value) || 0;
-      if(!name) { alert('Nome obrigatório'); return; }
+      if(!name) { alert('Nome obrigat�rio'); return; }
       const asset = { id: uid('a'), name, type, cost, saldo: cost, transactions: [], created: nowISO() };
       state.assets.push(asset);
       page.querySelector('#ap_name').value=''; page.querySelector('#ap_cost').value='';
@@ -216,8 +216,8 @@
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div style="font-weight:700">${a.name} <span class="small">(${a.type})</span></div>
           <div style="display:flex;gap:6px">
-            <button class="btn-ghost" data-act="edit" data-id="${a.id}">✎</button>
-            <button class="btn-ghost" data-act="del" data-id="${a.id}">✖</button>
+            <button class="btn-ghost" data-act="edit" data-id="${a.id}">?</button>
+            <button class="btn-ghost" data-act="del" data-id="${a.id}">?</button>
           </div>
         </div>
         <div style="margin-top:8px" class="small">Custo inicial: ${safeFormatMoney(a.cost)}</div>
@@ -225,8 +225,8 @@
         <div style="margin-top:8px"><div class="small">Resultado: <span style="${netColor}">${safeFormatMoney(net)}</span></div></div>
         <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn-ghost" data-act="addE" data-id="${a.id}">+ Entrada</button>
-          <button class="btn-ghost" data-act="addS" data-id="${a.id}">- Saída</button>
-          <button class="btn-ghost" data-act="view" data-id="${a.id}">Ver transações</button>
+          <button class="btn-ghost" data-act="addS" data-id="${a.id}">- Sa�da</button>
+          <button class="btn-ghost" data-act="view" data-id="${a.id}">Ver transa��es</button>
         </div>
         <div style="margin-top:8px" id="chart_${a.id}"></div>
       `;
@@ -254,9 +254,20 @@
   }
 
   function promptAssetTx(id, tipo){
-    const val = Number(prompt('Valor R$','0')) || 0;
-    if(val <= 0) return;
+    let input = prompt('Valor (R$)', '0');
+    if (!input) return;
+
+    input = input.replace(/\./g, '').replace(',', '.'); 
+    const val = parseFloat(input) || 0;
+
+    if (val <= 0) return;
+
     const desc = prompt('Descrição','') || '';
+    addAssetTransaction(id, tipo, val, desc);
+}
+
+    if(val <= 0) return;
+    const desc = prompt('Descri��o','') || '';
     addAssetTransaction(id, tipo, val, desc);
   }
 
@@ -276,8 +287,8 @@
     const a = state.assets.find(x=>x.id===id);
     const panel = document.getElementById('assetTxPanel');
     if(!panel) return;
-    panel.innerHTML = `<div style="font-weight:700;margin-bottom:8px">${a.name} — Transações</div>`;
-    if(!a.transactions || !a.transactions.length){ panel.innerHTML += '<div class="small">Sem transações</div>'; return; }
+    panel.innerHTML = `<div style="font-weight:700;margin-bottom:8px">${a.name} � Transa��es</div>`;
+    if(!a.transactions || !a.transactions.length){ panel.innerHTML += '<div class="small">Sem transa��es</div>'; return; }
     const table = document.createElement('table');
     table.className = 'table';
     table.style.width = '100%';
@@ -302,7 +313,7 @@
   function removeAssetTx(assetId, txId){
     const a = state.assets.find(x=>x.id===assetId);
     if(!a) return;
-    if(!confirm('Excluir transação?')) return;
+    if(!confirm('Excluir transa��o?')) return;
     a.transactions = a.transactions.filter(t=>t.id !== txId);
     // recalc saldo from cost and transactions
     a.saldo = a.transactions.reduce((s,t)=> s + (t.type==='entrada' ? Number(t.value) : -Number(t.value)), Number(a.cost || 0));
@@ -328,7 +339,7 @@
   }
 
   function removeAsset(id){
-    if(!confirm('Excluir ativo/passivo e transações?')) return;
+    if(!confirm('Excluir ativo/passivo e transa��es?')) return;
     state.assets = state.assets.filter(x=>x.id !== id);
     saveLocal();
     renderAssets();
@@ -350,7 +361,7 @@
         type:'bar',
         data:{ labels, datasets:[
           { label:'Entradas', data:entradas, backgroundColor:'rgba(16,185,129,0.9)' },
-          { label:'Saídas', data:saidas, backgroundColor:'rgba(239,68,68,0.9)' }
+          { label:'Sa�das', data:saidas, backgroundColor:'rgba(239,68,68,0.9)' }
         ]},
         options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{display:false}, y:{display:false}} }
       });
@@ -388,3 +399,4 @@
   }
 
 })();
+
