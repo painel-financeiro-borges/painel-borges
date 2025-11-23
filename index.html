@@ -131,12 +131,30 @@ canvas{width:100%;height:150px;background:transparent;border-radius:8px}
     <button id="btnExportNotes" class="btn-export">Exportar (Bloco de Notas)</button>
   </div>
 
- <!-- ============== DASHBOARD ============== -->
-<div id="dashboard" class="page card" style="margin-top:12px">
-  <h2>Dashboard</h2>
+  <!-- ============== DASHBOARD ============== -->
+  <div id="dashboard" class="page card" style="margin-top:12px">
+    <h2>Dashboard</h2>
 
-  <div id="dash_alert" class="alert-banner" style="display:none"></div>
+    <div id="dash_alert" class="alert-banner" style="display:none"></div>
 
+    <!-- TOP STATS -->
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px">
+      <div class="card" style="flex:1;min-width:220px">
+        <div class="small">Entradas</div>
+        <div id="dash_entradas" style="font-weight:800;font-size:22px">R$ 0,00</div>
+        <div class="small">Lançamentos: <span id="count_entradas">0</span></div>
+      </div>
+      <div class="card" style="flex:1;min-width:220px">
+        <div class="small">Saídas</div>
+        <div id="dash_saidas" style="font-weight:800;font-size:22px">R$ 0,00</div>
+        <div class="small">Lançamentos: <span id="count_saidas">0</span></div>
+      </div>
+      <div class="card" style="flex:1;min-width:220px">
+        <div class="small">Resultado</div>
+        <div id="dash_resultado" style="font-weight:800;font-size:22px">R$ 0,00</div>
+        <div class="small">Status: <span id="dash_result_status">—</span></div>
+      </div>
+    </div>
 <!-- RESERVAS — PROGRESSO GERAL -->
 <div class="card" style="flex:1;min-width:220px;margin-top:12px">
   <div style="font-weight:600;margin-bottom:6px">Reservas — total</div>
@@ -165,18 +183,16 @@ canvas{width:100%;height:150px;background:transparent;border-radius:8px}
     </div>
 
     <!-- 2) FLUXO DE CAIXA MENSAL -->
-<div class="card" id="dash_fluxo_card" style="margin-top:12px">
-  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-    <div>
-      <div class="small">Fluxo de Caixa — Mês</div>
-
-      <div style="display:flex;gap:12px;align-items:center;margin-top:6px;flex-wrap:wrap">
-        <div class="kv"><div id="dash_fluxo_entries" style="font-weight:800">R$ 0,00</div></div>
-        <div class="kv"><div id="dash_fluxo_exits" style="font-weight:800">R$ 0,00</div></div>
-        <div class="kv"><div id="dash_fluxo_net" style="font-weight:800">R$ 0,00</div></div>
-      </div>
-    </div>
-
+    <div class="card" id="dash_fluxo_card" style="margin-top:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <div>
+          <div class="small">Fluxo de Caixa — Mês</div>
+          <div style="display:flex;gap:12px;align-items:center;margin-top:6px;flex-wrap:wrap">
+            <div class="kv"><div class="small">Entradas</div><div id="dash_fluxo_entries" style="font-weight:800">R$ 0,00</div></div>
+            <div class="kv"><div class="small">Saídas</div><div id="dash_fluxo_exits" style="font-weight:800">R$ 0,00</div></div>
+            <div class="kv"><div class="small">Consolidação</div><div id="dash_fluxo_net" style="font-weight:800">R$ 0,00</div></div>
+          </div>
+        </div>
         <div style="flex:1;max-width:680px">
           <canvas id="chartFluxMonthly" height="180"></canvas>
         </div>
@@ -1520,5 +1536,6 @@ window.driveSync = {
 
 </body>
 </html>
+
 
 
