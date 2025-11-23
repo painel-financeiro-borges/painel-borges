@@ -232,21 +232,34 @@ canvas{width:100%;height:150px;background:transparent;border-radius:8px}
   </div>
 </div>
 
-    <!-- últimas transações -->
-    <div class="card" style="margin-top:12px">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div><h3 style="margin:0">Últimas transações / lançamentos</h3><div class="small">Transações recentes</div></div>
-        <div class="small">Atualizado: <span id="dash_updated">-</span></div>
-      </div>
-      <div style="margin-top:8px;overflow:auto">
-        <table class="table" id="dash_recent">
-          <thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Valor</th></tr></thead>
-          <tbody><tr><td colspan="4" class="small">Sem registros</td></tr></tbody>
-        </table>
-      </div>
+   <!-- últimas transações -->
+<div class="card" style="margin-top:12px">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <h3 style="margin:0">Últimas transações / lançamentos</h3>
+      <div class="small">Transações recentes</div>
     </div>
 
+    <!-- 🔒 dash_updated AGORA TEM PRIVACIDADE + SENHA -->
+    <div class="small">
+      Atualizado: 
+      <span id="dash_updated" onclick="revealDashUpdated()" style="cursor:pointer">-</span>
+    </div>
   </div>
+
+  <div style="margin-top:8px;overflow:auto">
+    <table class="table" id="dash_recent">
+      <thead>
+        <tr>
+          <th>Data</th><th>Tipo</th><th>Descrição</th><th>Valor</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td colspan="4" class="small">Sem registros</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 
   <!-- ============== CUSTO / PLANEJAMENTO / FLUXO / RESERVAS / INVESTIMENTOS / CADERNO / BACKUP ============== -->
   <!-- (preserve existing markup for these pages) -->
@@ -1143,21 +1156,262 @@ function renderNoteTabs(){
     container.appendChild(div);
   });
 }
-function editNoteTab(tabId){ const t = state.caderno.find(x=>x.id===tabId); if(!t) return; const newName = prompt('Renomear aba', t.name); if(newName===null) return; t.name = newName.trim() || t.name; saveLocal(); renderNoteTabs(); renderNoteBlocks(t.id); }
-function removeNoteTab(tabId){ if(!confirm('Remover aba e todos os blocos nela?')) return; state.caderno = state.caderno.filter(x=>x.id!==tabId); saveLocal(); renderNoteTabs(); el('#noteBlocks').innerHTML=''; }
-function reorderNoteTabs(draggedId, targetId){ const idxD = state.caderno.findIndex(x=>x.id===draggedId); const idxT = state.caderno.findIndex(x=>x.id===targetId); if(idxD==-1||idxT==-1) return; const [item] = state.caderno.splice(idxD,1); state.caderno.splice(idxT,0,item); saveLocal(); renderNoteTabs(); }
-function addBlock(){ const title = el('#note_block_title').value.trim(); if(!title) return alert('Insira título do bloco'); const activeEl = document.querySelector('.note-tab.active'); if(!activeEl) return alert('Selecione uma aba primeiro'); const tab = state.caderno.find(t=>t.id===activeEl.dataset.id); if(!tab) return; tab.blocks.push({ id: uid('b'), title, items: [] }); el('#note_block_title').value=''; saveLocal(); renderNoteBlocks(tab.id); }
-function renderNoteBlocks(tabId){ const tab = state.caderno.find(t=>t.id===tabId); if(!tab){ el('#noteBlocks').innerHTML=''; return; } const container = el('#noteBlocks'); container.innerHTML=''; tab.blocks.forEach(block=>{ const box = document.createElement('div'); box.className='card'; box.style.marginBottom='10px'; box.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><strong>${block.title}</strong>
-      <div><button class="btn-ghost" onclick="addItemPrompt('${tab.id}','${block.id}')">+ Item</button> <button class="btn-ghost" onclick="removeBlock('${tab.id}','${block.id}')">Excluir bloco</button></div></div>
-      <div id="items_${block.id}" style="margin-top:8px"></div>`; box.setAttribute('draggable','true'); box.addEventListener('dragstart',(e)=> e.dataTransfer.setData('text/plain', JSON.stringify({tab:tab.id, block:block.id}))); box.addEventListener('dragover',(e)=> e.preventDefault()); box.addEventListener('drop',(e)=> { e.preventDefault(); const data = JSON.parse(e.dataTransfer.getData('text/plain')); reorderBlocks(data.tab, data.block, tab.id, block.id); }); container.appendChild(box); renderItems(tab.id, block.id); }); }
-function reorderBlocks(srcTabId, srcBlockId, tgtTabId, tgtBlockId){ const srcTab = state.caderno.find(t=>t.id===srcTabId); const tgtTab = state.caderno.find(t=>t.id===tgtTabId); if(!srcTab||!tgtTab) return; const bi = srcTab.blocks.findIndex(b=>b.id===srcBlockId); const [block] = srcTab.blocks.splice(bi,1); const ti = tgtTab.blocks.findIndex(b=>b.id===tgtBlockId); tgtTab.blocks.splice(ti,0,block); saveLocal(); renderNoteTabs(); renderNoteBlocks(tgtTab.id); }
-function addItemPrompt(tabId, blockId){ const text = prompt('Descrição do item (aceita emojis)'); if(!text) return; const tab = state.caderno.find(t=>t.id===tabId); const block = tab.blocks.find(b=>b.id===blockId); block.items.push({ id: uid('it'), text, state:0 }); saveLocal(); renderItems(tabId, blockId); }
-function renderItems(tabId, blockId){ const tab = state.caderno.find(t=>t.id===tabId); if(!tab) return; const block = tab.blocks.find(b=>b.id===blockId); if(!block) return; const container = el('#items_'+block.id); if(!container) return; container.innerHTML=''; block.items.forEach(it=>{ const row = document.createElement('div'); row.style.display='flex'; row.style.alignItems='center'; row.style.justifyContent='space-between'; row.style.padding='6px 0'; row.innerHTML = `<div style="display:flex;gap:8px;align-items:center"><div class="checkbox-tri" onclick="toggleItemState('${tabId}','${blockId}','${it.id}')">${it.state===1?'✔':(it.state===2?'✖':'')}</div><div>${it.text}</div></div>
-      <div><button class="btn-ghost" onclick="editItem('${tabId}','${blockId}','${it.id}')">Editar</button> <button class="btn-ghost" onclick="removeItem('${tabId}','${blockId}','${it.id}')">Excluir</button></div>`; container.appendChild(row); }); }
-function toggleItemState(tabId,blockId,itemId){ const it = state.caderno.find(t=>t.id===tabId).blocks.find(b=>b.id===blockId).items.find(i=>i.id===itemId); if(!it) return; it.state = (it.state + 1) % 3; saveLocal(); renderItems(tabId,blockId); }
-function editItem(tabId,blockId,itemId){ const it = state.caderno.find(t=>t.id===tabId).blocks.find(b=>b.id===blockId).items.find(i=>i.id===itemId); const txt = prompt('Editar item', it.text); if(txt===null) return; it.text = txt; saveLocal(); renderItems(tabId,blockId); }
-function removeItem(tabId,blockId,itemId){ if(!confirm('Remover item?')) return; const block = state.caderno.find(t=>t.id===tabId).blocks.find(b=>b.id===blockId); block.items = block.items.filter(i=>i.id!==itemId); saveLocal(); renderItems(tabId,blockId); }
-function removeBlock(tabId, blockId){ if(!confirm('Remover bloco?')) return; const tab = state.caderno.find(t=>t.id===tabId); tab.blocks = tab.blocks.filter(b=>b.id!==blockId); saveLocal(); renderNoteBlocks(tabId); }
+/* ====== CADERNO (notas) ====== */
+function createNoteTab(){
+  const name = el('#note_tab_name').value.trim(); if(!name) return alert('Nome da aba é necessário');
+  const tab = { id: uid('nt'), name, blocks: [] };
+  state.caderno.push(tab); el('#note_tab_name').value=''; saveLocal(); renderNoteTabs();
+  setTimeout(()=>{
+    const tabs = document.querySelectorAll('#noteTabs .note-tab');
+    tabs.forEach(t=>{
+      if(t.dataset.id===tab.id){ t.classList.add('active'); }
+      else t.classList.remove('active');
+    });
+    renderNoteBlocks(tab.id);
+  }, 50);
+}
+
+function renderNoteTabs(){
+  const container = el('#noteTabs'); if(!container) return;
+  container.innerHTML='';
+  if(!state.caderno.length) {
+    container.innerHTML = '<div class="small">Nenhuma aba criada</div>';
+    return;
+  }
+  state.caderno.forEach((t, idx)=>{
+    const div = document.createElement('div');
+    div.className='note-tab';
+    div.dataset.id = t.id;
+    div.innerHTML = `
+      <span style="margin-right:8px">${t.name}</span>
+      <button class="btn-ghost" onclick="editNoteTab('${t.id}')">✎</button>
+      <button class="btn-ghost" onclick="removeNoteTab('${t.id}')">✖</button>
+    `;
+    div.onclick = (ev)=>{
+      if(ev.target.tagName==='BUTTON') return;
+      els('.note-tab').forEach(x=>x.classList.remove('active'));
+      div.classList.add('active');
+      renderNoteBlocks(t.id);
+    };
+    div.setAttribute('draggable','true');
+    div.addEventListener('dragstart',(e)=> e.dataTransfer.setData('text/plain', t.id));
+    div.addEventListener('dragover',(e)=> e.preventDefault());
+    div.addEventListener('drop',(e)=>{
+      e.preventDefault();
+      const dragged = e.dataTransfer.getData('text/plain');
+      reorderNoteTabs(dragged, t.id);
+    });
+    container.appendChild(div);
+  });
+}
+
+function editNoteTab(tabId){
+  const t = state.caderno.find(x=>x.id===tabId);
+  if(!t) return;
+  const newName = prompt('Renomear aba', t.name);
+  if(newName===null) return;
+  t.name = newName.trim() || t.name;
+  saveLocal();
+  renderNoteTabs();
+  renderNoteBlocks(t.id);
+}
+
+function removeNoteTab(tabId){
+  if(!confirm('Remover aba e todos os blocos nela?')) return;
+  state.caderno = state.caderno.filter(x=>x.id!==tabId);
+  saveLocal();
+  renderNoteTabs();
+  el('#noteBlocks').innerHTML='';
+}
+
+function reorderNoteTabs(draggedId, targetId){
+  const idxD = state.caderno.findIndex(x=>x.id===draggedId);
+  const idxT = state.caderno.findIndex(x=>x.id===targetId);
+  if(idxD==-1 || idxT==-1) return;
+  const [item] = state.caderno.splice(idxD,1);
+  state.caderno.splice(idxT,0,item);
+  saveLocal();
+  renderNoteTabs();
+}
+
+function addBlock(){
+  const title = el('#note_block_title').value.trim();
+  if(!title) return alert('Insira título do bloco');
+  const activeEl = document.querySelector('.note-tab.active');
+  if(!activeEl) return alert('Selecione uma aba primeiro');
+  const tab = state.caderno.find(t=>t.id===activeEl.dataset.id);
+  if(!tab) return;
+  tab.blocks.push({ id: uid('b'), title, items: [] });
+  el('#note_block_title').value='';
+  saveLocal();
+  renderNoteBlocks(tab.id);
+}
+
+function renderNoteBlocks(tabId){
+  const tab = state.caderno.find(t=>t.id===tabId);
+  if(!tab){
+    el('#noteBlocks').innerHTML='';
+    return;
+  }
+  const container = el('#noteBlocks');
+  container.innerHTML='';
+  tab.blocks.forEach(block=>{
+    const box = document.createElement('div');
+    box.className='card';
+    box.style.marginBottom='10px';
+    box.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <strong>${block.title}</strong>
+        <div>
+          <button class="btn-ghost" onclick="addItemPrompt('${tab.id}','${block.id}')">+ Item</button>
+          <button class="btn-ghost" onclick="removeBlock('${tab.id}','${block.id}')">Excluir bloco</button>
+        </div>
+      </div>
+      <div id="items_${block.id}" style="margin-top:8px"></div>
+    `;
+    box.setAttribute('draggable','true');
+    box.addEventListener('dragstart',(e)=> e.dataTransfer.setData('text/plain', JSON.stringify({tab:tab.id, block:block.id})));
+    box.addEventListener('dragover',(e)=> e.preventDefault());
+    box.addEventListener('drop',(e)=>{
+      e.preventDefault();
+      const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+      reorderBlocks(data.tab, data.block, tab.id, block.id);
+    });
+    container.appendChild(box);
+    renderItems(tab.id, block.id);
+  });
+}
+
+function reorderBlocks(srcTabId, srcBlockId, tgtTabId, tgtBlockId){
+  const srcTab = state.caderno.find(t=>t.id===srcTabId);
+  const tgtTab = state.caderno.find(t=>t.id===tgtTabId);
+  if(!srcTab || !tgtTab) return;
+  const bi = srcTab.blocks.findIndex(b=>b.id===srcBlockId);
+  const [block] = srcTab.blocks.splice(bi,1);
+  const ti = tgtTab.blocks.findIndex(b=>b.id===tgtBlockId);
+  tgtTab.blocks.splice(ti,0,block);
+  saveLocal();
+  renderNoteTabs();
+  renderNoteBlocks(tgtTab.id);
+}
+
+function addItemPrompt(tabId, blockId){
+  const text = prompt('Descrição do item (aceita emojis)');
+  if(!text) return;
+  const tab = state.caderno.find(t=>t.id===tabId);
+  const block = tab.blocks.find(b=>b.id===blockId);
+  block.items.push({ id: uid('it'), text, state: 0 });
+  saveLocal();
+  renderItems(tabId, blockId);
+}
+
+function renderItems(tabId, blockId){
+  const tab = state.caderno.find(t=>t.id===tabId);
+  if(!tab) return;
+  const block = tab.blocks.find(b=>b.id===blockId);
+  if(!block) return;
+  const container = el('#items_'+block.id);
+  if(!container) return;
+  container.innerHTML='';
+  block.items.forEach(it=>{
+    const row = document.createElement('div');
+    row.style.display='flex';
+    row.style.alignItems='center';
+    row.style.justifyContent='space-between';
+    row.style.padding='6px 0';
+    row.innerHTML = `
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="checkbox-tri" onclick="toggleItemState('${tabId}','${blockId}','${it.id}')">
+          ${it.state===1?'✔':(it.state===2?'✖':'')}
+        </div>
+        <div>${it.text}</div>
+      </div>
+      <div>
+        <button class="btn-ghost" onclick="editItem('${tabId}','${blockId}','${it.id}')">Editar</button>
+        <button class="btn-ghost" onclick="removeItem('${tabId}','${blockId}','${it.id}')">Excluir</button>
+      </div>
+    `;
+    container.appendChild(row);
+  });
+}
+
+function toggleItemState(tabId, blockId, itemId){
+  const it = state.caderno.find(t=>t.id===tabId)
+        .blocks.find(b=>b.id===blockId)
+        .items.find(i=>i.id===itemId);
+  if(!it) return;
+  it.state = (it.state + 1) % 3;
+  saveLocal();
+  renderItems(tabId, blockId);
+}
+
+function editItem(tabId, blockId, itemId){
+  const it = state.caderno.find(t=>t.id===tabId)
+        .blocks.find(b=>b.id===blockId)
+        .items.find(i=>i.id===itemId);
+  const txt = prompt('Editar item', it.text);
+  if(txt===null) return;
+  it.text = txt;
+  saveLocal();
+  renderItems(tabId, blockId);
+}
+
+function removeItem(tabId, blockId, itemId){
+  if(!confirm('Remover item?')) return;
+  const block = state.caderno.find(t=>t.id===tabId).blocks.find(b=>b.id===blockId);
+  block.items = block.items.filter(i=>i.id!==itemId);
+  saveLocal();
+  renderItems(tabId, blockId);
+}
+
+function removeBlock(tabId, blockId){
+  if(!confirm('Remover bloco?')) return;
+  const tab = state.caderno.find(t=>t.id===tabId);
+  tab.blocks = tab.blocks.filter(b=>b.id!==blockId);
+  saveLocal();
+  renderNoteBlocks(tabId);
+}
+
+/* ===== Exportar Caderno (com senha) ===== */
+function exportCaderno() {
+
+  // 🔒 SENHA ANTES DE EXPORTAR
+  const pwd = prompt("Digite a senha para exportar o Caderno:");
+  if (pwd !== "G#@98FstK12") {
+    alert("Senha incorreta. Exportação cancelada.");
+    return;
+  }
+
+  let txt = "CADERNO DE NOTAS — Exportação\n\n";
+
+  (state.caderno || []).forEach(tab => {
+    txt += `# ${tab.name}\n`;
+    (tab.blocks || []).forEach(block => {
+      txt += `\n## ${block.title}\n`;
+      (block.items || []).forEach(it => {
+        const marker = it.state === 1 ? "✔" : it.state === 2 ? "✖" : "•";
+        txt += `${marker} ${it.text}\n`;
+      });
+    });
+    txt += `\n----------------------------------------\n\n`;
+  });
+
+  navigator.clipboard.writeText(txt).then(() => {
+    showModal(
+      "Exportar Caderno — Texto copiado",
+      `<textarea class="input" style="height:260px">${txt}</textarea>`,
+      null
+    );
+    alert("Caderno copiado para a área de transferência.");
+  }).catch(() => {
+    showModal(
+      "Exportar Caderno",
+      `<textarea class="input" style="height:260px">${txt}</textarea>`,
+      null
+    );
+    alert("Não foi possível copiar automaticamente. Copie manualmente no modal.");
+  });
+}
 
 /* ===== MODAL ===== */
 let modalCallback = null;
@@ -1381,47 +1635,69 @@ function renderDashboard(){
   chartInvCompSmall = renderChartInvSmall();
 
   /* ===================== RECENTES ===================== */
-  const tbody = el('#dash_recent tbody'); 
-  if(!tbody) return;
+const tbody = el('#dash_recent tbody'); 
+if(!tbody) return;
 
-  const maskValue = v => state.settings.hideValues ? 'R$ ••••' : formatMoney(v);
-  const maskType  = t => state.settings.hideValues ? '•••' : t;
+/* 🔒 PRIVACIDADE TOTAL — se hideValues estiver ativo, tabela some */
+if (state.settings.hideValues) {
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="4" class="small muted">🔒 Registros recentes ocultos pela privacidade global</td>
+    </tr>
+  `;
+  state._last_update = new Date().toLocaleString();
+el('#dash_updated').innerText = state.settings.hideValues ? "••••" : state._last_update;
+  return; // <-- impedimos qualquer renderização normal
+}
 
-  tbody.innerHTML = '';
+/* (modo normal abaixo — somente executa se NÃO estiver ocultando valores) */
 
-  const recent = []
-    .concat(state.transacoes || [], state.fluxo || [])
-    .slice(0, 10);
+const maskValue = v => formatMoney(v);
+const maskType  = t => t;
 
-  if (!recent.length) {
-    tbody.innerHTML = '<tr><td colspan="4" class="small">Sem registros</td></tr>';
+tbody.innerHTML = '';
+
+const recent = []
+  .concat(state.transacoes || [], state.fluxo || [])
+  .slice(0, 10);
+
+if (!recent.length) {
+  tbody.innerHTML = '<tr><td colspan="4" class="small">Sem registros</td></tr>';
+} else {
+  recent.forEach(r => {
+    const tr = document.createElement('tr');
+
+    const dateStr = r.date 
+      ? (r.date.length === 10
+          ? new Date(r.date + 'T00:00:00').toLocaleDateString()
+          : new Date(r.date).toLocaleDateString()
+        )
+      : '-';
+
+    const tipo = r.tipo || r.type || 'mov';
+    const desc = r.reserva || r.desc || r.ativo || '';
+    const valor = r.valor || r.value || 0;
+
+    tr.innerHTML = `
+      <td>${dateStr}</td>
+      <td>${maskType(tipo)}</td>
+      <td>${desc}</td>
+      <td>${maskValue(valor)}</td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+}
+
+/* 🔒 dash_updated — protegido por senha */
+(function(){
+  const pwd = prompt("Digite a senha para exibir a última atualização:");
+  if (pwd !== "G#@98FstK12") {
+    el('#dash_updated').innerText = "••••"; // senha errada → oculta
   } else {
-    recent.forEach(r => {
-      const tr = document.createElement('tr');
-
-      const dateStr = r.date 
-        ? (r.date.length === 10
-            ? new Date(r.date + 'T00:00:00').toLocaleDateString()
-            : new Date(r.date).toLocaleDateString()
-          )
-        : '-';
-
-      const tipo = r.tipo || r.type || 'mov';
-      const desc = r.reserva || r.desc || r.ativo || '';
-      const valor = r.valor || r.value || 0;
-
-      tr.innerHTML = `
-        <td>${dateStr}</td>
-        <td>${maskType(tipo)}</td>
-        <td>${desc}</td>
-        <td>${maskValue(valor)}</td>
-      `;
-
-      tbody.appendChild(tr);
-    });
+    el('#dash_updated').innerText = new Date().toLocaleString(); // senha correta → mostra
   }
-  el('#dash_updated').innerText = new Date().toLocaleString();
-} 
+})();
 
 /* ===== Expor bloco de notas (para colar no GPT) ===== */
 function compileExportText(){
@@ -1443,13 +1719,33 @@ function compileExportText(){
   ].join('\n');
   return text;
 }
+
 function exportToClipboardAndModal(){
+
+  // 🔒 PRIMEIRO: pede senha
+  const pwd = prompt("Digite a senha para exportar:");
+  if(pwd !== "G#@98FstK12"){
+    alert("Senha incorreta. Exportação cancelada.");
+    return;
+  }
+
   const txt = compileExportText();
-  // copy
+
   navigator.clipboard.writeText(txt).then(()=>{
-    showModal('Exportar (Bloco de Notas) — Texto copiado', `<textarea class="input" style="height:260px">${txt}</textarea>`, null);
+    showModal(
+      'Exportar (Bloco de Notas) — Texto copiado',
+      `<textarea class="input" style="height:260px">${txt}</textarea>`,
+      null
+    );
     alert('Resumo copiado para a área de transferência. Cole no ChatGPT para análise.');
-  }).catch(()=>{ showModal('Exportar (Bloco de Notas)', `<textarea class="input" style="height:260px">${txt}</textarea>`, null); alert('Não foi possível copiar automaticamente. Abra o modal e copie manualmente.'); });
+  }).catch(()=>{
+    showModal(
+      'Exportar (Bloco de Notas)',
+      `<textarea class="input" style="height:260px">${txt}</textarea>`,
+      null
+    );
+    alert('Não foi possível copiar automaticamente. Abra o modal e copie manualmente.');
+  });
 }
 
 /* ===== Render all structural tables/cards ===== */
@@ -1493,6 +1789,22 @@ el('#btnHideValues').addEventListener('click', ()=>{
 el('#btnExportNotes').addEventListener('click', ()=>{ 
   exportToClipboardAndModal(); 
 });
+
+/* ====== PRIVACIDADE — Mostrar dash_updated com senha ====== */
+function revealDashUpdated(){
+  if(!state.settings.hideValues){
+    // Se o olho está aberto, mostra sem pedir senha
+    return;
+  }
+
+  const pwd = prompt("Digite a senha para revelar o horário de atualização:");
+  if(pwd === "G#@98FstK12"){
+    const span = el('#dash_updated');
+    span.innerText = state._last_update || "-";
+  } else {
+    alert("Senha incorreta.");
+  }
+}
 
 /* 🔒 Botão Global de Privacidade (NOVO) */
 el('#btnPrivacy').addEventListener('click', ()=>{ 
@@ -1732,4 +2044,3 @@ window.driveSync = {
 
 </body>
 </html>
-
