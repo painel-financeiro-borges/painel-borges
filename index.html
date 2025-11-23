@@ -1385,54 +1385,50 @@ function enableTouchForOnclicks(){
   document.querySelectorAll('.btn, .btn-ghost, button').forEach(b=>{ if(!b.__touchAttached){ b.addEventListener('touchstart', function(e){ e.preventDefault(); b.click(); }, {passive:false}); b.__touchAttached = true; }});
 }
 
-  <!-- ===================== DEBUG HELPERS ===================== -->
-  <script>
-    window._borges_state = state;
-    window.saveLocal = saveLocal;
-  </script>
+ </body>
 
-  <!-- ===== PRIVACIDADE DASHBOARD ===== -->
-  <script>
-    (function(){
-      const STORAGE_KEY = 'dashboardPrivacyState';
-      const state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+<!-- ===== PRIVACIDADE DASHBOARD ===== -->
+<script>
+(function(){
+  const STORAGE_KEY = 'dashboardPrivacyState';
+  const state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
 
-      // Função para aplicar classes de ocultação
-      function applyPrivacy() {
-        document.querySelectorAll('[data-sensitive]').forEach(el => {
-          const type = el.dataset.sensitive;
-          if(state.hideAll || state[type]) {
-            el.classList.add('hidden-value');
-          } else {
-            el.classList.remove('hidden-value');
-          }
-        });
+  // Expor para debug (agora que state existe)
+  window._borges_state = state;
+  window.saveLocal = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+
+  // Função para aplicar classes de ocultação
+  function applyPrivacy() {
+    document.querySelectorAll('[data-sensitive]').forEach(el => {
+      const type = el.dataset.sensitive;
+      if(state.hideAll || state[type]) {
+        el.classList.add('hidden-value');
+      } else {
+        el.classList.remove('hidden-value');
       }
+    });
+  }
 
-      // Inicializa estado
+  // Inicializa estado
+  applyPrivacy();
+
+  // Botões de toggle
+  const buttons = document.querySelectorAll('#privacy_controls button');
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const toggle = btn.dataset.toggle;
+      if(toggle === 'hide-all') {
+        state.hideAll = !state.hideAll;
+      } else {
+        state[toggle] = !state[toggle];
+      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       applyPrivacy();
+    });
+  });
+})();
+</script>
 
-      // Botões
-      const buttons = document.querySelectorAll('#privacy_controls button');
-
-      buttons.forEach(btn => {
-        btn.addEventListener('click', () => {
-          const toggle = btn.dataset.toggle;
-
-          if(toggle === 'hide-all') {
-            state.hideAll = !state.hideAll;
-          } else {
-            state[toggle] = !state[toggle];
-          }
-
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-          applyPrivacy();
-        });
-      });
-    })();
-  </script>
-
-</body>
 </html>
 
 <!-- === Google API === -->
