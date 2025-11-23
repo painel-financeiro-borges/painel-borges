@@ -1395,6 +1395,7 @@ function enableTouchForOnclicks(){
 
   // Expor para debug (agora que state existe)
   window._borges_state = state;
+   if (!window._borges_state.assets) window._borges_state.assets = [];
   window.saveLocal = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 
   // Função para aplicar classes de ocultação
