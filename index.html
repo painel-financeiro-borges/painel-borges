@@ -125,10 +125,6 @@ canvas{width:100%;height:150px;background:transparent;border-radius:8px}
 
     <div class="spacer"></div>
 
-<button id="btnHideAll" class="btn-pro">Ocultar Tudo</button>
-<button id="btnHideFinance" class="btn-pro">Ocultar Entradas/Saídas/Resultado</button>
-<button id="btnHideDashboard" class="btn-pro">Ocultar Resumos & Últimas Transações</button>
-
     <button id="btnSeed" class="btn-ghost">Criar Padrões</button>
     <button id="btnSyncAll" class="btn">Sincronizar com Drive</button>
     <button id="btnExportNotes" class="btn-export">Exportar (Bloco de Notas)</button>
@@ -136,6 +132,24 @@ canvas{width:100%;height:150px;background:transparent;border-radius:8px}
 
   <!-- ============== DASHBOARD ============== -->
   <div id="dashboard" class="page card" style="margin-top:12px">
+  <!-- ================== BOTOES DE OCULTAR VALORES ================== -->
+<div id="hideControls" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">
+
+  <!-- BOTÃO MASTER -->
+  <button id="hide_all_btn" class="btn small">🔒 Ocultar Tudo</button>
+
+  <!-- BOTÕES ESPECÍFICOS -->
+  <button id="hide_entradas_btn" class="btn small">Entradas/Saídas</button>
+  <button id="hide_reservas_btn" class="btn small">Reservas</button>
+  <button id="hide_custo_btn" class="btn small">Custo de Vida</button>
+  <button id="hide_fluxo_btn" class="btn small">Fluxo do Mês</button>
+  <button id="hide_planejamento_btn" class="btn small">Planejamento</button>
+  <button id="hide_invest_btn" class="btn small">Investimentos</button>
+  <button id="hide_trans_btn" class="btn small">Últimas Transações</button>
+
+</div>
+<!-- =============================================================== -->
+
     <h2>Dashboard</h2>
 
     <div id="dash_alert" class="alert-banner" style="display:none"></div>
@@ -510,8 +524,18 @@ let state = {
   custo: [],
   planejamento: {},
   caderno: [],
-  settings: { hideValues: false }
+  settings: {
+    hideAll: false,
+    hideEntradas: false,
+    hideReservas: false,
+    hideCusto: false,
+    hideFluxo: false,
+    hidePlanejamento: false,
+    hideInvestimentos: false,
+    hideTransacoes: false
+  }
 };
+
 
 function resetCusto() {
   if (!confirm("Deseja zerar TODOS os lançamentos de Custo de Vida?")) return;
@@ -561,22 +585,56 @@ function nowISO(){ return new Date().toISOString(); }
 
 /* ===== Persistence ===== */
 const STATE_KEY = 'borges_panel_3_v1';
-function saveLocal(){ localStorage.setItem(STATE_KEY, JSON.stringify(state)); renderAll(); }
+
+function saveLocal(){
+  localStorage.setItem(STATE_KEY, JSON.stringify(state));
+  renderAll();
+}
+
 function loadLocal(){
   try{
     const raw = localStorage.getItem(STATE_KEY);
     if(raw){
       const parsed = JSON.parse(raw);
-      // merge with default keys
+
+      // merge no state atual
       state = Object.assign(state, parsed);
-      if(!state.settings) state.settings = { hideValues:false };
+
+      // garantir que settings tenha todas as chaves modernas
+      state.settings = Object.assign({
+        hideAll: false,
+        hideEntradas: false,
+        hideReservas: false,
+        hideCusto: false,
+        hideFluxo: false,
+        hidePlanejamento: false,
+        hideInvestimentos: false,
+        hideTransacoes: false
+      }, state.settings || {});
     }
-  }catch(e){ console.error('Erro parse local', e); }
+  }catch(e){
+    console.error('Erro parse local', e);
+  }
 }
 
-/* ===== Format depending on hide values ===== */
-function formatMoney(v){
-  if(state && state.settings && state.settings.hideValues) return 'R$ ••••';
+/* ===== FormatMoney Inteligente (ocultação individual) ===== */
+function formatMoney(v, tipo){
+
+  // 1) OCULTAÇÃO MASTER
+  if (state.settings.hideAll) {
+    return 'R$ ••••';
+  }
+
+  // 2) OCULTAÇÃO POR TIPO ESPECÍFICO
+  if (tipo === 'entradas'      && state.settings.hideEntradas)      return 'R$ ••••';
+  if (tipo === 'reservas'      && state.settings.hideReservas)      return 'R$ ••••';
+  if (tipo === 'custo'         && state.settings.hideCusto)         return 'R$ ••••';
+  if (tipo === 'fluxo'         && state.settings.hideFluxo)         return 'R$ ••••';
+  if (tipo === 'planejamento'  && state.settings.hidePlanejamento)  return 'R$ ••••';
+  if (tipo === 'investimentos' && state.settings.hideInvestimentos) return 'R$ ••••';
+  if (tipo === 'transacoes'    && state.settings.hideTransacoes)    return 'R$ ••••';
+
+  // 3) NORMAL
   return moneyBRFormatted(v);
 }
 
@@ -1144,205 +1202,329 @@ function computeResumoFinanceiro(monthKey){
   return { totalEntradas, totalSaidas, resultado, reservasTotal, investimentosTotal };
 }
 
-/* ====== Render Dashboard (Chart.js) — Consolidado ====== */
+/* ====== Render Dashboard (Chart.js) ====== */
 function renderDashboard(){
-    const monthKey = getSelectedMonthKey() || new Date().toISOString().slice(0,7);
+  const monthKey = getSelectedMonthKey() || new Date().toISOString().slice(0,7);
 
-    // resumo financeiro
-    const resumo = computeResumoFinanceiro(monthKey);
-    el('#dash_entradas').innerText = state.settings.hideValues || state.settings.hideFinance 
-        ? 'R$ ••••' 
-        : formatMoney(resumo.totalEntradas || 0);
-    el('#dash_saidas').innerText = state.settings.hideValues || state.settings.hideFinance 
-        ? 'R$ ••••' 
-        : formatMoney(resumo.totalSaidas || 0);
-    el('#dash_resultado').innerText = state.settings.hideValues || state.settings.hideFinance 
-        ? 'R$ ••••' 
-        : formatMoney(resumo.resultado || 0);
-    el('#dash_result_status').innerText = state.settings.hideValues || state.settings.hideFinance 
-        ? '—' 
-        : (resumo.resultado >= 0 ? 'Positivo' : 'Negativo');
+  // resumo financeiro
+  const resumo = computeResumoFinanceiro(monthKey);
+  el('#dash_entradas').innerText = formatMoney(resumo.totalEntradas || 0, 'entradas');
+el('#dash_saidas').innerText = formatMoney(resumo.totalSaidas || 0, 'entradas');
+el('#dash_resultado').innerText = formatMoney(resumo.resultado || 0, 'entradas');
 
-    // Reservas — total
-    el('#dash_reservas_total').innerText = state.settings.hideValues || state.settings.hideDashboard 
-        ? 'R$ ••••' 
-        : formatMoney(resumo.reservasTotal || 0);
-    el('#dash_reservas_count').innerText = state.settings.hideValues || state.settings.hideDashboard 
-        ? '—' 
-        : (state.reservas||[]).length;
+  // reservas & investimentos
+  el('#dash_reservas_total').innerText = formatMoney(resumo.reservasTotal || 0, 'reservas');
+  el('#dash_reservas_count').innerText = (state.reservas||[]).length;
+  el('#dash_invest_total').innerText = formatMoney(resumo.investimentosTotal || 0, 'investimentos');
+  el('#dash_inv_count').innerText = (state.investimentos||[]).length;
 
-    // Custo de Vida — total
-    const custoRes = computeCustoByCategory(monthKey);
-    el('#dash_custo_total').innerText = state.settings.hideValues || state.settings.hideDashboard 
-        ? 'R$ ••••' 
-        : formatMoney(custoRes.total || 0);
-    el('#dash_custo_month_label').innerText = state.settings.hideValues || state.settings.hideDashboard 
-        ? '—' 
-        : monthKey;
+  // alerta custo de vida
+  const custoRes = computeCustoByCategory(monthKey);
+  el('#dash_custo_total').innerText = formatMoney(custoRes.total || 0, 'custo');
+  el('#dash_custo_month_label').innerText = monthKey;
+  const alertEl = el('#dash_alert');
+  if(custoRes.total > resumo.totalEntradas){
+    alertEl.style.display = 'block';
+    alertEl.innerText = 'Alerta: seu custo de vida atual ultrapassa as entradas. Revise despesas.';
+    alertEl.style.borderLeft = '4px solid var(--danger)';
+  } else {
+    if(custoRes.total === 0) alertEl.style.display = 'none';
+    else { alertEl.style.display = 'block'; alertEl.innerText = 'Seu custo de vida está dentro da margem.'; alertEl.style.borderLeft = '4px solid var(--success)'; }
+  }
 
-    // Fluxo de Caixa — Mês
-    const fluxoRes = computeFluxoMonthly(monthKey);
-    el('#dash_fluxo_entries').innerText = state.settings.hideValues || state.settings.hideDashboard 
-        ? 'R$ ••••' 
-        : formatMoney(fluxoRes.totalEntries || 0);
-    el('#dash_fluxo_exits').innerText = state.settings.hideValues || state.settings.hideDashboard 
-        ? 'R$ ••••' 
-        : formatMoney(fluxoRes.totalExits || 0);
-    el('#dash_fluxo_net').innerText = state.settings.hideValues || state.settings.hideDashboard 
-        ? 'R$ ••••' 
-        : formatMoney(fluxoRes.net || 0);
-    el('#dash_fluxo_net').style.color = (fluxoRes.net >= 0) ? 'var(--success)' : 'var(--danger)';
+  // Charts: custo (doughnut)
+  if(chartCustoTop){ chartCustoTop.destroy(); chartCustoTop = null; }
+  try{
+    const ctxC = document.getElementById('chartCustoTop').getContext('2d');
+    chartCustoTop = new Chart(ctxC, {
+      type:'doughnut',
+      data:{ labels: custoRes.labels.length ? custoRes.labels : ['Sem dados'], datasets:[{ data: custoRes.values.length ? custoRes.values : [1], backgroundColor:['#60a5fa','#1e88e5','#16a34a','#f59e0b','#ef4444','#7c3aed','#0ea5a4'] }]},
+      options:{ maintainAspectRatio:false, plugins:{ legend:{ position:'right', labels:{ color:'#e6eef8' } } } }
+    });
+  }catch(e){/*silent*/}
 
-    // Planejamento Mensal — Progresso
-    const planRes = computePlanProgress(monthKey);
-    el('#dash_plan_meta').innerText = state.settings.hideValues || state.settings.hideDashboard 
-        ? 'Meta: R$ ••••' 
-        : 'Meta: ' + formatMoney(planRes.meta || 0);
-    el('#dash_plan_done').innerText = state.settings.hideValues || state.settings.hideDashboard 
-        ? 'Concluído: R$ ••••' 
-        : 'Concluído: ' + formatMoney(planRes.done || 0);
-    const pct = Math.min(100, Math.max(0, planRes.pct || 0));
-    el('#dash_plan_bar').style.width = state.settings.hideValues || state.settings.hideDashboard ? '0%' : pct + '%';
-    el('#dash_plan_pct').innerText = state.settings.hideValues || state.settings.hideDashboard ? '0%' : pct + '%';
+  // =======================
+// FLUXO MENSAL (Dashboard)
+// =======================
+const fluxoRes = computeFluxoMonthly(monthKey);
 
-    // Investimentos — total
-    el('#dash_invest_total').innerText = state.settings.hideValues || state.settings.hideDashboard 
-        ? 'R$ ••••' 
-        : formatMoney(sumInvestments());
-    el('#dash_inv_count').innerText = state.settings.hideValues || state.settings.hideDashboard 
-        ? '—' 
-        : (state.investimentos||[]).length;
+// valores principais
+el('#dash_fluxo_entries').innerText = formatMoney(fluxoRes.totalEntries || 0, 'fluxo');
+el('#dash_fluxo_exits').innerText   = formatMoney(fluxoRes.totalExits   || 0, 'fluxo');
+el('#dash_fluxo_net').innerText     = formatMoney(fluxoRes.net          || 0, 'fluxo');
 
-    // Últimas transações
-    const tbody = el('#dash_recent tbody');
-    if(tbody){
-        tbody.innerHTML = '';
-        const recent = [].concat(state.transacoes || [], state.fluxo || []).slice(0,10);
-        if(!recent.length){
-            tbody.innerHTML = '<tr><td colspan="4" class="small">Sem registros</td></tr>';
-        } else {
-            recent.forEach(r=>{
-                const tr = document.createElement('tr');
-                const dateStr = r.date ? (r.date.length===10 ? new Date(r.date+'T00:00:00').toLocaleDateString() : new Date(r.date).toLocaleDateString()) : '-';
-                const valor = state.settings.hideValues || state.settings.hideDashboard ? 'R$ ••••' : formatMoney(r.valor || r.value || 0);
-                tr.innerHTML = `<td>${dateStr}</td><td>${r.tipo || r.type || 'mov'}</td><td>${r.reserva || r.desc || r.ativo || ''}</td><td>${valor}</td>`;
-                tbody.appendChild(tr);
-            });
+// cor do resultado
+el('#dash_fluxo_net').style.color = 
+  (fluxoRes.net >= 0) ? 'var(--success)' : 'var(--danger)';
+
+// recriar gráfico se já existir
+if (chartFluxMonthly) {
+  chartFluxMonthly.destroy();
+  chartFluxMonthly = null;
+}
+
+try {
+  const ctxF = document
+    .getElementById('chartFluxMonthly')
+    .getContext('2d');
+
+  chartFluxMonthly = new Chart(ctxF, {
+    type: 'bar',
+    data: {
+      labels: fluxoRes.labels,
+      datasets: [
+        {
+          label: 'Entradas',
+          data: fluxoRes.entriesArr,
+          backgroundColor: '#16a34a'
+        },
+        {
+          label: 'Saídas',
+          data: fluxoRes.exitsArr,
+          backgroundColor: '#ef4444'
         }
+      ]
+    },
+    options: {
+      maintainAspectRatio: false,
+      scales: {
+        x: { ticks: { color: '#e6eef8' } },
+        y: { ticks: { color: '#e6eef8' } }
+      },
+      plugins: {
+        legend: { labels: { color: '#e6eef8' } }
+      }
     }
+  });
 
-    // alerta custo de vida
-    const alertEl = el('#dash_alert');
-    if(custoRes.total > resumo.totalEntradas){
-        alertEl.style.display = 'block';
-        alertEl.innerText = 'Alerta: seu custo de vida atual ultrapassa as entradas. Revise despesas.';
-        alertEl.style.borderLeft = '4px solid var(--danger)';
-    } else {
-        if(custoRes.total === 0) alertEl.style.display = 'none';
-        else { 
-            alertEl.style.display = 'block'; 
-            alertEl.innerText = 'Seu custo de vida está dentro da margem.'; 
-            alertEl.style.borderLeft = '4px solid var(--success)'; 
-        }
-    }
+} catch (e) {
+  /* silent error */
+}
 
-    // Charts: custo (doughnut)
-    if(chartCustoTop){ chartCustoTop.destroy(); chartCustoTop = null; }
-    try{
-        const ctxC = document.getElementById('chartCustoTop').getContext('2d');
-        chartCustoTop = new Chart(ctxC, {
-            type:'doughnut',
-            data:{ 
-                labels: custoRes.labels.length ? custoRes.labels : ['Sem dados'], 
-                datasets:[{ 
-                    data: custoRes.values.length ? custoRes.values : [1], 
-                    backgroundColor:['#60a5fa','#1e88e5','#16a34a','#f59e0b','#ef4444','#7c3aed','#0ea5a4'] 
-                }]
-            },
-            options:{ maintainAspectRatio:false, plugins:{ legend:{ position:'right', labels:{ color:'#e6eef8' } } } }
-        });
-    }catch(e){/*silent*/}
+  // Plan small chart (donut)
+  const planRes = computePlanProgress(monthKey);
+el('#dash_plan_meta').innerText = `Meta: ${formatMoney(planRes.meta || 0, 'planejamento')}`;
+el('#dash_plan_done').innerText = `Concluído: ${formatMoney(planRes.done || 0, 'planejamento')}`;
+  const pct = Math.min(100, Math.max(0, planRes.pct || 0));
+  el('#dash_plan_bar').style.width = pct + '%';
+  el('#dash_plan_pct').innerText = pct + '%';
+  if(chartPlan){ chartPlan.destroy(); chartPlan = null; }
+  try{
+    const ctxP = document.getElementById('chartPlan').getContext('2d');
+    const rem = Math.max(0, (planRes.meta || 0) - (planRes.done || 0));
+    chartPlan = new Chart(ctxP, { type:'doughnut', data:{ labels:['Concluído','Restante'], datasets:[{ data:[planRes.done || 0, rem], backgroundColor:['#60a5fa','#374151'] }] }, options:{ maintainAspectRatio:false, plugins:{ legend:{ display:false } } } });
+  }catch(e){/*silent*/}
 
-    // Fluxo mensal chart
-    if(chartFluxMonthly){ chartFluxMonthly.destroy(); chartFluxMonthly = null; }
-    try{
-        const ctxF = document.getElementById('chartFluxMonthly').getContext('2d');
-        chartFluxMonthly = new Chart(ctxF, {
-            type:'bar',
-            data:{ labels:fluxoRes.labels, datasets:[ { label:'Entradas', data:fluxoRes.entriesArr, backgroundColor:'#16a34a' }, { label:'Saídas', data:fluxoRes.exitsArr, backgroundColor:'#ef4444' } ]},
-            options:{ maintainAspectRatio:false, scales:{ x:{ ticks:{ color:'#e6eef8' } }, y:{ ticks:{ color:'#e6eef8' } } }, plugins:{ legend:{ labels:{ color:'#e6eef8' } } } }
-        });
-    }catch(e){/*silent*/}
-
-    // Plan small chart (donut)
-    if(chartPlan){ chartPlan.destroy(); chartPlan = null; }
-    try{
-        const ctxP = document.getElementById('chartPlan').getContext('2d');
-        const rem = Math.max(0, (planRes.meta || 0) - (planRes.done || 0));
-        chartPlan = new Chart(ctxP, { type:'doughnut', data:{ labels:['Concluído','Restante'], datasets:[{ data:[planRes.done || 0, rem], backgroundColor:['#60a5fa','#374151'] }] }, options:{ maintainAspectRatio:false, plugins:{ legend:{ display:false } } } });
-    }catch(e){/*silent*/}
-
-    // Invest composition small chart
+  // Invest composition small chart
+  try{
+    const cats = {};
+    state.investimentos.forEach(it=>{ const v = (Number(it.quantidade||0) * Number(it.preco||0)); cats[it.categoria] = (cats[it.categoria]||0) + v; });
+    const labels = Object.keys(cats); const values = labels.map(l=>cats[l]);
     if(chartInvCompSmall){ chartInvCompSmall.destroy(); chartInvCompSmall = null; }
-    try{
-        const cats = {};
-        state.investimentos.forEach(it=>{ const v = (Number(it.quantidade||0) * Number(it.preco||0)); cats[it.categoria] = (cats[it.categoria]||0) + v; });
-        const labels = Object.keys(cats); const values = labels.map(l=>cats[l]);
-        const ctxI = document.getElementById('chartInvCompSmall') && document.getElementById('chartInvCompSmall').getContext('2d');
-        if(ctxI){
-            chartInvCompSmall = new Chart(ctxI, { type:'doughnut', data:{ labels: labels.length?labels:['Sem dados'], datasets:[{ data: values.length?values:[1], backgroundColor:['#60a5fa','#1e88e5','#16a34a','#f59e0b','#ef4444'] }] }, options:{ maintainAspectRatio:false, plugins:{ legend:{ position:'right', labels:{ color:'#e6eef8' } } } } });
-        }
-    }catch(e){/*silent*/}
+    const ctxI = document.getElementById('chartInvCompSmall') && document.getElementById('chartInvCompSmall').getContext('2d');
+    if(ctxI){
+      chartInvCompSmall = new Chart(ctxI, { type:'doughnut', data:{ labels: labels.length?labels:['Sem dados'], datasets:[{ data: values.length?values:[1], backgroundColor:['#60a5fa','#1e88e5','#16a34a','#f59e0b','#ef4444'] }] }, options:{ maintainAspectRatio:false, plugins:{ legend:{ position:'right', labels:{ color:'#e6eef8' } } } } });
+    }
+  }catch(e){/*silent*/}
 
-    // Atualiza data/hora última renderização
-    el('#dash_updated').innerText = new Date().toLocaleString();
+  // Recents
+  const tbody = el('#dash_recent tbody'); if(!tbody) return;
+  tbody.innerHTML = '';
+  const recent = [].concat(state.transacoes || [], state.fluxo || []).slice(0,10);
+  if(!recent.length) tbody.innerHTML = '<tr><td colspan="4" class="small">Sem registros</td></tr>';
+  else {
+    recent.forEach(r=>{
+      const tr = document.createElement('tr');
+      const dateStr = r.date ? (r.date.length===10 ? new Date(r.date+'T00:00:00').toLocaleDateString() : new Date(r.date).toLocaleDateString()) : '-';
+      tr.innerHTML = `
+  <td>${dateStr}</td>
+  <td>${r.tipo || r.type || 'mov'}</td>
+  <td>${r.reserva || r.desc || r.ativo || ''}</td>
+  <td>${formatMoney(r.valor || r.value || 0, 'transacoes')}</td>
+`;
+      tbody.appendChild(tr);
+    });
+  }
+  el('#dash_updated').innerText = new Date().toLocaleString();
+}
+
+/* ===== Expor bloco de notas (para colar no GPT) ===== */
+function compileExportText(){
+  const resumo = computeResumoFinanceiro(getSelectedMonthKey()||new Date().toISOString().slice(0,7));
+  const topCats = computeCustoByCategory(getSelectedMonthKey()).cats || {};
+  const topCatsList = Object.keys(topCats).map(k=> `${k}: ${formatMoney(topCats[k])}`).join(' • ');
+  const investSummary = (state.investimentos||[]).slice(0,8).map(i => `${i.ativo} (${i.categoria}) — ${formatMoney(Number(i.quantidade||0)*Number(i.preco||0))}`).join('\n');
+  const text = [
+    `RESUMO FINANCEIRO — ${new Date().toLocaleDateString()}`,
+    `ENTRADAS: ${formatMoney(resumo.totalEntradas)}`,
+    `SAÍDAS: ${formatMoney(resumo.totalSaidas)}`,
+    `RESULTADO: ${formatMoney(resumo.resultado)}`,
+    `RESERVAS (total saldo): ${formatMoney(resumo.reservasTotal)}`,
+    `INVESTIMENTOS (total): ${formatMoney(resumo.investimentosTotal)}`,
+    `CUSTO DE VIDA (mês): ${formatMoney(computeCustoByCategory(getSelectedMonthKey()).total || 0)}`,
+    `PRINCIPAIS CATEGORIAS: ${topCatsList || '—'}`,
+    `INVESTIMENTOS (top 8):\n${investSummary || '—'}`,
+    `\nTRANSAÇÕES RECENTES:\n${(state.transacoes||[]).slice(0,10).map(t=>`${t.date || t.date}: ${t.reserva || ''} ${t.tipo || ''} ${formatMoney(t.valor||0)}`).join('\n')}`
+  ].join('\n');
+  return text;
+}
+function exportToClipboardAndModal(){
+  const txt = compileExportText();
+  // copy
+  navigator.clipboard.writeText(txt).then(()=>{
+    showModal('Exportar (Bloco de Notas) — Texto copiado', `<textarea class="input" style="height:260px">${txt}</textarea>`, null);
+    alert('Resumo copiado para a área de transferência. Cole no ChatGPT para análise.');
+  }).catch(()=>{ showModal('Exportar (Bloco de Notas)', `<textarea class="input" style="height:260px">${txt}</textarea>`, null); alert('Não foi possível copiar automaticamente. Abra o modal e copie manualmente.'); });
+}
+
+/* ===== Render all structural tables/cards ===== */
+function renderAll(){
+  reorderReservationsByDefault();
+  renderReservations();
+  renderInvestments();
+  renderFluxo();
+  renderCusto();
+  renderNoteTabs();
+  getMonthOptions();
+  const key = getSelectedMonthKey() || new Date().toISOString().slice(0,7);
+  if(state.planejamento[key]) renderPlanForMonth(key);
+  renderDashboard(); // garante dashboard atualizado
+  enableTouchForOnclicks(); // manter suporte touch atualizado
+}
+/* ============================================================
+   FUNÇÕES DE OCULTAÇÃO DE DADOS (TOGGLE DOS BOTÕES)
+   ============================================================ */
+function toggleHide(key){
+  state.settings[key] = !state.settings[key];
+  saveLocal();
+  renderAll();
+  updateHideButtonsLabels();
+}
+
+function updateHideButtonsLabels(){
+  // MASTER
+  el('#hide_all_btn').innerText = state.settings.hideAll ? '🔓 Mostrar Tudo' : '🔒 Ocultar Tudo';
+
+  // INDIVIDUAIS
+  el('#hide_entradas_btn').innerText      = state.settings.hideEntradas     ? 'Mostrar Entradas'       : 'Entradas/Saídas';
+  el('#hide_reservas_btn').innerText      = state.settings.hideReservas     ? 'Mostrar Reservas'       : 'Reservas';
+  el('#hide_custo_btn').innerText         = state.settings.hideCusto        ? 'Mostrar Custo'          : 'Custo de Vida';
+  el('#hide_fluxo_btn').innerText         = state.settings.hideFluxo        ? 'Mostrar Fluxo'          : 'Fluxo do Mês';
+  el('#hide_planejamento_btn').innerText  = state.settings.hidePlanejamento ? 'Mostrar Planejamento'   : 'Planejamento';
+  el('#hide_invest_btn').innerText        = state.settings.hideInvestimentos? 'Mostrar Investimentos'  : 'Investimentos';
+  el('#hide_trans_btn').innerText         = state.settings.hideTransacoes   ? 'Mostrar Transações'     : 'Últimas Transações';
+}
+
+/* ============================================================
+   EVENTOS DOS BOTÕES DE OCULTAÇÃO
+   ============================================================ */
+function attachHideButtons(){
+
+  // MASTER
+  el('#hide_all_btn').onclick = ()=>{
+    toggleHide('hideAll');
+  };
+
+  // INDIVIDUAIS
+  el('#hide_entradas_btn').onclick      = ()=> toggleHide('hideEntradas');
+  el('#hide_reservas_btn').onclick      = ()=> toggleHide('hideReservas');
+  el('#hide_custo_btn').onclick         = ()=> toggleHide('hideCusto');
+  el('#hide_fluxo_btn').onclick         = ()=> toggleHide('hideFluxo');
+  el('#hide_planejamento_btn').onclick  = ()=> toggleHide('hidePlanejamento');
+  el('#hide_invest_btn').onclick        = ()=> toggleHide('hideInvestimentos');
+  el('#hide_trans_btn').onclick         = ()=> toggleHide('hideTransacoes');
 }
 
 /* ===== INIT ===== */
 (function init(){
   el('#apiUrlDisplay').innerText = API_URL || '(não configurada)';
+  
+  // Carrega dados do localStorage
   loadLocal();
-  if(!state.reservas || !state.reservas.length) createDefaultReservas();
+
+  // Cria reservas padrão caso ainda não existam
+  if(!state.reservas || !state.reservas.length) {
+    createDefaultReservas();
+  }
+
+  // Meses disponíveis no seletor
   getMonthOptions();
+
+  // Renderiza tudo
   renderAll();
 
-  // attach buttons
-  el('#btnSeed').addEventListener('click', ()=>{ if(confirm('Criar reservas padrão?')) createDefaultReservas(); });
-  el('#btnSyncAll').addEventListener('click', ()=>{ syncAllToDrive(); });
-  el('#btnHideValues').addEventListener('click', ()=>{ state.settings.hideValues = !state.settings.hideValues; el('#btnHideValues').innerText = state.settings.hideValues ? 'Mostrar Valores' : 'Ocultar Valores'; saveLocal(); });
-  el('#btnExportNotes').addEventListener('click', ()=>{ exportToClipboardAndModal(); });
+  /* =======================
+     BOTÕES ORIGINAIS
+  ======================== */
 
-// Ocultar tudo
-el('#btnHideAll').addEventListener('click', ()=>{
-    state.settings.hideValues = !state.settings.hideValues;
-    // Atualiza todos os botões de toggle
-    el('#btnHideAll').innerText = state.settings.hideValues ? 'Mostrar Tudo' : 'Ocultar Tudo';
-    el('#btnHideFinance').innerText = state.settings.hideValues ? 'Mostrar Entradas/Saídas/Resultado' : 'Ocultar Entradas/Saídas/Resultado';
-    el('#btnHideDashboard').innerText = state.settings.hideValues ? 'Mostrar Resumos & Últimas Transações' : 'Ocultar Resumos & Últimas Transações';
-    saveLocal();
-});
+  el('#btnSeed').addEventListener('click', ()=>{
+    if(confirm('Criar reservas padrão?'))
+      createDefaultReservas();
+  });
 
-// Ocultar Entradas/Saídas/Resultado
-el('#btnHideFinance').addEventListener('click', ()=>{
-    const hide = !state.settings.hideFinance;
-    state.settings.hideFinance = hide;
-    el('#btnHideFinance').innerText = hide ? 'Mostrar Entradas/Saídas/Resultado' : 'Ocultar Entradas/Saídas/Resultado';
-    renderAll();
-});
+  el('#btnSyncAll').addEventListener('click', ()=>{
+    syncAllToDrive();
+  });
 
-// Ocultar Resumos & Últimas Transações
-el('#btnHideDashboard').addEventListener('click', ()=>{
-    const hide = !state.settings.hideDashboard;
-    state.settings.hideDashboard = hide;
-    el('#btnHideDashboard').innerText = hide ? 'Mostrar Resumos & Últimas Transações' : 'Ocultar Resumos & Últimas Transações';
-    renderAll();
-});
+  el('#btnExportNotes').addEventListener('click', ()=>{
+    exportToClipboardAndModal();
+  });
 
-  // observe DOM mutations (to attach touch handlers to dynamic elements)
-  const mo = new MutationObserver(muts => { muts.forEach(m => { if(m.addedNodes && m.addedNodes.length){ m.addedNodes.forEach(node => { if(node.nodeType===1){ if(node.matches && node.matches('[onclick]')) attachTouch(node); node.querySelectorAll && node.querySelectorAll('[onclick]').forEach(elm=>attachTouch(elm)); } }); } }); });
+  /* =======================
+     SISTEMA NOVO DE PRIVACIDADE
+  ======================== */
+
+  // Ativa os eventos dos botões de esconder/mostrar valores
+  attachHideButtons();
+
+  // Ajusta o texto inicial dos botões conforme o estado salvo
+  updateHideButtonsLabels();
+
+
+  /* =======================
+     SUPORTE A TOQUE (MOBILE)
+  ======================== */
+  const mo = new MutationObserver(muts => {
+    muts.forEach(m => {
+      if(m.addedNodes && m.addedNodes.length){
+        m.addedNodes.forEach(node => {
+          if(node.nodeType===1){
+            if(node.matches && node.matches('[onclick]'))
+              attachTouch(node);
+
+            node.querySelectorAll &&
+              node.querySelectorAll('[onclick]')
+              .forEach(elm=>attachTouch(elm));
+          }
+        });
+      }
+    });
+  });
+
   mo.observe(document.body, { childList:true, subtree:true });
 
 })();
+
+  // =======================
+  // TOUCH HANDLER
+  // =======================
+  const mo = new MutationObserver(muts => {
+    muts.forEach(m => {
+      if(m.addedNodes && m.addedNodes.length){
+        m.addedNodes.forEach(node => {
+          if(node.nodeType===1){
+            if(node.matches && node.matches('[onclick]')) attachTouch(node);
+            node.querySelectorAll && node.querySelectorAll('[onclick]').forEach(elm=>attachTouch(elm));
+          }
+        });
+      }
+    });
+  });
+
+  mo.observe(document.body, { childList:true, subtree:true });
+
+})();
+
 
 /* ===== MOBILE TOUCH SUPPORT ===== */
 function attachTouch(el){
@@ -1575,3 +1757,4 @@ window.driveSync = {
 
 </body>
 </html>
+
