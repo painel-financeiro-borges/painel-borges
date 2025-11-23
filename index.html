@@ -98,37 +98,6 @@ header{display:flex;gap:12px;align-items:center;padding:12px 18px;background:lin
 .alert-banner{background:rgba(255,255,255,0.03);padding:8px;border-radius:8px;border-left:4px solid rgba(255,255,255,0.06);margin-top:10px;color:var(--muted)}
 @media(max-width:900px){ .cols-3{grid-template-columns:1fr} .cols-2{grid-template-columns:1fr} header{flex-direction:column;align-items:flex-start} .topbar{gap:6px} }
 canvas{width:100%;height:150px;background:transparent;border-radius:8px}
-
-/* ===== PRIVACIDADE: BOTÕES E MASK ===== */
-.privacy-controls .btn-privacy {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.12);
-  color: var(--btn-text);
-  padding: 6px 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight:700;
-  font-size:14px;
-  display:flex;
-  align-items:center;
-  gap:4px;
-}
-.privacy-controls .btn-privacy:hover {
-  background: rgba(255,255,255,0.12);
-}
-
-/* MASK: aplica “•••” quando oculto */
-[data-sensitive] {
-  transition: all 0.2s ease;
-}
-[data-sensitive].masked {
-  color: rgba(255,255,255,0.3);
-  background: rgba(255,255,255,0.02);
-  border-radius:4px;
-}
-[data-sensitive].masked::after {
-  content: "•••";
-}
 </style>
 </head>
 <body>
@@ -138,9 +107,17 @@ canvas{width:100%;height:150px;background:transparent;border-radius:8px}
     <div class="brand">Painel Borges Participações</div>
     <div class="subtitle">Holding • Reservas • Investimentos</div>
   </div>
+
   <div class="spacer"></div>
+
+  <!-- Botão Global de Privacidade -->
+  <button id="btnPrivacy" class="btn-pro" title="Ocultar / Mostrar Dados">
+    👁️
+  </button>
+
   <div class="small">Offline + Drive sync (API configurada)</div>
 </header>
+
 
 <div class="container">
   <div class="card topbar">
@@ -161,53 +138,30 @@ canvas{width:100%;height:150px;background:transparent;border-radius:8px}
     <button id="btnExportNotes" class="btn-export">Exportar (Bloco de Notas)</button>
   </div>
 
-<!-- ============== DASHBOARD ============== -->
-<div id="dashboard" class="page card" style="margin-top:12px">
-  <h2>Dashboard</h2>
+  <!-- ============== DASHBOARD ============== -->
+  <div id="dashboard" class="page card" style="margin-top:12px">
+    <h2>Dashboard</h2>
 
- <!-- ===== PRIVACIDADE (CONTROLES) ===== -->
-<div id="privacy_controls" class="privacy-controls">
+    <div id="dash_alert" class="alert-banner" style="display:none"></div>
 
-  <!-- Botão Principal: Ocultar Tudo -->
-  <button class="btn btn-privacy" data-toggle="hide-all" title="Ocultar todos os dados">
-    🔒 Tudo
-  </button>
-
-  <!-- Botões Individuais -->
-  <button class="btn btn-privacy" data-toggle="hide-entries" title="Entradas/Saídas/Resultado">💰 E/S/R</button>
-  <button class="btn btn-privacy" data-toggle="hide-reservas" title="Reservas total">🏦 Reservas</button>
-  <button class="btn btn-privacy" data-toggle="hide-custo" title="Custo de Vida">🗓️ Custo</button>
-  <button class="btn btn-privacy" data-toggle="hide-fluxo" title="Fluxo de Caixa">📊 Fluxo</button>
-  <button class="btn btn-privacy" data-toggle="hide-planejamento" title="Planejamento mensal">📅 Planej.</button>
-  <button class="btn btn-privacy" data-toggle="hide-investimentos" title="Investimentos total">💹 Invest.</button>
-  <button class="btn btn-privacy" data-toggle="hide-transacoes" title="Últimas transações">📝 Transações</button>
-
-</div>
-
-<div id="dash_alert" class="alert-banner" style="display:none"></div>
-
-  <!-- TOP STATS -->
-  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px">
-    <div class="card" style="flex:1;min-width:220px">
-      <div class="small">Entradas</div>
-      <div id="dash_entradas" data-sensitive="entries" style="font-weight:800;font-size:22px">R$ 0,00</div>
-      <div class="small">Lançamentos: <span id="count_entradas">0</span></div>
+    <!-- TOP STATS -->
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px">
+      <div class="card" style="flex:1;min-width:220px">
+        <div class="small">Entradas</div>
+        <div id="dash_entradas" style="font-weight:800;font-size:22px">R$ 0,00</div>
+        <div class="small">Lançamentos: <span id="count_entradas">0</span></div>
+      </div>
+      <div class="card" style="flex:1;min-width:220px">
+        <div class="small">Saídas</div>
+        <div id="dash_saidas" style="font-weight:800;font-size:22px">R$ 0,00</div>
+        <div class="small">Lançamentos: <span id="count_saidas">0</span></div>
+      </div>
+      <div class="card" style="flex:1;min-width:220px">
+        <div class="small">Resultado</div>
+        <div id="dash_resultado" style="font-weight:800;font-size:22px">R$ 0,00</div>
+        <div class="small">Status: <span id="dash_result_status">—</span></div>
+      </div>
     </div>
-
-    <div class="card" style="flex:1;min-width:220px">
-      <div class="small">Saídas</div>
-      <div id="dash_saidas" data-sensitive="entries" style="font-weight:800;font-size:22px">R$ 0,00</div>
-      <div class="small">Lançamentos: <span id="count_saidas">0</span></div>
-    </div>
-
-    <div class="card" style="flex:1;min-width:220px">
-      <div class="small">Resultado</div>
-      <div id="dash_resultado" data-sensitive="entries" style="font-weight:800;font-size:22px">R$ 0,00</div>
-      <div class="small">Status: <span id="dash_result_status">—</span></div>
-    </div>
-  </div>
-</div>
-
 <!-- RESERVAS — PROGRESSO GERAL -->
 <div class="card" style="flex:1;min-width:220px;margin-top:12px">
   <div style="font-weight:600;margin-bottom:6px">Reservas — total</div>
@@ -222,91 +176,77 @@ canvas{width:100%;height:150px;background:transparent;border-radius:8px}
 </div>
 
     <!-- 1) CUSTO DE VIDA ATUAL -->
-<div class="card" id="dash_custo_card" style="margin-top:12px">
-  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-    <div>
-      <div class="small">Custo de Vida (mês)</div>
-      <div id="dash_custo_total" data-sensitive="custo" style="font-weight:800;font-size:22px">R$ 0,00</div>
-      <div class="small" id="dash_custo_month_label"></div>
-    </div>
-    <div style="width:320px">
-      <canvas id="chartCustoTop" data-sensitive="custo" height="160"></canvas>
-    </div>
-  </div>
-</div>
-
-  <!-- 2) FLUXO DE CAIXA MENSAL -->
-<div class="card" id="dash_fluxo_card" style="margin-top:12px">
-  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-    <div>
-      <div class="small">Fluxo de Caixa — Mês</div>
-      <div style="display:flex;gap:12px;align-items:center;margin-top:6px;flex-wrap:wrap">
-        <div class="kv">
-          <div class="small">Entradas</div>
-          <div id="dash_fluxo_entries" data-sensitive="fluxo" style="font-weight:800">R$ 0,00</div>
+    <div class="card" id="dash_custo_card" style="margin-top:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <div>
+          <div class="small">Custo de Vida (mês)</div>
+          <div id="dash_custo_total" style="font-weight:800;font-size:22px">R$ 0,00</div>
+          <div class="small" id="dash_custo_month_label"></div>
         </div>
-        <div class="kv">
-          <div class="small">Saídas</div>
-          <div id="dash_fluxo_exits" data-sensitive="fluxo" style="font-weight:800">R$ 0,00</div>
-        </div>
-        <div class="kv">
-          <div class="small">Consolidação</div>
-          <div id="dash_fluxo_net" data-sensitive="fluxo" style="font-weight:800">R$ 0,00</div>
+        <div style="width:320px">
+          <canvas id="chartCustoTop" height="160"></canvas>
         </div>
       </div>
     </div>
-    <div style="flex:1;max-width:680px">
-      <canvas id="chartFluxMonthly" data-sensitive="fluxo" height="180"></canvas>
+
+    <!-- 2) FLUXO DE CAIXA MENSAL -->
+    <div class="card" id="dash_fluxo_card" style="margin-top:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <div>
+          <div class="small">Fluxo de Caixa — Mês</div>
+          <div style="display:flex;gap:12px;align-items:center;margin-top:6px;flex-wrap:wrap">
+            <div class="kv"><div class="small">Entradas</div><div id="dash_fluxo_entries" style="font-weight:800">R$ 0,00</div></div>
+            <div class="kv"><div class="small">Saídas</div><div id="dash_fluxo_exits" style="font-weight:800">R$ 0,00</div></div>
+            <div class="kv"><div class="small">Consolidação</div><div id="dash_fluxo_net" style="font-weight:800">R$ 0,00</div></div>
+          </div>
+        </div>
+        <div style="flex:1;max-width:680px">
+          <canvas id="chartFluxMonthly" height="180"></canvas>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
 
     <!-- 3) PLANEJAMENTO MENSAL -->
-<div class="card" id="dash_plan_card" style="margin-top:12px">
-  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-    <div>
-      <div class="small">Planejamento Mensal — Progresso</div>
-      <div id="dash_plan_meta" data-sensitive="planejamento" style="font-weight:800;font-size:18px">Meta: R$ 0,00</div>
-      <div id="dash_plan_done" class="small" data-sensitive="planejamento">Concluído: R$ 0,00</div>
-      <div style="margin-top:8px" class="progress">
-        <div id="dash_plan_bar" class="bar" data-sensitive="planejamento" style="width:0%"></div>
+    <div class="card" id="dash_plan_card" style="margin-top:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <div>
+          <div class="small">Planejamento Mensal — Progresso</div>
+          <div id="dash_plan_meta" style="font-weight:800;font-size:18px">Meta: R$ 0,00</div>
+          <div id="dash_plan_done" class="small">Concluído: R$ 0,00</div>
+          <div style="margin-top:8px" class="progress"><div id="dash_plan_bar" class="bar" style="width:0%"></div></div>
+          <div style="margin-top:6px" class="small">Progresso: <span id="dash_plan_pct">0%</span></div>
+        </div>
+        <div style="width:240px">
+          <canvas id="chartPlan" height="160"></canvas>
+        </div>
       </div>
-      <div style="margin-top:6px" class="small">Progresso: <span id="dash_plan_pct" data-sensitive="planejamento">0%</span></div>
     </div>
-    <div style="width:240px">
-      <canvas id="chartPlan" data-sensitive="planejamento" height="160"></canvas>
-    </div>
-  </div>
-</div>
 
     <!-- INVESTIMENTOS (Reservas removidas do resumo) -->
 <div style="display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px">
   <div class="card">
     <div class="small">Investimentos — total</div>
-    <div id="dash_invest_total" data-sensitive="investimentos" style="font-weight:800;font-size:20px">R$ 0,00</div>
-    <div class="small">Quantidade de ativos: <span id="dash_inv_count" data-sensitive="investimentos">0</span></div>
-    <div style="margin-top:8px">
-      <canvas id="chartInvCompSmall" data-sensitive="investimentos" height="140"></canvas>
-    </div>
+    <div id="dash_invest_total" style="font-weight:800;font-size:20px">R$ 0,00</div>
+    <div class="small">Quantidade de ativos: <span id="dash_inv_count">0</span></div>
+    <div style="margin-top:8px"><canvas id="chartInvCompSmall" height="140"></canvas></div>
   </div>
 </div>
 
     <!-- últimas transações -->
-<div class="card" style="margin-top:12px">
-  <div style="display:flex;justify-content:space-between;align-items:center">
-    <div>
-      <h3 style="margin:0">Últimas transações / lançamentos</h3>
-      <div class="small">Transações recentes</div>
+    <div class="card" style="margin-top:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><h3 style="margin:0">Últimas transações / lançamentos</h3><div class="small">Transações recentes</div></div>
+        <div class="small">Atualizado: <span id="dash_updated">-</span></div>
+      </div>
+      <div style="margin-top:8px;overflow:auto">
+        <table class="table" id="dash_recent">
+          <thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Valor</th></tr></thead>
+          <tbody><tr><td colspan="4" class="small">Sem registros</td></tr></tbody>
+        </table>
+      </div>
     </div>
-    <div class="small">Atualizado: <span id="dash_updated" data-sensitive="transacoes">-</span></div>
+
   </div>
-  <div style="margin-top:8px;overflow:auto">
-    <table class="table" id="dash_recent" data-sensitive="transacoes">
-      <thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Valor</th></tr></thead>
-      <tbody><tr><td colspan="4" class="small">Sem registros</td></tr></tbody>
-    </table>
-  </div>
-</div>
 
   <!-- ============== CUSTO / PLANEJAMENTO / FLUXO / RESERVAS / INVESTIMENTOS / CADERNO / BACKUP ============== -->
   <!-- (preserve existing markup for these pages) -->
@@ -440,7 +380,7 @@ canvas{width:100%;height:150px;background:transparent;border-radius:8px}
     <button class="btn-ghost" onclick="resetReservas()">🧹 Zerar Reservas</button>
   </div>
 
-  <div id="resCards" data-sensitive="reservas" style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px"></div>
+  <div id="resCards" style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px"></div>
 </div>
 </div>
 
@@ -574,8 +514,15 @@ let state = {
   custo: [],
   planejamento: {},
   caderno: [],
-  settings: { hideValues: false }
+
+  /* Configurações globais (expandido para privacidade) */
+  settings: { 
+    hideValues: false,          // já existia — controla se os valores estão ocultos
+    privacyLocked: false,       // novo — indica se os dados estão bloqueados após ocultar
+    lastPrivacyToggle: null     // novo — registra quando a privacidade foi ativada/desativada
+  }
 };
+
 
 function resetCusto() {
   if (!confirm("Deseja zerar TODOS os lançamentos de Custo de Vida?")) return;
@@ -636,6 +583,34 @@ function loadLocal(){
       if(!state.settings) state.settings = { hideValues:false };
     }
   }catch(e){ console.error('Erro parse local', e); }
+
+}
+/* ========= PRIVACIDADE GLOBAL (BANCOS) ========= */
+function toggleGlobalPrivacy() {
+  // Se os valores estão visíveis → ocultar imediatamente
+  if (!state.settings.hideValues) {
+    state.settings.hideValues = true;
+    state.settings.privacyLocked = true;
+    state.settings.lastPrivacyToggle = Date.now();
+    saveLocal();
+    renderAll();
+    alert("🔒 Dados ocultados.");
+    return;
+  }
+
+  // Se estão ocultos → pedir senha antes de mostrar
+  const senha = prompt("Para mostrar seus dados, digite sua senha:");
+
+  if (senha === "G#@98FstK12") {
+    state.settings.hideValues = false;
+    state.settings.privacyLocked = false;
+    state.settings.lastPrivacyToggle = Date.now();
+    saveLocal();
+    renderAll();
+    alert("🔓 Dados revelados com sucesso.");
+  } else {
+    alert("❌ Senha incorreta. Os dados permanecerão ocultos.");
+  }
 }
 
 /* ===== Format depending on hide values ===== */
@@ -711,15 +686,23 @@ function renderReservations(){
     return;
   }
 
-  state.reservas.forEach(r=>{
-    const pct = r.meta ? Math.round((r.saldo / r.meta) * 100) : 0;
-    const card = document.createElement('div');
-    card.className = 'res-card';
-    card.setAttribute('draggable','true');
-    card.dataset.id = r.id;
-    card.innerHTML = `
+ state.reservas.forEach(r=>{
+  const pct = r.meta ? Math.round((r.saldo / r.meta) * 100) : 0;
+
+  // Privacidade: meta e obs ocultos quando hideValues = true
+  const metaText = state.settings.hideValues ? 'Meta: R$ ••••' : `Meta: ${formatMoney(r.meta)}`;
+  const saldoText = formatMoney(r.saldo);
+  const obsText = state.settings.hideValues ? '••••••••' : (r.obs || '');
+
+  const card = document.createElement('div');
+  card.className = 'res-card';
+  card.setAttribute('draggable','true');
+  card.dataset.id = r.id;
+
+  card.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div style="font-weight:700">${r.name}</div>
+
         <div style="display:flex;gap:6px;flex-wrap:wrap">
           <button class="btn-ghost" onclick="promptAporte(event,'${r.id}')">+ Aportar</button>
           <button class="btn-ghost" onclick="promptRetirar(event,'${r.id}')">- Retirar</button>
@@ -727,13 +710,27 @@ function renderReservations(){
           <button class="btn-ghost" onclick="removeReserva('${r.id}')">✖ Excluir</button>
         </div>
       </div>
-      <div style="margin-top:8px" class="small">Meta: ${formatMoney(r.meta)}</div>
-      <div style="margin-top:6px;font-weight:800">${formatMoney(r.saldo)}</div>
+
+      <div style="margin-top:8px" class="small">${metaText}</div>
+
+      <div style="margin-top:6px;font-weight:800">${saldoText}</div>
+
+      <div style="margin-top:4px;color:#aaa;font-size:11px;">
+        ${obsText}
+      </div>
+
       <div style="margin-top:8px">
-        <div class="progress"><div class="bar" style="width:${Math.min(100,pct)}%;transition:width 0.5s;background:${pct>=100 ? '#00c853' : pct>=50 ? '#ffd600' : '#d50000'};"></div></div>
+        <div class="progress">
+          <div class="bar"
+               style="width:${Math.min(100,pct)}%;
+                      transition:width 0.5s;
+                      background:${pct>=100 ? '#00c853' : pct>=50 ? '#ffd600' : '#d50000'};">
+          </div>
+        </div>
         <div class="small">${pct}%</div>
       </div>
     `;
+
     card.addEventListener('dragstart', (ev)=>{ card.classList.add('dragging'); ev.dataTransfer.setData('text/plain', r.id); });
     card.addEventListener('dragend', ()=>{ card.classList.remove('dragging'); });
     card.addEventListener('dragover', (ev)=>{ ev.preventDefault(); });
@@ -850,17 +847,45 @@ function addInvestment(){
   saveLocal();
 }
 function renderInvestments(){
-  const tbody = el('#invTable tbody'); if(!tbody) return;
+  const tbody = el('#invTable tbody'); 
+  if(!tbody) return;
+
   tbody.innerHTML='';
-  if(!state.investimentos.length){ tbody.innerHTML = '<tr><td colspan="6" class="small">Nenhum investimento</td></tr>'; return; }
+
+  if(!state.investimentos.length){
+    tbody.innerHTML = '<tr><td colspan="6" class="small">Nenhum investimento</td></tr>';
+    return;
+  }
+
   state.investimentos.forEach(it=>{
     const valor = (Number(it.quantidade||0) * Number(it.preco||0));
+
+    // 🔒 PRIVACIDADE
+    const ativoText = state.settings.hideValues ? '••••••••' : it.ativo;
+    const catText   = state.settings.hideValues ? '••••••' : it.categoria;
+    const qtdText   = state.settings.hideValues ? '•••' : it.quantidade;
+    const precoText = formatMoney(it.preco);        // já mascara quando hideValues = true
+    const valorText = formatMoney(valor);           // idem
+
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${it.ativo}</td><td>${it.categoria}</td><td>${it.quantidade}</td><td>${formatMoney(it.preco)}</td><td>${formatMoney(valor)}</td>
-      <td><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn-ghost" onclick="openEditInvestment('${it.id}')">Editar</button><button class="btn-ghost" onclick="removeInvestment('${it.id}')">Remover</button></div></td>`;
+    tr.innerHTML = `
+      <td>${ativoText}</td>
+      <td>${catText}</td>
+      <td>${qtdText}</td>
+      <td>${precoText}</td>
+      <td>${valorText}</td>
+      <td>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn-ghost" onclick="openEditInvestment('${it.id}')">Editar</button>
+          <button class="btn-ghost" onclick="removeInvestment('${it.id}')">Remover</button>
+        </div>
+      </td>
+    `;
+
     tbody.appendChild(tr);
   });
 }
+
 function openEditInvestment(id){ const it = state.investimentos.find(x=>x.id===id); if(!it) return; showModal('Editar Investimento', `
     <label>Ativo</label><input id="modal_i_name" class="input" value="${it.ativo}"/>
     <label>Categoria</label><input id="modal_i_cat" class="input" value="${it.categoria}"/>
@@ -891,16 +916,42 @@ function addFluxo(){
   saveLocal();
 }
 function renderFluxo(){
-  const tbody = el('#fluxoTable tbody'); if(!tbody) return;
-  tbody.innerHTML='';
-  if(!state.fluxo.length){ tbody.innerHTML = '<tr><td colspan="6" class="small">Sem lançamentos</td></tr>'; return; }
-  state.fluxo.slice(0,200).forEach(f=>{
+  const tbody = el('#fluxoTable tbody');
+  if(!tbody) return;
+
+  tbody.innerHTML = '';
+
+  if(!state.fluxo.length){
+    tbody.innerHTML = '<tr><td colspan="6" class="small">Sem lançamentos</td></tr>';
+    return;
+  }
+
+  state.fluxo.slice(0,200).forEach(f => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${new Date(f.date + 'T00:00:00').toLocaleDateString()}</td><td>${f.desc}</td><td>${f.type}</td><td>${f.payment}</td><td>${formatMoney(f.value)}</td>
-      <td><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-ghost" onclick="editFlux('${f.id}')">Editar</button><button class="btn-ghost" onclick="removeFlux('${f.id}')">Excluir</button></div></td>`;
+
+    // Privacidade aplicada aqui
+    const descText = state.settings.hideValues ? '••••••••' : f.desc;
+    const paymentText = state.settings.hideValues ? '••••••' : f.payment;
+    const valueText = formatMoney(f.value);
+
+    tr.innerHTML = `
+      <td>${new Date(f.date + 'T00:00:00').toLocaleDateString()}</td>
+      <td>${descText}</td>
+      <td>${f.type}</td>
+      <td>${paymentText}</td>
+      <td>${valueText}</td>
+      <td>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn-ghost" onclick="editFlux('${f.id}')">Editar</button>
+          <button class="btn-ghost" onclick="removeFlux('${f.id}')">Excluir</button>
+        </div>
+      </td>
+    `;
+
     tbody.appendChild(tr);
   });
 }
+
 function editFlux(id){
   const f = state.fluxo.find(x=>x.id===id); if(!f) return;
   showModal('Editar Fluxo', `
@@ -933,15 +984,43 @@ function addCusto(){
   saveLocal();
 }
 function renderCusto(){
-  const tbody = el('#custoTable tbody'); if(!tbody) return;
+  const tbody = el('#custoTable tbody'); 
+  if(!tbody) return;
+
   tbody.innerHTML='';
-  if(!state.custo.length){ tbody.innerHTML = '<tr><td colspan="5" class="small">Sem lançamentos</td></tr>'; return; }
+
+  if(!state.custo.length){
+    tbody.innerHTML = '<tr><td colspan="5" class="small">Sem lançamentos</td></tr>';
+    return;
+  }
+
   const month = getSelectedMonthKey();
-  const rows = state.custo.filter(c => { if(!month) return true; const y = c.date.slice(0,7); return y === month; });
+  const rows = state.custo.filter(c => { 
+    if(!month) return true; 
+    return c.date.slice(0,7) === month; 
+  });
+
   rows.forEach(c=>{
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${new Date(c.date + 'T00:00:00').toLocaleDateString()}</td><td>${c.desc}</td><td>${c.cat}</td><td>${formatMoney(c.value)}</td>
-      <td><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-ghost" onclick="editCusto('${c.id}')">Editar</button><button class="btn-ghost" onclick="removeCusto('${c.id}')">Excluir</button></div></td>`;
+
+    // 🔒 PRIVACIDADE
+    const descText = state.settings.hideValues ? '••••••••' : c.desc;
+    const catText  = state.settings.hideValues ? '••••••' : c.cat;
+    const valueText = formatMoney(c.value);  // já oculta automaticamente
+
+    tr.innerHTML = `
+      <td>${new Date(c.date + 'T00:00:00').toLocaleDateString()}</td>
+      <td>${descText}</td>
+      <td>${catText}</td>
+      <td>${valueText}</td>
+      <td>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn-ghost" onclick="editCusto('${c.id}')">Editar</button>
+          <button class="btn-ghost" onclick="removeCusto('${c.id}')">Excluir</button>
+        </div>
+      </td>
+    `;
+
     tbody.appendChild(tr);
   });
 }
@@ -1001,13 +1080,46 @@ input = input.replace(/\./g, '').replace(',', '.');
 // remove pontos e troca vírgula por ponto
 
 const val = parseFloat(input) || 0; const item = { id: uid('pl'), desc, value: val, state:0 }; state.planejamento[monthKey].periods[pid].items.push(item); saveLocal(); renderPlanItems(monthKey, pid); renderPlanSummary(monthKey); }
-function renderPlanItems(monthKey, pid){ const itemsDiv = el('#items_'+pid); if(!itemsDiv) return; itemsDiv.innerHTML = ''; const items = state.planejamento[monthKey].periods[pid].items || []; items.forEach(it=>{ const row = document.createElement('div'); row.style.display='flex'; row.style.alignItems='center'; row.style.justifyContent='space-between'; row.style.padding='6px 0'; row.innerHTML = `<div style="display:flex;gap:8px;align-items:center"><div class="checkbox-tri" onclick="togglePlanItem('${monthKey}','${pid}','${it.id}')">${it.state===1?'✔':(it.state===2?'✖':'')}</div><div>${it.desc} — <span class="small">${formatMoney(it.value)}</span></div></div>
-      <div><button class="btn-ghost" onclick="editPlanItem('${monthKey}','${pid}','${it.id}')">Editar</button> <button class="btn-ghost" onclick="removePlanItem('${monthKey}','${pid}','${it.id}')">Excluir</button></div>`; itemsDiv.appendChild(row); }); }
-function togglePlanItem(monthKey,pid,itemId){ const it = state.planejamento[monthKey].periods[pid].items.find(x=>x.id===itemId); if(!it) return; it.state = (it.state + 1) % 3; saveLocal(); renderPlanItems(monthKey,pid); renderPlanSummary(monthKey); }
-function editPlanItem(monthKey,pid,itemId){ const it = state.planejamento[monthKey].periods[pid].items.find(x=>x.id===itemId); if(!it) return; const nd = prompt('Descrição', it.desc); if(nd===null) return; const nv = Number(prompt('Valor', it.value)) || 0; it.desc = nd; it.value = nv; saveLocal(); renderPlanItems(monthKey,pid); renderPlanSummary(monthKey); }
-function removePlanItem(monthKey,pid,itemId){ if(!confirm('Remover item?')) return; const arr = state.planejamento[monthKey].periods[pid].items; state.planejamento[monthKey].periods[pid].items = arr.filter(x=>x.id!==itemId); saveLocal(); renderPlanItems(monthKey,pid); renderPlanSummary(monthKey); }
-function clearPlanPeriod(monthKey,pid){ if(!confirm('Limpar período?')) return; state.planejamento[monthKey].periods[pid].items = []; saveLocal(); renderPlanItems(monthKey,pid); renderPlanSummary(monthKey); }
-function renderPlanSummary(key){ if(!key){ el('#plan_summary').innerText = 'Nenhum planejamento selecionado'; return; } const p = state.planejamento[key].periods; const totalMeta = (p.p1.meta||0) + (p.p2.meta||0) + (p.p3.meta||0); const totalDue = (p.p1.items||[]).reduce((s,i)=>s+i.value,0) + (p.p2.items||[]).reduce((s,i)=>s+i.value,0) + (p.p3.items||[]).reduce((s,i)=>s+i.value,0); el('#plan_summary').innerText = `Meta (soma 3 períodos): ${formatMoney(totalMeta)} — Total Contas: ${formatMoney(totalDue)}`; }
+function renderPlanItems(monthKey, pid){
+  const itemsDiv = el('#items_'+pid);
+  if(!itemsDiv) return;
+
+  itemsDiv.innerHTML = '';
+
+  const items = state.planejamento[monthKey].periods[pid].items || [];
+
+  items.forEach(it => {
+
+    // 🔒 PRIVACIDADE
+    const descText = state.settings.hideValues ? '••••••••' : it.desc;
+    const valueText = formatMoney(it.value); // formatMoney já oculta valor inteiro
+
+    const row = document.createElement('div');
+    row.style.display='flex';
+    row.style.alignItems='center';
+    row.style.justifyContent='space-between';
+    row.style.padding='6px 0';
+
+    row.innerHTML = `
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="checkbox-tri" onclick="togglePlanItem('${monthKey}','${pid}','${it.id}')">
+          ${it.state===1?'✔':(it.state===2?'✖':'')}
+        </div>
+
+        <div>
+          ${descText} — <span class="small">${valueText}</span>
+        </div>
+      </div>
+
+      <div>
+        <button class="btn-ghost" onclick="editPlanItem('${monthKey}','${pid}','${it.id}')">Editar</button>
+        <button class="btn-ghost" onclick="removePlanItem('${monthKey}','${pid}','${it.id}')">Excluir</button>
+      </div>
+    `;
+
+    itemsDiv.appendChild(row);
+  });
+}
 
 /* ====== CADERNO (notas) ====== */
 function createNoteTab(){
@@ -1212,101 +1324,104 @@ function computeResumoFinanceiro(monthKey){
 function renderDashboard(){
   const monthKey = getSelectedMonthKey() || new Date().toISOString().slice(0,7);
 
-  // resumo financeiro
   const resumo = computeResumoFinanceiro(monthKey);
-  el('#dash_entradas').innerText = formatMoney(resumo.totalEntradas || 0);
-  el('#dash_saidas').innerText = formatMoney(resumo.totalSaidas || 0);
-  el('#dash_resultado').innerText = formatMoney(resumo.resultado || 0);
+
+  // 🔒 PRIVACIDADE (exibição)
+  const mask = v => state.settings.hideValues ? 'R$ ••••' : formatMoney(v);
+
+  // ENTRADAS / SAÍDAS / RESULTADO
+  el('#dash_entradas').innerText = mask(resumo.totalEntradas || 0);
+  el('#dash_saidas').innerText   = mask(resumo.totalSaidas   || 0);
+  el('#dash_resultado').innerText = mask(resumo.resultado    || 0);
   el('#dash_result_status').innerText = resumo.resultado >= 0 ? 'Positivo' : 'Negativo';
 
-  // reservas & investimentos
-  el('#dash_reservas_total').innerText = formatMoney(resumo.reservasTotal || 0);
-  el('#dash_reservas_count').innerText = (state.reservas||[]).length;
-  el('#dash_invest_total').innerText = formatMoney(resumo.investimentosTotal || 0);
-  el('#dash_inv_count').innerText = (state.investimentos||[]).length;
+  // RESERVAS & INVESTIMENTOS
+  el('#dash_reservas_total').innerText = mask(resumo.reservasTotal || 0);
+  el('#dash_reservas_count').innerText = state.settings.hideValues 
+                                          ? '••' 
+                                          : (state.reservas||[]).length;
 
-  // alerta custo de vida
+  el('#dash_invest_total').innerText = mask(resumo.investimentosTotal || 0);
+  el('#dash_inv_count').innerText = state.settings.hideValues 
+                                     ? '••' 
+                                     : (state.investimentos||[]).length;
+
+  // CUSTO DE VIDA — TOTAL
   const custoRes = computeCustoByCategory(monthKey);
-  el('#dash_custo_total').innerText = formatMoney(custoRes.total || 0);
+  el('#dash_custo_total').innerText = mask(custoRes.total || 0);
   el('#dash_custo_month_label').innerText = monthKey;
+
+  // ALERTA CUSTO
   const alertEl = el('#dash_alert');
-  if(custoRes.total > resumo.totalEntradas){
-    alertEl.style.display = 'block';
-    alertEl.innerText = 'Alerta: seu custo de vida atual ultrapassa as entradas. Revise despesas.';
-    alertEl.style.borderLeft = '4px solid var(--danger)';
+  if(state.settings.hideValues){
+    alertEl.style.display = 'none'; // não mostra alertas com dados sensíveis
   } else {
-    if(custoRes.total === 0) alertEl.style.display = 'none';
-    else { alertEl.style.display = 'block'; alertEl.innerText = 'Seu custo de vida está dentro da margem.'; alertEl.style.borderLeft = '4px solid var(--success)'; }
+    if(custoRes.total > resumo.totalEntradas){
+      alertEl.style.display = 'block';
+      alertEl.innerText = 'Alerta: seu custo de vida atual ultrapassa as entradas. Revise despesas.';
+      alertEl.style.borderLeft = '4px solid var(--danger)';
+    } else {
+      if(custoRes.total === 0) alertEl.style.display = 'none';
+      else { 
+        alertEl.style.display = 'block'; 
+        alertEl.innerText = 'Seu custo de vida está dentro da margem.'; 
+        alertEl.style.borderLeft = '4px solid var(--success)'; 
+      }
+    }
   }
 
-  // Charts: custo (doughnut)
-  if(chartCustoTop){ chartCustoTop.destroy(); chartCustoTop = null; }
-  try{
-    const ctxC = document.getElementById('chartCustoTop').getContext('2d');
-    chartCustoTop = new Chart(ctxC, {
-      type:'doughnut',
-      data:{ labels: custoRes.labels.length ? custoRes.labels : ['Sem dados'], datasets:[{ data: custoRes.values.length ? custoRes.values : [1], backgroundColor:['#60a5fa','#1e88e5','#16a34a','#f59e0b','#ef4444','#7c3aed','#0ea5a4'] }]},
-      options:{ maintainAspectRatio:false, plugins:{ legend:{ position:'right', labels:{ color:'#e6eef8' } } } }
-    });
-  }catch(e){/*silent*/}
+    // CHARTS (mantém valores reais internamente)
+  if(chartCustoTop){ chartCustoTop.destroy(); chartCustoTop=null; }
+  chartCustoTop = renderChartCustoTop(custoRes);
 
-  // Fluxo mensal chart
-  const fluxoRes = computeFluxoMonthly(monthKey);
-  el('#dash_fluxo_entries').innerText = formatMoney(fluxoRes.totalEntries || 0);
-  el('#dash_fluxo_exits').innerText = formatMoney(fluxoRes.totalExits || 0);
-  el('#dash_fluxo_net').innerText = formatMoney(fluxoRes.net || 0);
-  el('#dash_fluxo_net').style.color = (fluxoRes.net >= 0) ? 'var(--success)' : 'var(--danger)';
-  if(chartFluxMonthly){ chartFluxMonthly.destroy(); chartFluxMonthly = null; }
-  try{
-    const ctxF = document.getElementById('chartFluxMonthly').getContext('2d');
-    chartFluxMonthly = new Chart(ctxF, {
-      type:'bar',
-      data:{ labels:fluxoRes.labels, datasets:[ { label:'Entradas', data:fluxoRes.entriesArr, backgroundColor:'#16a34a' }, { label:'Saídas', data:fluxoRes.exitsArr, backgroundColor:'#ef4444' } ]},
-      options:{ maintainAspectRatio:false, scales:{ x:{ ticks:{ color:'#e6eef8' } }, y:{ ticks:{ color:'#e6eef8' } } }, plugins:{ legend:{ labels:{ color:'#e6eef8' } } } }
-    });
-  }catch(e){/*silent*/}
+  if(chartFluxMonthly){ chartFluxMonthly.destroy(); chartFluxMonthly=null; }
+  chartFluxMonthly = renderChartFluxMonthly(monthKey);
 
-  // Plan small chart (donut)
-  const planRes = computePlanProgress(monthKey);
-  el('#dash_plan_meta').innerText = `Meta: ${formatMoney(planRes.meta || 0)}`;
-  el('#dash_plan_done').innerText = `Concluído: ${formatMoney(planRes.done || 0)}`;
-  const pct = Math.min(100, Math.max(0, planRes.pct || 0));
-  el('#dash_plan_bar').style.width = pct + '%';
-  el('#dash_plan_pct').innerText = pct + '%';
-  if(chartPlan){ chartPlan.destroy(); chartPlan = null; }
-  try{
-    const ctxP = document.getElementById('chartPlan').getContext('2d');
-    const rem = Math.max(0, (planRes.meta || 0) - (planRes.done || 0));
-    chartPlan = new Chart(ctxP, { type:'doughnut', data:{ labels:['Concluído','Restante'], datasets:[{ data:[planRes.done || 0, rem], backgroundColor:['#60a5fa','#374151'] }] }, options:{ maintainAspectRatio:false, plugins:{ legend:{ display:false } } } });
-  }catch(e){/*silent*/}
+  if(chartInvCompSmall){ chartInvCompSmall.destroy(); chartInvCompSmall=null; }
+  chartInvCompSmall = renderChartInvSmall();
 
-  // Invest composition small chart
-  try{
-    const cats = {};
-    state.investimentos.forEach(it=>{ const v = (Number(it.quantidade||0) * Number(it.preco||0)); cats[it.categoria] = (cats[it.categoria]||0) + v; });
-    const labels = Object.keys(cats); const values = labels.map(l=>cats[l]);
-    if(chartInvCompSmall){ chartInvCompSmall.destroy(); chartInvCompSmall = null; }
-    const ctxI = document.getElementById('chartInvCompSmall') && document.getElementById('chartInvCompSmall').getContext('2d');
-    if(ctxI){
-      chartInvCompSmall = new Chart(ctxI, { type:'doughnut', data:{ labels: labels.length?labels:['Sem dados'], datasets:[{ data: values.length?values:[1], backgroundColor:['#60a5fa','#1e88e5','#16a34a','#f59e0b','#ef4444'] }] }, options:{ maintainAspectRatio:false, plugins:{ legend:{ position:'right', labels:{ color:'#e6eef8' } } } } });
-    }
-  }catch(e){/*silent*/}
+  /* ===================== RECENTES ===================== */
+  const tbody = el('#dash_recent tbody'); 
+  if(!tbody) return;
 
-  // Recents
-  const tbody = el('#dash_recent tbody'); if(!tbody) return;
+  const maskValue = v => state.settings.hideValues ? 'R$ ••••' : formatMoney(v);
+  const maskType  = t => state.settings.hideValues ? '•••' : t;
+
   tbody.innerHTML = '';
-  const recent = [].concat(state.transacoes || [], state.fluxo || []).slice(0,10);
-  if(!recent.length) tbody.innerHTML = '<tr><td colspan="4" class="small">Sem registros</td></tr>';
-  else {
-    recent.forEach(r=>{
+
+  const recent = []
+    .concat(state.transacoes || [], state.fluxo || [])
+    .slice(0, 10);
+
+  if (!recent.length) {
+    tbody.innerHTML = '<tr><td colspan="4" class="small">Sem registros</td></tr>';
+  } else {
+    recent.forEach(r => {
       const tr = document.createElement('tr');
-      const dateStr = r.date ? (r.date.length===10 ? new Date(r.date+'T00:00:00').toLocaleDateString() : new Date(r.date).toLocaleDateString()) : '-';
-      tr.innerHTML = `<td>${dateStr}</td><td>${r.tipo || r.type || 'mov'}</td><td>${r.reserva || r.desc || r.ativo || ''}</td><td>${formatMoney(r.valor || r.value || 0)}</td>`;
+
+      const dateStr = r.date 
+        ? (r.date.length === 10
+            ? new Date(r.date + 'T00:00:00').toLocaleDateString()
+            : new Date(r.date).toLocaleDateString()
+          )
+        : '-';
+
+      const tipo = r.tipo || r.type || 'mov';
+      const desc = r.reserva || r.desc || r.ativo || '';
+      const valor = r.valor || r.value || 0;
+
+      tr.innerHTML = `
+        <td>${dateStr}</td>
+        <td>${maskType(tipo)}</td>
+        <td>${desc}</td>
+        <td>${maskValue(valor)}</td>
+      `;
+
       tbody.appendChild(tr);
     });
   }
   el('#dash_updated').innerText = new Date().toLocaleString();
-}
+} 
 
 /* ===== Expor bloco de notas (para colar no GPT) ===== */
 function compileExportText(){
@@ -1361,127 +1476,84 @@ function renderAll(){
   renderAll();
 
   // attach buttons
-  el('#btnSeed').addEventListener('click', ()=>{ if(confirm('Criar reservas padrão?')) createDefaultReservas(); });
-  el('#btnSyncAll').addEventListener('click', ()=>{ syncAllToDrive(); });
-  el('#btnHideValues').addEventListener('click', ()=>{ state.settings.hideValues = !state.settings.hideValues; el('#btnHideValues').innerText = state.settings.hideValues ? 'Mostrar Valores' : 'Ocultar Valores'; saveLocal(); });
-  el('#btnExportNotes').addEventListener('click', ()=>{ exportToClipboardAndModal(); });
+el('#btnSeed').addEventListener('click', ()=>{ 
+  if(confirm('Criar reservas padrão?')) createDefaultReservas(); 
+});
 
-  // observe DOM mutations (to attach touch handlers to dynamic elements)
-  const mo = new MutationObserver(muts => { muts.forEach(m => { if(m.addedNodes && m.addedNodes.length){ m.addedNodes.forEach(node => { if(node.nodeType===1){ if(node.matches && node.matches('[onclick]')) attachTouch(node); node.querySelectorAll && node.querySelectorAll('[onclick]').forEach(elm=>attachTouch(elm)); } }); } }); });
-  mo.observe(document.body, { childList:true, subtree:true });
+el('#btnSyncAll').addEventListener('click', ()=>{ 
+  syncAllToDrive(); 
+});
 
-})();
+el('#btnHideValues').addEventListener('click', ()=>{ 
+  state.settings.hideValues = !state.settings.hideValues; 
+  el('#btnHideValues').innerText = state.settings.hideValues ? 'Mostrar Valores' : 'Ocultar Valores'; 
+  saveLocal(); 
+});
+
+el('#btnExportNotes').addEventListener('click', ()=>{ 
+  exportToClipboardAndModal(); 
+});
+
+/* 🔒 Botão Global de Privacidade (NOVO) */
+el('#btnPrivacy').addEventListener('click', ()=>{ 
+  toggleGlobalPrivacy(); 
+});
+
+/* ===== MOBILE TOUCH SUPPORT ===== */
+function attachTouch(el){
+  if(!el) return;
+  try{ if(el.__touchAttached) return;
+    el.addEventListener('touchstart', function onTouch(e){ e.preventDefault(); el.click(); }, {passive:false});
+    el.__touchAttached = true;
+  }catch(err){}
+}
+function enableTouchForOnclicks(){
+  document.querySelectorAll('[onclick]').forEach(el => attachTouch(el));
+  document.querySelectorAll('.btn, .btn-ghost, button').forEach(b=>{ if(!b.__touchAttached){ b.addEventListener('touchstart', function(e){ e.preventDefault(); b.click(); }, {passive:false}); b.__touchAttached = true; }});
+}
+
+/* ===== Expose debug helpers ===== */
+window._borges_state = state;
+window.saveLocal = saveLocal;
+
+</script>
 
 </body>
+</html>
 
-<!-- ===== PERSISTENCE ===== -->
+<!-- ===================== DEBUG HELPERS ===================== -->
 <script>
-  var state = state || {};
-  const STATE_KEY = 'borges_panel_3_v1';
-
-  function saveLocal() {
-    localStorage.setItem(STATE_KEY, JSON.stringify(state));
-    renderAll();
-  }
-
-  function loadLocal() {
-    try {
-      const raw = localStorage.getItem(STATE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        state = Object.assign(state, parsed);
-        if (!state.settings) state.settings = { hideValues: false };
-        if (!state.assets) state.assets = [];
-      }
-    } catch (e) {
-      console.error('Erro parse local', e);
-    }
-  }
-
-  loadLocal();
+window._borges_state = state;
+window.saveLocal = saveLocal;
 </script>
 
-<!-- ===== MOBILE TOUCH SUPPORT ===== -->
-<script>
-  function attachTouch(el) {
-    if (!el) return;
-    try {
-      if (el.__touchAttached) return;
-      el.addEventListener('touchstart', function (e) {
-        e.preventDefault();
-        el.click();
-      }, { passive: false });
-      el.__touchAttached = true;
-    } catch (err) { }
-  }
-
-  function enableTouchForOnclicks() {
-    document.querySelectorAll('[onclick]').forEach(el => attachTouch(el));
-    document.querySelectorAll('.btn, .btn-ghost, button').forEach(b => {
-      if (!b.__touchAttached) {
-        b.addEventListener('touchstart', function (e) {
-          e.preventDefault();
-          b.click();
-        }, { passive: false });
-        b.__touchAttached = true;
-      }
-    });
-  }
-
-  enableTouchForOnclicks();
-</script>
-
-<!-- ===== PRIVACIDADE DASHBOARD ===== -->
-<script>
-  (function () {
-    const STORAGE_KEY = 'dashboardPrivacyState';
-    state.dashboardPrivacy = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-
-    window._borges_state = state;
-    window.saveLocal = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(state.dashboardPrivacy));
-
-    function applyPrivacy() {
-      document.querySelectorAll('[data-sensitive]').forEach(el => {
-        const type = el.dataset.sensitive;
-        if (state.dashboardPrivacy.hideAll || state.dashboardPrivacy[type]) {
-          el.classList.add('hidden-value');
-        } else {
-          el.classList.remove('hidden-value');
-        }
-      });
-    }
-
-    applyPrivacy();
-
-    const buttons = document.querySelectorAll('#privacy_controls button');
-    buttons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const toggle = btn.dataset.toggle;
-        if (toggle === 'hide-all') state.dashboardPrivacy.hideAll = !state.dashboardPrivacy.hideAll;
-        else state.dashboardPrivacy[toggle] = !state.dashboardPrivacy[toggle];
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state.dashboardPrivacy));
-        applyPrivacy();
-      });
-    });
-  })();
-</script>
-
-<!-- === GOOGLE API / outros scripts externos === -->
+<!-- === Google API === -->
 <script src="https://apis.google.com/js/api.js"></script>
 
-<!-- ===== DRIVE SYNC / estado global único ===== -->
+<!-- ===================== DRIVE SYNC ===================== -->
 <script>
-  if (!state.assets) state.assets = [];
-  if (!state.settings) state.settings = { hideValues: false };
-  if (!state.settings.hidden) state.settings.hidden = {};
+if (!state.assets) state.assets = [];
+if (!state.settings) state.settings = { hideValues:false };
+if (!state.settings.hidden) state.settings.hidden = {};
 
-  function toggleHideArea(area) {
-    state.settings.hidden[area] = !state.settings.hidden[area];
-    saveLocal();
-  }
-</script>
+function toggleHideArea(area){
+  state.settings.hidden[area] = !state.settings.hidden[area];
+  saveLocal();
+}
 
-</body>
+function toggleHideTab(tabId){
+  state.settings.hidden['tab_'+tabId] = !state.settings.hidden['tab_'+tabId];
+  updateTabVisibility();
+  saveLocal();
+}
+
+function updateTabVisibility(){
+  document.querySelectorAll('.page').forEach(p=>{
+    const id = p.id;
+    if(state.settings.hidden['tab_'+id]) p.style.display = 'none';
+  });
+  if (typeof renderAll === "function") renderAll();
+}
 
 /* ====== Ativos & Passivos ====== */
 /* (mantive toda sua lógica — nada alterado) */
@@ -1641,8 +1713,11 @@ function attachDriveControls(a,b,c,d){
   document.addEventListener('DOMContentLoaded', ()=>{
     document.getElementById(a).onclick = signInDrive;
     document.getElementById(b).onclick = signOutDrive;
-    document.getElementById(c).onclick = uploadStateToDrive;
+    document.getElementById(c).onclick = loadStateToDrive;
     document.getElementById(d).innerText = 'Desconectado';
+
+    /* 🔒 Botão Global de Privacidade */
+    document.getElementById("btnPrivacy").addEventListener("click", toggleGlobalPrivacy);
   });
 }
 
@@ -1651,10 +1726,10 @@ window.driveSync = {
   uploadStateToDrive, downloadFromDriveIfExists,
   attachDriveControls
 };
-</script>
 
 <!-- ===================== ENHANCEMENTS (OCULTAR E NOVA ABA) ===================== -->
 <!-- <script src="enhancements.js"></script> -->
 
 </body>
 </html>
+
