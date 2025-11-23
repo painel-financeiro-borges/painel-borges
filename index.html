@@ -135,36 +135,44 @@ canvas{width:100%;height:150px;background:transparent;border-radius:8px}
     <h2>Dashboard</h2>
 
     <div id="dash_alert" class="alert-banner" style="display:none"></div>
+<!-- BOTÕES DE EXIBIÇÃO DO DASHBOARD -->
+<div id="dash_buttons" style="margin-top:12px; display:flex; flex-wrap:wrap; gap:8px">
 
-<!-- BOTÕES DO DASHBOARD -->
-<div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap">
-
-  <button id="btnToggleEntradas" class="btn-ghost">Ocultar Entradas</button>
-  <button id="btnToggleResultado" class="btn-ghost">Ocultar Resultado</button>
-  <button id="btnToggleResumo" class="btn-ghost">Ocultar Resumos</button>
+  <button class="btn-ghost" id="btnToggleTopStats">Ocultar Entradas/Saídas/Resultado</button>
+  <button class="btn-ghost" id="btnToggleReservas">Ocultar Reservas</button>
+  <button class="btn-ghost" id="btnToggleCusto">Ocultar Custo de Vida</button>
+  <button class="btn-ghost" id="btnToggleFluxo">Ocultar Fluxo de Caixa</button>
+  <button class="btn-ghost" id="btnTogglePlanejamento">Ocultar Planejamento</button>
+  <button class="btn-ghost" id="btnToggleInvest">Ocultar Investimentos</button>
+  <button class="btn-ghost" id="btnToggleTransacoes">Ocultar Transações Recentes</button>
 
 </div>
 
-    <!-- TOP STATS -->
-    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px">
-      <div class="card" style="flex:1;min-width:220px">
-        <div class="small">Entradas</div>
-        <div id="dash_entradas" style="font-weight:800;font-size:22px">R$ 0,00</div>
-        <div class="small">Lançamentos: <span id="count_entradas">0</span></div>
-      </div>
-      <div class="card" style="flex:1;min-width:220px">
-        <div class="small">Saídas</div>
-        <div id="dash_saidas" style="font-weight:800;font-size:22px">R$ 0,00</div>
-        <div class="small">Lançamentos: <span id="count_saidas">0</span></div>
-      </div>
-      <div class="card" style="flex:1;min-width:220px">
-        <div class="small">Resultado</div>
-        <div id="dash_resultado" style="font-weight:800;font-size:22px">R$ 0,00</div>
-        <div class="small">Status: <span id="dash_result_status">—</span></div>
-      </div>
-    </div>
+<!-- TOP STATS -->
+<div id="top_stats" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px">
+
+  <div class="card" style="flex:1;min-width:220px">
+    <div class="small">Entradas</div>
+    <div id="dash_entradas" style="font-weight:800;font-size:22px">R$ 0,00</div>
+    <div class="small">Lançamentos: <span id="count_entradas">0</span></div>
+  </div>
+
+  <div class="card" style="flex:1;min-width:220px">
+    <div class="small">Saídas</div>
+    <div id="dash_saidas" style="font-weight:800;font-size:22px">R$ 0,00</div>
+    <div class="small">Lançamentos: <span id="count_saidas">0</span></div>
+  </div>
+
+  <div class="card" style="flex:1;min-width:220px">
+    <div class="small">Resultado</div>
+    <div id="dash_resultado" style="font-weight:800;font-size:22px">R$ 0,00</div>
+    <div class="small">Status: <span id="dash_result_status">—</span></div>
+  </div>
+
+</div>
+
 <!-- RESERVAS — PROGRESSO GERAL -->
-<div class="card" style="flex:1;min-width:220px;margin-top:12px">
+<div id="box_reservas" class="card" style="flex:1;min-width:220px;margin-top:12px">
   <div style="font-weight:600;margin-bottom:6px">Reservas — total</div>
   <div id="dash_reservas_total" style="font-size:20px;font-weight:700">R$ 0,00</div>
   <div class="small">Quantidade de reservas: <span id="dash_reservas_count">0</span></div>
@@ -177,55 +185,57 @@ canvas{width:100%;height:150px;background:transparent;border-radius:8px}
 </div>
 
     <!-- 1) CUSTO DE VIDA ATUAL -->
-    <div class="card" id="dash_custo_card" style="margin-top:12px">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-        <div>
-          <div class="small">Custo de Vida (mês)</div>
-          <div id="dash_custo_total" style="font-weight:800;font-size:22px">R$ 0,00</div>
-          <div class="small" id="dash_custo_month_label"></div>
-        </div>
-        <div style="width:320px">
-          <canvas id="chartCustoTop" height="160"></canvas>
-        </div>
-      </div>
+<div id="box_custo" class="card" style="margin-top:12px">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+    <div>
+      <div class="small">Custo de Vida (mês)</div>
+      <div id="dash_custo_total" style="font-weight:800;font-size:22px">R$ 0,00</div>
+      <div class="small" id="dash_custo_month_label"></div>
     </div>
+    <div style="width:320px">
+      <canvas id="chartCustoTop" height="160"></canvas>
+    </div>
+  </div>
+</div>
+
 
     <!-- 2) FLUXO DE CAIXA MENSAL -->
-    <div class="card" id="dash_fluxo_card" style="margin-top:12px">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-        <div>
-          <div class="small">Fluxo de Caixa — Mês</div>
-          <div style="display:flex;gap:12px;align-items:center;margin-top:6px;flex-wrap:wrap">
-            <div class="kv"><div class="small">Entradas</div><div id="dash_fluxo_entries" style="font-weight:800">R$ 0,00</div></div>
-            <div class="kv"><div class="small">Saídas</div><div id="dash_fluxo_exits" style="font-weight:800">R$ 0,00</div></div>
-            <div class="kv"><div class="small">Consolidação</div><div id="dash_fluxo_net" style="font-weight:800">R$ 0,00</div></div>
-          </div>
-        </div>
-        <div style="flex:1;max-width:680px">
-          <canvas id="chartFluxMonthly" height="180"></canvas>
-        </div>
+<div id="box_fluxo" class="card" style="margin-top:12px">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+    <div>
+      <div class="small">Fluxo de Caixa — Mês</div>
+      <div style="display:flex;gap:12px;align-items:center;margin-top:6px;flex-wrap:wrap">
+        <div class="kv"><div class="small">Entradas</div><div id="dash_fluxo_entries" style="font-weight:800">R$ 0,00</div></div>
+        <div class="kv"><div class="small">Saídas</div><div id="dash_fluxo_exits" style="font-weight:800">R$ 0,00</div></div>
+        <div class="kv"><div class="small">Consolidação</div><div id="dash_fluxo_net" style="font-weight:800">R$ 0,00</div></div>
       </div>
     </div>
+    <div style="flex:1;max-width:680px">
+      <canvas id="chartFluxMonthly" height="180"></canvas>
+    </div>
+  </div>
+</div>
+
 
     <!-- 3) PLANEJAMENTO MENSAL -->
-    <div class="card" id="dash_plan_card" style="margin-top:12px">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-        <div>
-          <div class="small">Planejamento Mensal — Progresso</div>
-          <div id="dash_plan_meta" style="font-weight:800;font-size:18px">Meta: R$ 0,00</div>
-          <div id="dash_plan_done" class="small">Concluído: R$ 0,00</div>
-          <div style="margin-top:8px" class="progress"><div id="dash_plan_bar" class="bar" style="width:0%"></div></div>
-          <div style="margin-top:6px" class="small">Progresso: <span id="dash_plan_pct">0%</span></div>
-        </div>
-        <div style="width:240px">
-          <canvas id="chartPlan" height="160"></canvas>
-        </div>
-      </div>
+<div id="box_planejamento" class="card" style="margin-top:12px">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+    <div>
+      <div class="small">Planejamento Mensal — Progresso</div>
+      <div id="dash_plan_meta" style="font-weight:800;font-size:18px">Meta: R$ 0,00</div>
+      <div id="dash_plan_done" class="small">Concluído: R$ 0,00</div>
+      <div style="margin-top:8px" class="progress"><div id="dash_plan_bar" class="bar" style="width:0%"></div></div>
+      <div style="margin-top:6px" class="small">Progresso: <span id="dash_plan_pct">0%</span></div>
     </div>
+    <div style="width:240px">
+      <canvas id="chartPlan" height="160"></canvas>
+    </div>
+  </div>
+</div>
 
-    <!-- INVESTIMENTOS (Reservas removidas do resumo) -->
+   <!-- INVESTIMENTOS (Reservas removidas do resumo) -->
 <div style="display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px">
-  <div class="card">
+  <div id="box_invest" class="card">
     <div class="small">Investimentos — total</div>
     <div id="dash_invest_total" style="font-weight:800;font-size:20px">R$ 0,00</div>
     <div class="small">Quantidade de ativos: <span id="dash_inv_count">0</span></div>
@@ -233,21 +243,21 @@ canvas{width:100%;height:150px;background:transparent;border-radius:8px}
   </div>
 </div>
 
-    <!-- últimas transações -->
-    <div class="card" style="margin-top:12px">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div><h3 style="margin:0">Últimas transações / lançamentos</h3><div class="small">Transações recentes</div></div>
-        <div class="small">Atualizado: <span id="dash_updated">-</span></div>
-      </div>
-      <div style="margin-top:8px;overflow:auto">
-        <table class="table" id="dash_recent">
-          <thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Valor</th></tr></thead>
-          <tbody><tr><td colspan="4" class="small">Sem registros</td></tr></tbody>
-        </table>
-      </div>
-    </div>
 
+    <!-- últimas transações -->
+<div id="box_transacoes" class="card" style="margin-top:12px">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <div><h3 style="margin:0">Últimas transações / lançamentos</h3><div class="small">Transações recentes</div></div>
+    <div class="small">Atualizado: <span id="dash_updated">-</span></div>
   </div>
+  <div style="margin-top:8px;overflow:auto">
+    <table class="table" id="dash_recent">
+      <thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Valor</th></tr></thead>
+      <tbody><tr><td colspan="4" class="small">Sem registros</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
 
   <!-- ============== CUSTO / PLANEJAMENTO / FLUXO / RESERVAS / INVESTIMENTOS / CADERNO / BACKUP ============== -->
   <!-- (preserve existing markup for these pages) -->
@@ -1307,29 +1317,6 @@ function renderAll(){
   el('#btnHideValues').addEventListener('click', ()=>{ state.settings.hideValues = !state.settings.hideValues; el('#btnHideValues').innerText = state.settings.hideValues ? 'Mostrar Valores' : 'Ocultar Valores'; saveLocal(); });
   el('#btnExportNotes').addEventListener('click', ()=>{ exportToClipboardAndModal(); });
 
-  // ===== BOTOES DO DASHBOARD =====
-el('#btnToggleEntradas').addEventListener('click', () => {
-  const box = document.querySelector('#dash_entradas').parentElement;
-  const hidden = box.style.display === 'none';
-  box.style.display = hidden ? '' : 'none';
-  el('#btnToggleEntradas').innerText = hidden ? 'Ocultar Entradas' : 'Mostrar Entradas';
-});
-
-el('#btnToggleResultado').addEventListener('click', () => {
-  const box = document.querySelector('#dash_resultado').parentElement;
-  const hidden = box.style.display === 'none';
-  box.style.display = hidden ? '' : 'none';
-  el('#btnToggleResultado').innerText = hidden ? 'Ocultar Resultado' : 'Mostrar Resultado';
-});
-
-el('#btnToggleResumo').addEventListener('click', () => {
-  const cards = document.querySelectorAll('#dashboard .card:not(:first-child)');
-  const hidden = cards[0].style.display === 'none';
-  cards.forEach(c => c.style.display = hidden ? '' : 'none');
-  el('#btnToggleResumo').innerText = hidden ? 'Ocultar Resumos' : 'Mostrar Resumos';
-});
-
-
   // observe DOM mutations (to attach touch handlers to dynamic elements)
   const mo = new MutationObserver(muts => { muts.forEach(m => { if(m.addedNodes && m.addedNodes.length){ m.addedNodes.forEach(node => { if(node.nodeType===1){ if(node.matches && node.matches('[onclick]')) attachTouch(node); node.querySelectorAll && node.querySelectorAll('[onclick]').forEach(elm=>attachTouch(elm)); } }); } }); });
   mo.observe(document.body, { childList:true, subtree:true });
@@ -1352,6 +1339,50 @@ function enableTouchForOnclicks(){
 /* ===== Expose debug helpers ===== */
 window._borges_state = state;
 window.saveLocal = saveLocal;
+
+// ===== NOVA LÓGICA DE TOGGLE =====
+function toggleBox(btnId, boxId, label) {
+  const box = document.getElementById(boxId);
+  const btn = document.getElementById(btnId);
+  const hidden = box.style.display === 'none';
+  box.style.display = hidden ? '' : 'none';
+  btn.innerText = hidden ? `Ocultar ${label}` : `Mostrar ${label}`;
+}
+
+// TOP STATS
+el('#btnToggleTopStats').addEventListener('click', () => {
+  toggleBox('btnToggleTopStats', 'top_stats', 'Entradas/Saídas/Resultado');
+});
+
+// RESERVAS
+el('#btnToggleReservas').addEventListener('click', () => {
+  toggleBox('btnToggleReservas', 'box_reservas', 'Reservas');
+});
+
+// CUSTO
+el('#btnToggleCusto').addEventListener('click', () => {
+  toggleBox('btnToggleCusto', 'box_custo', 'Custo de Vida');
+});
+
+// FLUXO
+el('#btnToggleFluxo').addEventListener('click', () => {
+  toggleBox('btnToggleFluxo', 'box_fluxo', 'Fluxo de Caixa');
+});
+
+// PLANEJAMENTO
+el('#btnTogglePlanejamento').addEventListener('click', () => {
+  toggleBox('btnTogglePlanejamento', 'box_planejamento', 'Planejamento');
+});
+
+// INVESTIMENTOS
+el('#btnToggleInvest').addEventListener('click', () => {
+  toggleBox('btnToggleInvest', 'box_invest', 'Investimentos');
+});
+
+// TRANSAÇÕES
+el('#btnToggleTransacoes').addEventListener('click', () => {
+  toggleBox('btnToggleTransacoes', 'box_transacoes', 'Transações Recentes');
+});
 
 </script>
 
@@ -1567,6 +1598,3 @@ window.driveSync = {
 
 </body>
 </html>
-
-
-
