@@ -1372,93 +1372,116 @@ function renderAll(){
 
 })();
 
-/* ===== MOBILE TOUCH SUPPORT ===== */
-function attachTouch(el){
-  if(!el) return;
-  try{ if(el.__touchAttached) return;
-    el.addEventListener('touchstart', function onTouch(e){ e.preventDefault(); el.click(); }, {passive:false});
-    el.__touchAttached = true;
-  }catch(err){}
-}
-function enableTouchForOnclicks(){
-  document.querySelectorAll('[onclick]').forEach(el => attachTouch(el));
-  document.querySelectorAll('.btn, .btn-ghost, button').forEach(b=>{ if(!b.__touchAttached){ b.addEventListener('touchstart', function(e){ e.preventDefault(); b.click(); }, {passive:false}); b.__touchAttached = true; }});
-}
+</body>
 
- </body>
-
-<!-- ===== PRIVACIDADE DASHBOARD ===== -->
+<!-- ===== PERSISTENCE ===== -->
 <script>
-(function(){
-  const STORAGE_KEY = 'dashboardPrivacyState';
-  const state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+  var state = state || {};
+  const STATE_KEY = 'borges_panel_3_v1';
 
-  // Expor para debug (agora que state existe)
-  window._borges_state = state;
-   if (!window._borges_state.assets) window._borges_state.assets = [];
-  window.saveLocal = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  function saveLocal() {
+    localStorage.setItem(STATE_KEY, JSON.stringify(state));
+    renderAll();
+  }
 
-  // Função para aplicar classes de ocultação
-  function applyPrivacy() {
-    document.querySelectorAll('[data-sensitive]').forEach(el => {
-      const type = el.dataset.sensitive;
-      if(state.hideAll || state[type]) {
-        el.classList.add('hidden-value');
-      } else {
-        el.classList.remove('hidden-value');
+  function loadLocal() {
+    try {
+      const raw = localStorage.getItem(STATE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        state = Object.assign(state, parsed);
+        if (!state.settings) state.settings = { hideValues: false };
+        if (!state.assets) state.assets = [];
+      }
+    } catch (e) {
+      console.error('Erro parse local', e);
+    }
+  }
+
+  loadLocal();
+</script>
+
+<!-- ===== MOBILE TOUCH SUPPORT ===== -->
+<script>
+  function attachTouch(el) {
+    if (!el) return;
+    try {
+      if (el.__touchAttached) return;
+      el.addEventListener('touchstart', function (e) {
+        e.preventDefault();
+        el.click();
+      }, { passive: false });
+      el.__touchAttached = true;
+    } catch (err) { }
+  }
+
+  function enableTouchForOnclicks() {
+    document.querySelectorAll('[onclick]').forEach(el => attachTouch(el));
+    document.querySelectorAll('.btn, .btn-ghost, button').forEach(b => {
+      if (!b.__touchAttached) {
+        b.addEventListener('touchstart', function (e) {
+          e.preventDefault();
+          b.click();
+        }, { passive: false });
+        b.__touchAttached = true;
       }
     });
   }
 
-  // Inicializa estado
-  applyPrivacy();
-
-  // Botões de toggle
-  const buttons = document.querySelectorAll('#privacy_controls button');
-  buttons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const toggle = btn.dataset.toggle;
-      if(toggle === 'hide-all') {
-        state.hideAll = !state.hideAll;
-      } else {
-        state[toggle] = !state[toggle];
-      }
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      applyPrivacy();
-    });
-  });
-})();
+  enableTouchForOnclicks();
 </script>
 
-</html>
+<!-- ===== PRIVACIDADE DASHBOARD ===== -->
+<script>
+  (function () {
+    const STORAGE_KEY = 'dashboardPrivacyState';
+    state.dashboardPrivacy = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
 
-<!-- === Google API === -->
+    window._borges_state = state;
+    window.saveLocal = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(state.dashboardPrivacy));
+
+    function applyPrivacy() {
+      document.querySelectorAll('[data-sensitive]').forEach(el => {
+        const type = el.dataset.sensitive;
+        if (state.dashboardPrivacy.hideAll || state.dashboardPrivacy[type]) {
+          el.classList.add('hidden-value');
+        } else {
+          el.classList.remove('hidden-value');
+        }
+      });
+    }
+
+    applyPrivacy();
+
+    const buttons = document.querySelectorAll('#privacy_controls button');
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const toggle = btn.dataset.toggle;
+        if (toggle === 'hide-all') state.dashboardPrivacy.hideAll = !state.dashboardPrivacy.hideAll;
+        else state.dashboardPrivacy[toggle] = !state.dashboardPrivacy[toggle];
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state.dashboardPrivacy));
+        applyPrivacy();
+      });
+    });
+  })();
+</script>
+
+<!-- === GOOGLE API / outros scripts externos === -->
 <script src="https://apis.google.com/js/api.js"></script>
 
-<!-- ===================== DRIVE SYNC ===================== -->
+<!-- ===== DRIVE SYNC / estado global único ===== -->
 <script>
-if (!state.assets) state.assets = [];
-if (!state.settings) state.settings = { hideValues:false };
-if (!state.settings.hidden) state.settings.hidden = {};
+  if (!state.assets) state.assets = [];
+  if (!state.settings) state.settings = { hideValues: false };
+  if (!state.settings.hidden) state.settings.hidden = {};
 
-function toggleHideArea(area){
-  state.settings.hidden[area] = !state.settings.hidden[area];
-  saveLocal();
-}
+  function toggleHideArea(area) {
+    state.settings.hidden[area] = !state.settings.hidden[area];
+    saveLocal();
+  }
+</script>
 
-function toggleHideTab(tabId){
-  state.settings.hidden['tab_'+tabId] = !state.settings.hidden['tab_'+tabId];
-  updateTabVisibility();
-  saveLocal();
-}
-
-function updateTabVisibility(){
-  document.querySelectorAll('.page').forEach(p=>{
-    const id = p.id;
-    if(state.settings.hidden['tab_'+id]) p.style.display = 'none';
-  });
-  if (typeof renderAll === "function") renderAll();
-}
+</body>
 
 /* ====== Ativos & Passivos ====== */
 /* (mantive toda sua lógica — nada alterado) */
