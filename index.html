@@ -136,6 +136,15 @@ canvas{width:100%;height:150px;background:transparent;border-radius:8px}
 
     <div id="dash_alert" class="alert-banner" style="display:none"></div>
 
+<!-- BOTÕES DO DASHBOARD -->
+<div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap">
+
+  <button id="btnToggleEntradas" class="btn-ghost">Ocultar Entradas</button>
+  <button id="btnToggleResultado" class="btn-ghost">Ocultar Resultado</button>
+  <button id="btnToggleResumo" class="btn-ghost">Ocultar Resumos</button>
+
+</div>
+
     <!-- TOP STATS -->
     <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px">
       <div class="card" style="flex:1;min-width:220px">
@@ -1297,6 +1306,29 @@ function renderAll(){
   el('#btnSyncAll').addEventListener('click', ()=>{ syncAllToDrive(); });
   el('#btnHideValues').addEventListener('click', ()=>{ state.settings.hideValues = !state.settings.hideValues; el('#btnHideValues').innerText = state.settings.hideValues ? 'Mostrar Valores' : 'Ocultar Valores'; saveLocal(); });
   el('#btnExportNotes').addEventListener('click', ()=>{ exportToClipboardAndModal(); });
+
+  // ===== BOTOES DO DASHBOARD =====
+el('#btnToggleEntradas').addEventListener('click', () => {
+  const box = document.querySelector('#dash_entradas').parentElement;
+  const hidden = box.style.display === 'none';
+  box.style.display = hidden ? '' : 'none';
+  el('#btnToggleEntradas').innerText = hidden ? 'Ocultar Entradas' : 'Mostrar Entradas';
+});
+
+el('#btnToggleResultado').addEventListener('click', () => {
+  const box = document.querySelector('#dash_resultado').parentElement;
+  const hidden = box.style.display === 'none';
+  box.style.display = hidden ? '' : 'none';
+  el('#btnToggleResultado').innerText = hidden ? 'Ocultar Resultado' : 'Mostrar Resultado';
+});
+
+el('#btnToggleResumo').addEventListener('click', () => {
+  const cards = document.querySelectorAll('#dashboard .card:not(:first-child)');
+  const hidden = cards[0].style.display === 'none';
+  cards.forEach(c => c.style.display = hidden ? '' : 'none');
+  el('#btnToggleResumo').innerText = hidden ? 'Ocultar Resumos' : 'Mostrar Resumos';
+});
+
 
   // observe DOM mutations (to attach touch handlers to dynamic elements)
   const mo = new MutationObserver(muts => { muts.forEach(m => { if(m.addedNodes && m.addedNodes.length){ m.addedNodes.forEach(node => { if(node.nodeType===1){ if(node.matches && node.matches('[onclick]')) attachTouch(node); node.querySelectorAll && node.querySelectorAll('[onclick]').forEach(elm=>attachTouch(elm)); } }); } }); });
