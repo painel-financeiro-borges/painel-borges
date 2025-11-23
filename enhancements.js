@@ -1482,26 +1482,31 @@ function attachHideButtons(){
 
 
   /* =======================
-     SUPORTE A TOQUE (MOBILE)
-  ======================== */
-  const mo = new MutationObserver(muts => {
-    muts.forEach(m => {
-      if(m.addedNodes && m.addedNodes.length){
-        m.addedNodes.forEach(node => {
-          if(node.nodeType===1){
-            if(node.matches && node.matches('[onclick]'))
-              attachTouch(node);
+ /* =======================
+   SUPORTE A TOQUE (MOBILE)
+======================== */
+const mo = new MutationObserver(muts => {
+  muts.forEach(m => {
+    if (!m.addedNodes) return;
 
-            node.querySelectorAll &&
-              node.querySelectorAll('[onclick]')
-              .forEach(elm=>attachTouch(elm));
-          }
-        });
+    m.addedNodes.forEach(node => {
+      if (node.nodeType !== 1) return;
+
+      // Se o elemento tem onclick direto
+      if (node.matches && node.matches('[onclick]')) {
+        attachTouch(node);
+      }
+
+      // Se possui filhos com onclick
+      if (node.querySelectorAll) {
+        node.querySelectorAll('[onclick]').forEach(elm => attachTouch(elm));
       }
     });
   });
+});
 
-  mo.observe(document.body, { childList:true, subtree:true });
+// Inicia observação do DOM
+mo.observe(document.body, { childList: true, subtree: true });
 
 })();  // <-- FECHAMENTO CORRETO DA IIFE APENAS UMA VEZ
 
@@ -1738,3 +1743,4 @@ window.driveSync = {
 
 </body>
 </html>
+
