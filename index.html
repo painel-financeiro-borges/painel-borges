@@ -127,29 +127,12 @@ canvas{width:100%;height:150px;background:transparent;border-radius:8px}
 
     <button id="btnSeed" class="btn-ghost">Criar Padrões</button>
     <button id="btnSyncAll" class="btn">Sincronizar com Drive</button>
+    <button id="btnHideValues" class="btn-pro">Ocultar Valores</button>
     <button id="btnExportNotes" class="btn-export">Exportar (Bloco de Notas)</button>
   </div>
 
   <!-- ============== DASHBOARD ============== -->
   <div id="dashboard" class="page card" style="margin-top:12px">
-  <!-- ================== BOTOES DE OCULTAR VALORES ================== -->
-<div id="hideControls" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">
-
-  <!-- BOTÃO MASTER -->
-  <button id="hide_all_btn" class="btn small">🔒 Ocultar Tudo</button>
-
-  <!-- BOTÕES ESPECÍFICOS -->
-  <button id="hide_entradas_btn" class="btn small">Entradas/Saídas</button>
-  <button id="hide_reservas_btn" class="btn small">Reservas</button>
-  <button id="hide_custo_btn" class="btn small">Custo de Vida</button>
-  <button id="hide_fluxo_btn" class="btn small">Fluxo do Mês</button>
-  <button id="hide_planejamento_btn" class="btn small">Planejamento</button>
-  <button id="hide_invest_btn" class="btn small">Investimentos</button>
-  <button id="hide_trans_btn" class="btn small">Últimas Transações</button>
-
-</div>
-<!-- =============================================================== -->
-
     <h2>Dashboard</h2>
 
     <div id="dash_alert" class="alert-banner" style="display:none"></div>
@@ -266,20 +249,15 @@ canvas{width:100%;height:150px;background:transparent;border-radius:8px}
       <h2>Custo de Vida — lançamentos mensais</h2>
       <div class="small">Adicione seus custos mensais, por data e categoria. O gráfico mostra as categorias mais gastas.</div>
       <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-  <input id="cv_date" class="input" type="date"/>
-  <input id="cv_desc" class="input" placeholder="Descrição do custo"/>
-  <select id="cv_cat" class="input">
-    <option>Moradia</option><option>Alimentação</option>
-    <option>Transporte</option><option>Educação</option>
-    <option>Lazer</option><option>Outros</option>
-  </select>
-  <input id="cv_valor" class="input" type="number" placeholder="Valor (R$)"/>
-  
-  <button class="btn" onclick="addCusto()">Adicionar</button>
-  <button class="btn-ghost" onclick="clearCustoMonth()">Limpar mês</button>
-  <button class="btn-ghost" onclick="resetCusto()">🧹 Zerar Dados</button>
-</div>
-
+        <input id="cv_date" class="input" type="date"/>
+        <input id="cv_desc" class="input" placeholder="Descrição do custo"/>
+        <select id="cv_cat" class="input">
+          <option>Moradia</option><option>Alimentação</option><option>Transporte</option><option>Educação</option><option>Lazer</option><option>Outros</option>
+        </select>
+        <input id="cv_valor" class="input" type="number" placeholder="Valor (R$)"/>
+        <button class="btn" onclick="addCusto()">Adicionar</button>
+        <button class="btn-ghost" onclick="clearCustoMonth()">Limpar mês</button>
+      </div>
 
       <div style="margin-top:12px;display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">
         <div style="flex:1">
@@ -297,54 +275,32 @@ canvas{width:100%;height:150px;background:transparent;border-radius:8px}
   </div>
 
   <!-- PLANEJAMENTO -->
-<div id="planejamento" class="page" style="display:none">
-  <div class="card">
-    <h2>Planejamento Mensal — 3 períodos</h2>
-    <div class="small">Crie metas de faturamento por período e adicione contas.</div>
-
-    <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
-      <select id="plan_mes" class="input"></select>
-      <button class="btn" onclick="createPlanForMonth()">Criar/Carregar mês</button>
-      <button class="btn-ghost" onclick="resetPlanejamento()">🧹 Zerar Planejamento</button>
-    </div>
-
-    <div id="planPeriods" style="margin-top:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px"></div>
-
-    <div style="margin-top:12px">
-      <div class="small">Resumo do planejamento</div>
-      <div id="plan_summary" style="font-weight:700">Nenhum planejamento selecionado</div>
+  <div id="planejamento" class="page" style="display:none">
+    <div class="card">
+      <h2>Planejamento Mensal — 3 períodos</h2>
+      <div class="small">Crie metas de faturamento por período e adicione contas.</div>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <select id="plan_mes" class="input"></select>
+        <button class="btn" onclick="createPlanForMonth()">Criar/Carregar mês</button>
+      </div>
+      <div id="planPeriods" style="margin-top:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px"></div>
+      <div style="margin-top:12px"><div class="small">Resumo do planejamento</div><div id="plan_summary" style="font-weight:700">Nenhum planejamento selecionado</div></div>
     </div>
   </div>
-</div>
 
   <!-- FLUXO -->
-<div id="fluxo" class="page" style="display:none">
-  <div class="card">
-    <h2>Fluxo de Caixa Diário</h2>
-    <div class="small">Lance entradas e saídas, escolha tipo de pagamento e veja o gráfico consolidado</div>
-    
-    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-      <input id="fx_date" class="input" type="date"/>
-      <input id="fx_desc" class="input" placeholder="Descrição"/>
-      
-      <select id="fx_type" class="input">
-        <option value="entrada">Entrada</option>
-        <option value="saida">Saída</option>
-      </select>
-
-      <select id="fx_payment" class="input">
-        <option>Dinheiro</option>
-        <option>Pix</option>
-        <option>Saldo conta</option>
-        <option>Híbrido</option>
-      </select>
-
-      <input id="fx_valor" class="input" type="number" placeholder="Valor (R$)"/>
-
-      <button class="btn" onclick="addFluxo()">Registrar</button>
-      <button class="btn-ghost" onclick="resetFluxo()">🧹 Zerar Dados</button>
-    </div>
-
+  <div id="fluxo" class="page" style="display:none">
+    <div class="card">
+      <h2>Fluxo de Caixa Diário</h2>
+      <div class="small">Lance entradas e saídas, escolha tipo de pagamento e veja o gráfico consolidado</div>
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+        <input id="fx_date" class="input" type="date"/>
+        <input id="fx_desc" class="input" placeholder="Descrição"/>
+        <select id="fx_type" class="input"><option value="entrada">Entrada</option><option value="saida">Saída</option></select>
+        <select id="fx_payment" class="input"><option>Dinheiro</option><option>Pix</option><option>Saldo conta</option><option>Híbrido</option></select>
+        <input id="fx_valor" class="input" type="number" placeholder="Valor (R$)"/>
+        <button class="btn" onclick="addFluxo()">Registrar</button>
+      </div>
 
       <div style="margin-top:12px;display:flex;gap:12px;align-items:flex-start">
         <div style="flex:1">
@@ -375,99 +331,78 @@ canvas{width:100%;height:150px;background:transparent;border-radius:8px}
 </div> -->
 
 <div class="card">
-  <h2>Reservas — arraste para reorganizar</h2>
-  <div class="small">Ordem recomendada nas abas Reservas</div>
+      <h2>Reservas — arraste para reorganizar</h2>
+      <div class="small">Ordem recomendada nas abas Reservas</div>
 
-  <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-    <input id="r_name" class="input" placeholder="Nome da reserva (ex: Segurança)"/>
-    <input id="r_meta" class="input" type="number" placeholder="Meta (R$)"/>
-    <input id="r_init" class="input" type="number" placeholder="Valor Inicial (R$)"/>
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+        <input id="r_name" class="input" placeholder="Nome da reserva (ex: Segurança)"/>
+        <input id="r_meta" class="input" type="number" placeholder="Meta (R$)"/>
+        <input id="r_init" class="input" type="number" placeholder="Valor Inicial (R$)"/>
+        <button class="btn" onclick="addReservation()">Criar</button>
+        <button class="btn-ghost" onclick="createDefaultReservas()">Criar Reservas Padrão</button>
+      </div>
 
-    <button class="btn" onclick="addReservation()">Criar</button>
-    <button class="btn-ghost" onclick="createDefaultReservas()">Criar Reservas Padrão</button>
+      <div id="resCards" style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px"></div>
 
-    <!-- Botão de zerar reservas -->
-    <button class="btn-ghost" onclick="resetReservas()">🧹 Zerar Reservas</button>
+    </div>
   </div>
-
-  <div id="resCards" style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px"></div>
-</div>
-</div>
-
 
   <!-- INVESTIMENTOS -->
-<div id="investimentos" class="page" style="display:none">
-  <div class="card">
-    <h2>Investimentos — composição e lançamentos</h2>
-    <div class="small">Adicione ativos, categorias e faça aportes/retiradas.</div>
+  <div id="investimentos" class="page" style="display:none">
+    <div class="card">
+      <h2>Investimentos — composição e lançamentos</h2>
+      <div class="small">Adicione ativos, categorias e faça aportes/retiradas.</div>
 
-    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-      <input id="inv_ativo" class="input" placeholder="Ativo (ex: Tesouro IPCA+ 2035)"/>
-      <select id="inv_categoria" class="input">
-        <option>Renda Fixa</option><option>Ações</option><option>FIIs</option><option>Dólar</option>
-        <option>Renda Fixa USA</option><option>Penny Stocks</option><option>Cripto</option>
-      </select>
-      <input id="inv_qtd" class="input" type="number" placeholder="Quantidade"/>
-      <input id="inv_preco" class="input" type="number" placeholder="Preço unitário"/>
-
-      <button class="btn" onclick="addInvestment()">Adicionar</button>
-
-      <!-- BOTÃO DE RESET -->
-      <button class="btn-ghost" onclick="resetInvestimentos()">🧹 Zerar Dados</button>
-    </div>
-
-    <div style="margin-top:12px;display:flex;gap:12px">
-      <div style="flex:1">
-        <table class="table" id="invTable">
-          <thead>
-            <tr>
-              <th>Ativo</th><th>Categoria</th><th>Qtd</th><th>Preço</th><th>Valor</th><th>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td colspan="6" class="small">Nenhum investimento</td></tr>
-          </tbody>
-        </table>
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+        <input id="inv_ativo" class="input" placeholder="Ativo (ex: Tesouro IPCA+ 2035)"/>
+        <select id="inv_categoria" class="input">
+          <option>Renda Fixa</option><option>Ações</option><option>FIIs</option><option>Dólar</option><option>Renda Fixa USA</option><option>Penny Stocks</option><option>Cripto</option>
+        </select>
+        <input id="inv_qtd" class="input" type="number" placeholder="Quantidade"/>
+        <input id="inv_preco" class="input" type="number" placeholder="Preço unitário"/>
+        <button class="btn" onclick="addInvestment()">Adicionar</button>
       </div>
 
-      <div style="width:320px">
-        <div class="small">Composição por categoria</div>
-        <canvas id="chartInvComp" height="220"></canvas>
+      <div style="margin-top:12px;display:flex;gap:12px">
+        <div style="flex:1">
+          <table class="table" id="invTable">
+            <thead><tr><th>Ativo</th><th>Categoria</th><th>Qtd</th><th>Preço</th><th>Valor</th><th>Ações</th></tr></thead>
+            <tbody><tr><td colspan="6" class="small">Nenhum investimento</td></tr></tbody>
+          </table>
+        </div>
+        <div style="width:320px">
+          <div class="small">Composição por categoria</div>
+          <canvas id="chartInvComp" height="220"></canvas>
+        </div>
       </div>
     </div>
-
   </div>
-</div>
 
   <!-- CADERNO -->
-<div id="caderno" class="page" style="display:none">
-  <div class="card">
-    <h2>Bloco de Notas — abas temáticas, blocos e itens</h2>
-    <div class="small">Crie abas (temas), dentro crie blocos (sub-abas).</div>
+  <div id="caderno" class="page" style="display:none">
+    <div class="card">
+      <h2>Bloco de Notas — abas temáticas, blocos e itens</h2>
+      <div class="small">Crie abas (temas), dentro crie blocos (sub-abas).</div>
 
-    <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
-      <input id="note_tab_name" class="input" placeholder="Nome da aba (ex: Financeiro)"/>
-      <button class="btn" onclick="createNoteTab()">Criar Aba</button>
-
-      <!-- BOTÃO DE RESET -->
-      <button class="btn-ghost" onclick="resetCaderno()">🧹 Zerar Caderno</button>
-
-      <div class="spacer"></div>
-      <button class="btn-ghost" onclick="exportCaderno()">Exportar Caderno</button>
-    </div>
-
-    <div id="noteTabs" style="margin-top:12px"></div>
-
-    <div style="margin-top:12px" class="card">
-      <div style="display:flex;gap:8px;align-items:center">
-        <input id="note_block_title" class="input" placeholder="Título do bloco (sub-aba)"/>
-        <button class="btn" onclick="addBlock()">Adicionar bloco</button>
+      <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+        <input id="note_tab_name" class="input" placeholder="Nome da aba (ex: Financeiro)"/>
+        <button class="btn" onclick="createNoteTab()">Criar Aba</button>
+        <div class="spacer"></div>
+        <button class="btn-ghost" onclick="exportCaderno()">Exportar Caderno</button>
       </div>
-      <div id="noteBlocks" style="margin-top:12px"></div>
-    </div>
 
+      <div id="noteTabs" style="margin-top:12px"></div>
+
+      <div style="margin-top:12px" class="card">
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="note_block_title" class="input" placeholder="Título do bloco (sub-aba)"/>
+          <button class="btn" onclick="addBlock()">Adicionar bloco</button>
+        </div>
+        <div id="noteBlocks" style="margin-top:12px"></div>
+      </div>
+
+    </div>
   </div>
-</div>
 
   <!-- BACKUP -->
 <div id="backup" class="page" style="display:none">
@@ -524,56 +459,8 @@ let state = {
   custo: [],
   planejamento: {},
   caderno: [],
-  settings: {
-    hideAll: false,
-    hideEntradas: false,
-    hideReservas: false,
-    hideCusto: false,
-    hideFluxo: false,
-    hidePlanejamento: false,
-    hideInvestimentos: false,
-    hideTransacoes: false
-  }
+  settings: { hideValues: false }
 };
-
-
-function resetCusto() {
-  if (!confirm("Deseja zerar TODOS os lançamentos de Custo de Vida?")) return;
-  state.custo = [];
-  saveLocal();
-}
-
-function resetPlanejamento() {
-  if (!confirm("Deseja zerar TODO o planejamento mensal?")) return;
-  state.planejamento = {};
-  saveLocal();
-}
-
-function resetFluxo() {
-  if (!confirm("Deseja zerar TODOS os lançamentos do Fluxo Diário?")) return;
-  state.fluxo = [];
-  saveLocal();
-}
-
-function resetReservas() {
-  if (!confirm("Deseja zerar TODAS as reservas?")) return;
-
-  state.reservas = [];
-  state.transacoes = state.transacoes.filter(t => !t.reserva); // remove aportes
-  saveLocal();
-}
-
-function resetInvestimentos() {
-  if (!confirm("Deseja zerar TODOS os investimentos?")) return;
-  state.investimentos = [];
-  saveLocal();
-}
-
-function resetCaderno() {
-  if (!confirm("Deseja zerar TODO o Caderno de Notas?")) return;
-  state.caderno = [];
-  saveLocal();
-}
 
 /* ===== Utils ===== */
 function uid(prefix='id'){ return prefix + '_' + Date.now() + '_' + Math.floor(Math.random()*9999); }
@@ -585,56 +472,22 @@ function nowISO(){ return new Date().toISOString(); }
 
 /* ===== Persistence ===== */
 const STATE_KEY = 'borges_panel_3_v1';
-
-function saveLocal(){
-  localStorage.setItem(STATE_KEY, JSON.stringify(state));
-  renderAll();
-}
-
+function saveLocal(){ localStorage.setItem(STATE_KEY, JSON.stringify(state)); renderAll(); }
 function loadLocal(){
   try{
     const raw = localStorage.getItem(STATE_KEY);
     if(raw){
       const parsed = JSON.parse(raw);
-
-      // merge no state atual
+      // merge with default keys
       state = Object.assign(state, parsed);
-
-      // garantir que settings tenha todas as chaves modernas
-      state.settings = Object.assign({
-        hideAll: false,
-        hideEntradas: false,
-        hideReservas: false,
-        hideCusto: false,
-        hideFluxo: false,
-        hidePlanejamento: false,
-        hideInvestimentos: false,
-        hideTransacoes: false
-      }, state.settings || {});
+      if(!state.settings) state.settings = { hideValues:false };
     }
-  }catch(e){
-    console.error('Erro parse local', e);
-  }
+  }catch(e){ console.error('Erro parse local', e); }
 }
 
-/* ===== FormatMoney Inteligente (ocultação individual) ===== */
-function formatMoney(v, tipo){
-
-  // 1) OCULTAÇÃO MASTER
-  if (state.settings.hideAll) {
-    return 'R$ ••••';
-  }
-
-  // 2) OCULTAÇÃO POR TIPO ESPECÍFICO
-  if (tipo === 'entradas'      && state.settings.hideEntradas)      return 'R$ ••••';
-  if (tipo === 'reservas'      && state.settings.hideReservas)      return 'R$ ••••';
-  if (tipo === 'custo'         && state.settings.hideCusto)         return 'R$ ••••';
-  if (tipo === 'fluxo'         && state.settings.hideFluxo)         return 'R$ ••••';
-  if (tipo === 'planejamento'  && state.settings.hidePlanejamento)  return 'R$ ••••';
-  if (tipo === 'investimentos' && state.settings.hideInvestimentos) return 'R$ ••••';
-  if (tipo === 'transacoes'    && state.settings.hideTransacoes)    return 'R$ ••••';
-
-  // 3) NORMAL
+/* ===== Format depending on hide values ===== */
+function formatMoney(v){
+  if(state && state.settings && state.settings.hideValues) return 'R$ ••••';
   return moneyBRFormatted(v);
 }
 
@@ -1208,19 +1061,20 @@ function renderDashboard(){
 
   // resumo financeiro
   const resumo = computeResumoFinanceiro(monthKey);
-  el('#dash_entradas').innerText = formatMoney(resumo.totalEntradas || 0, 'entradas');
-el('#dash_saidas').innerText = formatMoney(resumo.totalSaidas || 0, 'entradas');
-el('#dash_resultado').innerText = formatMoney(resumo.resultado || 0, 'entradas');
+  el('#dash_entradas').innerText = formatMoney(resumo.totalEntradas || 0);
+  el('#dash_saidas').innerText = formatMoney(resumo.totalSaidas || 0);
+  el('#dash_resultado').innerText = formatMoney(resumo.resultado || 0);
+  el('#dash_result_status').innerText = resumo.resultado >= 0 ? 'Positivo' : 'Negativo';
 
   // reservas & investimentos
-  el('#dash_reservas_total').innerText = formatMoney(resumo.reservasTotal || 0, 'reservas');
+  el('#dash_reservas_total').innerText = formatMoney(resumo.reservasTotal || 0);
   el('#dash_reservas_count').innerText = (state.reservas||[]).length;
-  el('#dash_invest_total').innerText = formatMoney(resumo.investimentosTotal || 0, 'investimentos');
+  el('#dash_invest_total').innerText = formatMoney(resumo.investimentosTotal || 0);
   el('#dash_inv_count').innerText = (state.investimentos||[]).length;
 
   // alerta custo de vida
   const custoRes = computeCustoByCategory(monthKey);
-  el('#dash_custo_total').innerText = formatMoney(custoRes.total || 0, 'custo');
+  el('#dash_custo_total').innerText = formatMoney(custoRes.total || 0);
   el('#dash_custo_month_label').innerText = monthKey;
   const alertEl = el('#dash_alert');
   if(custoRes.total > resumo.totalEntradas){
@@ -1243,68 +1097,26 @@ el('#dash_resultado').innerText = formatMoney(resumo.resultado || 0, 'entradas')
     });
   }catch(e){/*silent*/}
 
-  // =======================
-// FLUXO MENSAL (Dashboard)
-// =======================
-const fluxoRes = computeFluxoMonthly(monthKey);
-
-// valores principais
-el('#dash_fluxo_entries').innerText = formatMoney(fluxoRes.totalEntries || 0, 'fluxo');
-el('#dash_fluxo_exits').innerText   = formatMoney(fluxoRes.totalExits   || 0, 'fluxo');
-el('#dash_fluxo_net').innerText     = formatMoney(fluxoRes.net          || 0, 'fluxo');
-
-// cor do resultado
-el('#dash_fluxo_net').style.color = 
-  (fluxoRes.net >= 0) ? 'var(--success)' : 'var(--danger)';
-
-// recriar gráfico se já existir
-if (chartFluxMonthly) {
-  chartFluxMonthly.destroy();
-  chartFluxMonthly = null;
-}
-
-try {
-  const ctxF = document
-    .getElementById('chartFluxMonthly')
-    .getContext('2d');
-
-  chartFluxMonthly = new Chart(ctxF, {
-    type: 'bar',
-    data: {
-      labels: fluxoRes.labels,
-      datasets: [
-        {
-          label: 'Entradas',
-          data: fluxoRes.entriesArr,
-          backgroundColor: '#16a34a'
-        },
-        {
-          label: 'Saídas',
-          data: fluxoRes.exitsArr,
-          backgroundColor: '#ef4444'
-        }
-      ]
-    },
-    options: {
-      maintainAspectRatio: false,
-      scales: {
-        x: { ticks: { color: '#e6eef8' } },
-        y: { ticks: { color: '#e6eef8' } }
-      },
-      plugins: {
-        legend: { labels: { color: '#e6eef8' } }
-      }
-    }
-  });
-
-} catch (e) {
-  /* silent error */
-}
+  // Fluxo mensal chart
+  const fluxoRes = computeFluxoMonthly(monthKey);
+  el('#dash_fluxo_entries').innerText = formatMoney(fluxoRes.totalEntries || 0);
+  el('#dash_fluxo_exits').innerText = formatMoney(fluxoRes.totalExits || 0);
+  el('#dash_fluxo_net').innerText = formatMoney(fluxoRes.net || 0);
+  el('#dash_fluxo_net').style.color = (fluxoRes.net >= 0) ? 'var(--success)' : 'var(--danger)';
+  if(chartFluxMonthly){ chartFluxMonthly.destroy(); chartFluxMonthly = null; }
+  try{
+    const ctxF = document.getElementById('chartFluxMonthly').getContext('2d');
+    chartFluxMonthly = new Chart(ctxF, {
+      type:'bar',
+      data:{ labels:fluxoRes.labels, datasets:[ { label:'Entradas', data:fluxoRes.entriesArr, backgroundColor:'#16a34a' }, { label:'Saídas', data:fluxoRes.exitsArr, backgroundColor:'#ef4444' } ]},
+      options:{ maintainAspectRatio:false, scales:{ x:{ ticks:{ color:'#e6eef8' } }, y:{ ticks:{ color:'#e6eef8' } } }, plugins:{ legend:{ labels:{ color:'#e6eef8' } } } }
+    });
+  }catch(e){/*silent*/}
 
   // Plan small chart (donut)
   const planRes = computePlanProgress(monthKey);
-el('#dash_plan_meta').innerText = `Meta: ${formatMoney(planRes.meta || 0, 'planejamento')}`;
-el('#dash_plan_done').innerText = `Concluído: ${formatMoney(planRes.done || 0, 'planejamento')}`;
+  el('#dash_plan_meta').innerText = `Meta: ${formatMoney(planRes.meta || 0)}`;
+  el('#dash_plan_done').innerText = `Concluído: ${formatMoney(planRes.done || 0)}`;
   const pct = Math.min(100, Math.max(0, planRes.pct || 0));
   el('#dash_plan_bar').style.width = pct + '%';
   el('#dash_plan_pct').innerText = pct + '%';
@@ -1336,12 +1148,7 @@ el('#dash_plan_done').innerText = `Concluído: ${formatMoney(planRes.done || 0, 
     recent.forEach(r=>{
       const tr = document.createElement('tr');
       const dateStr = r.date ? (r.date.length===10 ? new Date(r.date+'T00:00:00').toLocaleDateString() : new Date(r.date).toLocaleDateString()) : '-';
-      tr.innerHTML = `
-  <td>${dateStr}</td>
-  <td>${r.tipo || r.type || 'mov'}</td>
-  <td>${r.reserva || r.desc || r.ativo || ''}</td>
-  <td>${formatMoney(r.valor || r.value || 0, 'transacoes')}</td>
-`;
+      tr.innerHTML = `<td>${dateStr}</td><td>${r.tipo || r.type || 'mov'}</td><td>${r.reserva || r.desc || r.ativo || ''}</td><td>${formatMoney(r.valor || r.value || 0)}</td>`;
       tbody.appendChild(tr);
     });
   }
@@ -1391,140 +1198,26 @@ function renderAll(){
   renderDashboard(); // garante dashboard atualizado
   enableTouchForOnclicks(); // manter suporte touch atualizado
 }
-/* ============================================================
-   FUNÇÕES DE OCULTAÇÃO DE DADOS (TOGGLE DOS BOTÕES)
-   ============================================================ */
-function toggleHide(key){
-  state.settings[key] = !state.settings[key];
-  saveLocal();
-  renderAll();
-  updateHideButtonsLabels();
-}
-
-function updateHideButtonsLabels(){
-  // MASTER
-  el('#hide_all_btn').innerText = state.settings.hideAll ? '🔓 Mostrar Tudo' : '🔒 Ocultar Tudo';
-
-  // INDIVIDUAIS
-  el('#hide_entradas_btn').innerText      = state.settings.hideEntradas     ? 'Mostrar Entradas'       : 'Entradas/Saídas';
-  el('#hide_reservas_btn').innerText      = state.settings.hideReservas     ? 'Mostrar Reservas'       : 'Reservas';
-  el('#hide_custo_btn').innerText         = state.settings.hideCusto        ? 'Mostrar Custo'          : 'Custo de Vida';
-  el('#hide_fluxo_btn').innerText         = state.settings.hideFluxo        ? 'Mostrar Fluxo'          : 'Fluxo do Mês';
-  el('#hide_planejamento_btn').innerText  = state.settings.hidePlanejamento ? 'Mostrar Planejamento'   : 'Planejamento';
-  el('#hide_invest_btn').innerText        = state.settings.hideInvestimentos? 'Mostrar Investimentos'  : 'Investimentos';
-  el('#hide_trans_btn').innerText         = state.settings.hideTransacoes   ? 'Mostrar Transações'     : 'Últimas Transações';
-}
-
-/* ============================================================
-   EVENTOS DOS BOTÕES DE OCULTAÇÃO
-   ============================================================ */
-function attachHideButtons(){
-
-  // MASTER
-  el('#hide_all_btn').onclick = ()=>{
-    toggleHide('hideAll');
-  };
-
-  // INDIVIDUAIS
-  el('#hide_entradas_btn').onclick      = ()=> toggleHide('hideEntradas');
-  el('#hide_reservas_btn').onclick      = ()=> toggleHide('hideReservas');
-  el('#hide_custo_btn').onclick         = ()=> toggleHide('hideCusto');
-  el('#hide_fluxo_btn').onclick         = ()=> toggleHide('hideFluxo');
-  el('#hide_planejamento_btn').onclick  = ()=> toggleHide('hidePlanejamento');
-  el('#hide_invest_btn').onclick        = ()=> toggleHide('hideInvestimentos');
-  el('#hide_trans_btn').onclick         = ()=> toggleHide('hideTransacoes');
-}
 
 /* ===== INIT ===== */
 (function init(){
   el('#apiUrlDisplay').innerText = API_URL || '(não configurada)';
-  
-  // Carrega dados do localStorage
   loadLocal();
-
-  // Cria reservas padrão caso ainda não existam
-  if(!state.reservas || !state.reservas.length) {
-    createDefaultReservas();
-  }
-
-  // Meses disponíveis no seletor
+  if(!state.reservas || !state.reservas.length) createDefaultReservas();
   getMonthOptions();
-
-  // Renderiza tudo
   renderAll();
 
-  /* =======================
-     BOTÕES ORIGINAIS
-  ======================== */
+  // attach buttons
+  el('#btnSeed').addEventListener('click', ()=>{ if(confirm('Criar reservas padrão?')) createDefaultReservas(); });
+  el('#btnSyncAll').addEventListener('click', ()=>{ syncAllToDrive(); });
+  el('#btnHideValues').addEventListener('click', ()=>{ state.settings.hideValues = !state.settings.hideValues; el('#btnHideValues').innerText = state.settings.hideValues ? 'Mostrar Valores' : 'Ocultar Valores'; saveLocal(); });
+  el('#btnExportNotes').addEventListener('click', ()=>{ exportToClipboardAndModal(); });
 
-  el('#btnSeed').addEventListener('click', ()=>{
-    if(confirm('Criar reservas padrão?'))
-      createDefaultReservas();
-  });
-
-  el('#btnSyncAll').addEventListener('click', ()=>{
-    syncAllToDrive();
-  });
-
-  el('#btnExportNotes').addEventListener('click', ()=>{
-    exportToClipboardAndModal();
-  });
-
-  /* =======================
-     SISTEMA NOVO DE PRIVACIDADE
-  ======================== */
-
-  // Ativa os eventos dos botões de esconder/mostrar valores
-  attachHideButtons();
-
-  // Ajusta o texto inicial dos botões conforme o estado salvo
-  updateHideButtonsLabels();
-
-
-  /* =======================
-     SUPORTE A TOQUE (MOBILE)
-  ======================== */
-  const mo = new MutationObserver(muts => {
-    muts.forEach(m => {
-      if(m.addedNodes && m.addedNodes.length){
-        m.addedNodes.forEach(node => {
-          if(node.nodeType===1){
-            if(node.matches && node.matches('[onclick]'))
-              attachTouch(node);
-
-            node.querySelectorAll &&
-              node.querySelectorAll('[onclick]')
-              .forEach(elm=>attachTouch(elm));
-          }
-        });
-      }
-    });
-  });
-
+  // observe DOM mutations (to attach touch handlers to dynamic elements)
+  const mo = new MutationObserver(muts => { muts.forEach(m => { if(m.addedNodes && m.addedNodes.length){ m.addedNodes.forEach(node => { if(node.nodeType===1){ if(node.matches && node.matches('[onclick]')) attachTouch(node); node.querySelectorAll && node.querySelectorAll('[onclick]').forEach(elm=>attachTouch(elm)); } }); } }); });
   mo.observe(document.body, { childList:true, subtree:true });
 
 })();
-
-  // =======================
-  // TOUCH HANDLER
-  // =======================
-  const mo = new MutationObserver(muts => {
-    muts.forEach(m => {
-      if(m.addedNodes && m.addedNodes.length){
-        m.addedNodes.forEach(node => {
-          if(node.nodeType===1){
-            if(node.matches && node.matches('[onclick]')) attachTouch(node);
-            node.querySelectorAll && node.querySelectorAll('[onclick]').forEach(elm=>attachTouch(elm));
-          }
-        });
-      }
-    });
-  });
-
-  mo.observe(document.body, { childList:true, subtree:true });
-
-})();
-
 
 /* ===== MOBILE TOUCH SUPPORT ===== */
 function attachTouch(el){
@@ -1753,8 +1446,7 @@ window.driveSync = {
 </script>
 
 <!-- ===================== ENHANCEMENTS (OCULTAR E NOVA ABA) ===================== -->
-<!-- <script src="enhancements.js"></script> -->
+<script src="enhancements.js"></script>
 
 </body>
 </html>
-
