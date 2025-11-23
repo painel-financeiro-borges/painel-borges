@@ -127,7 +127,6 @@ canvas{width:100%;height:150px;background:transparent;border-radius:8px}
 
     <button id="btnSeed" class="btn-ghost">Criar Padrões</button>
     <button id="btnSyncAll" class="btn">Sincronizar com Drive</button>
-    <button id="btnHideValues" class="btn-pro">Ocultar Valores</button>
     <button id="btnExportNotes" class="btn-export">Exportar (Bloco de Notas)</button>
   </div>
 
@@ -249,15 +248,20 @@ canvas{width:100%;height:150px;background:transparent;border-radius:8px}
       <h2>Custo de Vida — lançamentos mensais</h2>
       <div class="small">Adicione seus custos mensais, por data e categoria. O gráfico mostra as categorias mais gastas.</div>
       <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-        <input id="cv_date" class="input" type="date"/>
-        <input id="cv_desc" class="input" placeholder="Descrição do custo"/>
-        <select id="cv_cat" class="input">
-          <option>Moradia</option><option>Alimentação</option><option>Transporte</option><option>Educação</option><option>Lazer</option><option>Outros</option>
-        </select>
-        <input id="cv_valor" class="input" type="number" placeholder="Valor (R$)"/>
-        <button class="btn" onclick="addCusto()">Adicionar</button>
-        <button class="btn-ghost" onclick="clearCustoMonth()">Limpar mês</button>
-      </div>
+  <input id="cv_date" class="input" type="date"/>
+  <input id="cv_desc" class="input" placeholder="Descrição do custo"/>
+  <select id="cv_cat" class="input">
+    <option>Moradia</option><option>Alimentação</option>
+    <option>Transporte</option><option>Educação</option>
+    <option>Lazer</option><option>Outros</option>
+  </select>
+  <input id="cv_valor" class="input" type="number" placeholder="Valor (R$)"/>
+  
+  <button class="btn" onclick="addCusto()">Adicionar</button>
+  <button class="btn-ghost" onclick="clearCustoMonth()">Limpar mês</button>
+  <button class="btn-ghost" onclick="resetCusto()">🧹 Zerar Dados</button>
+</div>
+
 
       <div style="margin-top:12px;display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">
         <div style="flex:1">
@@ -275,32 +279,54 @@ canvas{width:100%;height:150px;background:transparent;border-radius:8px}
   </div>
 
   <!-- PLANEJAMENTO -->
-  <div id="planejamento" class="page" style="display:none">
-    <div class="card">
-      <h2>Planejamento Mensal — 3 períodos</h2>
-      <div class="small">Crie metas de faturamento por período e adicione contas.</div>
-      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
-        <select id="plan_mes" class="input"></select>
-        <button class="btn" onclick="createPlanForMonth()">Criar/Carregar mês</button>
-      </div>
-      <div id="planPeriods" style="margin-top:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px"></div>
-      <div style="margin-top:12px"><div class="small">Resumo do planejamento</div><div id="plan_summary" style="font-weight:700">Nenhum planejamento selecionado</div></div>
+<div id="planejamento" class="page" style="display:none">
+  <div class="card">
+    <h2>Planejamento Mensal — 3 períodos</h2>
+    <div class="small">Crie metas de faturamento por período e adicione contas.</div>
+
+    <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+      <select id="plan_mes" class="input"></select>
+      <button class="btn" onclick="createPlanForMonth()">Criar/Carregar mês</button>
+      <button class="btn-ghost" onclick="resetPlanejamento()">🧹 Zerar Planejamento</button>
+    </div>
+
+    <div id="planPeriods" style="margin-top:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px"></div>
+
+    <div style="margin-top:12px">
+      <div class="small">Resumo do planejamento</div>
+      <div id="plan_summary" style="font-weight:700">Nenhum planejamento selecionado</div>
     </div>
   </div>
+</div>
 
   <!-- FLUXO -->
-  <div id="fluxo" class="page" style="display:none">
-    <div class="card">
-      <h2>Fluxo de Caixa Diário</h2>
-      <div class="small">Lance entradas e saídas, escolha tipo de pagamento e veja o gráfico consolidado</div>
-      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-        <input id="fx_date" class="input" type="date"/>
-        <input id="fx_desc" class="input" placeholder="Descrição"/>
-        <select id="fx_type" class="input"><option value="entrada">Entrada</option><option value="saida">Saída</option></select>
-        <select id="fx_payment" class="input"><option>Dinheiro</option><option>Pix</option><option>Saldo conta</option><option>Híbrido</option></select>
-        <input id="fx_valor" class="input" type="number" placeholder="Valor (R$)"/>
-        <button class="btn" onclick="addFluxo()">Registrar</button>
-      </div>
+<div id="fluxo" class="page" style="display:none">
+  <div class="card">
+    <h2>Fluxo de Caixa Diário</h2>
+    <div class="small">Lance entradas e saídas, escolha tipo de pagamento e veja o gráfico consolidado</div>
+    
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+      <input id="fx_date" class="input" type="date"/>
+      <input id="fx_desc" class="input" placeholder="Descrição"/>
+      
+      <select id="fx_type" class="input">
+        <option value="entrada">Entrada</option>
+        <option value="saida">Saída</option>
+      </select>
+
+      <select id="fx_payment" class="input">
+        <option>Dinheiro</option>
+        <option>Pix</option>
+        <option>Saldo conta</option>
+        <option>Híbrido</option>
+      </select>
+
+      <input id="fx_valor" class="input" type="number" placeholder="Valor (R$)"/>
+
+      <button class="btn" onclick="addFluxo()">Registrar</button>
+      <button class="btn-ghost" onclick="resetFluxo()">🧹 Zerar Dados</button>
+    </div>
+
 
       <div style="margin-top:12px;display:flex;gap:12px;align-items:flex-start">
         <div style="flex:1">
@@ -331,78 +357,99 @@ canvas{width:100%;height:150px;background:transparent;border-radius:8px}
 </div> -->
 
 <div class="card">
-      <h2>Reservas — arraste para reorganizar</h2>
-      <div class="small">Ordem recomendada nas abas Reservas</div>
+  <h2>Reservas — arraste para reorganizar</h2>
+  <div class="small">Ordem recomendada nas abas Reservas</div>
 
-      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-        <input id="r_name" class="input" placeholder="Nome da reserva (ex: Segurança)"/>
-        <input id="r_meta" class="input" type="number" placeholder="Meta (R$)"/>
-        <input id="r_init" class="input" type="number" placeholder="Valor Inicial (R$)"/>
-        <button class="btn" onclick="addReservation()">Criar</button>
-        <button class="btn-ghost" onclick="createDefaultReservas()">Criar Reservas Padrão</button>
-      </div>
+  <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+    <input id="r_name" class="input" placeholder="Nome da reserva (ex: Segurança)"/>
+    <input id="r_meta" class="input" type="number" placeholder="Meta (R$)"/>
+    <input id="r_init" class="input" type="number" placeholder="Valor Inicial (R$)"/>
 
-      <div id="resCards" style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px"></div>
+    <button class="btn" onclick="addReservation()">Criar</button>
+    <button class="btn-ghost" onclick="createDefaultReservas()">Criar Reservas Padrão</button>
 
-    </div>
+    <!-- Botão de zerar reservas -->
+    <button class="btn-ghost" onclick="resetReservas()">🧹 Zerar Reservas</button>
   </div>
+
+  <div id="resCards" style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px"></div>
+</div>
+</div>
+
 
   <!-- INVESTIMENTOS -->
-  <div id="investimentos" class="page" style="display:none">
-    <div class="card">
-      <h2>Investimentos — composição e lançamentos</h2>
-      <div class="small">Adicione ativos, categorias e faça aportes/retiradas.</div>
+<div id="investimentos" class="page" style="display:none">
+  <div class="card">
+    <h2>Investimentos — composição e lançamentos</h2>
+    <div class="small">Adicione ativos, categorias e faça aportes/retiradas.</div>
 
-      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-        <input id="inv_ativo" class="input" placeholder="Ativo (ex: Tesouro IPCA+ 2035)"/>
-        <select id="inv_categoria" class="input">
-          <option>Renda Fixa</option><option>Ações</option><option>FIIs</option><option>Dólar</option><option>Renda Fixa USA</option><option>Penny Stocks</option><option>Cripto</option>
-        </select>
-        <input id="inv_qtd" class="input" type="number" placeholder="Quantidade"/>
-        <input id="inv_preco" class="input" type="number" placeholder="Preço unitário"/>
-        <button class="btn" onclick="addInvestment()">Adicionar</button>
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+      <input id="inv_ativo" class="input" placeholder="Ativo (ex: Tesouro IPCA+ 2035)"/>
+      <select id="inv_categoria" class="input">
+        <option>Renda Fixa</option><option>Ações</option><option>FIIs</option><option>Dólar</option>
+        <option>Renda Fixa USA</option><option>Penny Stocks</option><option>Cripto</option>
+      </select>
+      <input id="inv_qtd" class="input" type="number" placeholder="Quantidade"/>
+      <input id="inv_preco" class="input" type="number" placeholder="Preço unitário"/>
+
+      <button class="btn" onclick="addInvestment()">Adicionar</button>
+
+      <!-- BOTÃO DE RESET -->
+      <button class="btn-ghost" onclick="resetInvestimentos()">🧹 Zerar Dados</button>
+    </div>
+
+    <div style="margin-top:12px;display:flex;gap:12px">
+      <div style="flex:1">
+        <table class="table" id="invTable">
+          <thead>
+            <tr>
+              <th>Ativo</th><th>Categoria</th><th>Qtd</th><th>Preço</th><th>Valor</th><th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="6" class="small">Nenhum investimento</td></tr>
+          </tbody>
+        </table>
       </div>
 
-      <div style="margin-top:12px;display:flex;gap:12px">
-        <div style="flex:1">
-          <table class="table" id="invTable">
-            <thead><tr><th>Ativo</th><th>Categoria</th><th>Qtd</th><th>Preço</th><th>Valor</th><th>Ações</th></tr></thead>
-            <tbody><tr><td colspan="6" class="small">Nenhum investimento</td></tr></tbody>
-          </table>
-        </div>
-        <div style="width:320px">
-          <div class="small">Composição por categoria</div>
-          <canvas id="chartInvComp" height="220"></canvas>
-        </div>
+      <div style="width:320px">
+        <div class="small">Composição por categoria</div>
+        <canvas id="chartInvComp" height="220"></canvas>
       </div>
     </div>
+
   </div>
+</div>
 
   <!-- CADERNO -->
-  <div id="caderno" class="page" style="display:none">
-    <div class="card">
-      <h2>Bloco de Notas — abas temáticas, blocos e itens</h2>
-      <div class="small">Crie abas (temas), dentro crie blocos (sub-abas).</div>
+<div id="caderno" class="page" style="display:none">
+  <div class="card">
+    <h2>Bloco de Notas — abas temáticas, blocos e itens</h2>
+    <div class="small">Crie abas (temas), dentro crie blocos (sub-abas).</div>
 
-      <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
-        <input id="note_tab_name" class="input" placeholder="Nome da aba (ex: Financeiro)"/>
-        <button class="btn" onclick="createNoteTab()">Criar Aba</button>
-        <div class="spacer"></div>
-        <button class="btn-ghost" onclick="exportCaderno()">Exportar Caderno</button>
-      </div>
+    <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+      <input id="note_tab_name" class="input" placeholder="Nome da aba (ex: Financeiro)"/>
+      <button class="btn" onclick="createNoteTab()">Criar Aba</button>
 
-      <div id="noteTabs" style="margin-top:12px"></div>
+      <!-- BOTÃO DE RESET -->
+      <button class="btn-ghost" onclick="resetCaderno()">🧹 Zerar Caderno</button>
 
-      <div style="margin-top:12px" class="card">
-        <div style="display:flex;gap:8px;align-items:center">
-          <input id="note_block_title" class="input" placeholder="Título do bloco (sub-aba)"/>
-          <button class="btn" onclick="addBlock()">Adicionar bloco</button>
-        </div>
-        <div id="noteBlocks" style="margin-top:12px"></div>
-      </div>
-
+      <div class="spacer"></div>
+      <button class="btn-ghost" onclick="exportCaderno()">Exportar Caderno</button>
     </div>
+
+    <div id="noteTabs" style="margin-top:12px"></div>
+
+    <div style="margin-top:12px" class="card">
+      <div style="display:flex;gap:8px;align-items:center">
+        <input id="note_block_title" class="input" placeholder="Título do bloco (sub-aba)"/>
+        <button class="btn" onclick="addBlock()">Adicionar bloco</button>
+      </div>
+      <div id="noteBlocks" style="margin-top:12px"></div>
+    </div>
+
   </div>
+</div>
 
   <!-- BACKUP -->
 <div id="backup" class="page" style="display:none">
@@ -461,6 +508,44 @@ let state = {
   caderno: [],
   settings: { hideValues: false }
 };
+
+function resetCusto() {
+  if (!confirm("Deseja zerar TODOS os lançamentos de Custo de Vida?")) return;
+  state.custo = [];
+  saveLocal();
+}
+
+function resetPlanejamento() {
+  if (!confirm("Deseja zerar TODO o planejamento mensal?")) return;
+  state.planejamento = {};
+  saveLocal();
+}
+
+function resetFluxo() {
+  if (!confirm("Deseja zerar TODOS os lançamentos do Fluxo Diário?")) return;
+  state.fluxo = [];
+  saveLocal();
+}
+
+function resetReservas() {
+  if (!confirm("Deseja zerar TODAS as reservas?")) return;
+
+  state.reservas = [];
+  state.transacoes = state.transacoes.filter(t => !t.reserva); // remove aportes
+  saveLocal();
+}
+
+function resetInvestimentos() {
+  if (!confirm("Deseja zerar TODOS os investimentos?")) return;
+  state.investimentos = [];
+  saveLocal();
+}
+
+function resetCaderno() {
+  if (!confirm("Deseja zerar TODO o Caderno de Notas?")) return;
+  state.caderno = [];
+  saveLocal();
+}
 
 /* ===== Utils ===== */
 function uid(prefix='id'){ return prefix + '_' + Date.now() + '_' + Math.floor(Math.random()*9999); }
@@ -1446,7 +1531,7 @@ window.driveSync = {
 </script>
 
 <!-- ===================== ENHANCEMENTS (OCULTAR E NOVA ABA) ===================== -->
-<script src="enhancements.js"></script>
+<!-- <script src="enhancements.js"></script> -->
 
 </body>
 </html>
