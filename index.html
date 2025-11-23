@@ -183,16 +183,18 @@ canvas{width:100%;height:150px;background:transparent;border-radius:8px}
     </div>
 
     <!-- 2) FLUXO DE CAIXA MENSAL -->
-    <div class="card" id="dash_fluxo_card" style="margin-top:12px">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-        <div>
-          <div class="small">Fluxo de Caixa — Mês</div>
-          <div style="display:flex;gap:12px;align-items:center;margin-top:6px;flex-wrap:wrap">
-            <div class="kv"><div class="small">Entradas</div><div id="dash_fluxo_entries" style="font-weight:800">R$ 0,00</div></div>
-            <div class="kv"><div class="small">Saídas</div><div id="dash_fluxo_exits" style="font-weight:800">R$ 0,00</div></div>
-            <div class="kv"><div class="small">Consolidação</div><div id="dash_fluxo_net" style="font-weight:800">R$ 0,00</div></div>
-          </div>
-        </div>
+<div class="card" id="dash_fluxo_card" style="margin-top:12px">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+    <div>
+      <div class="small">Fluxo de Caixa — Mês</div>
+
+      <div style="display:flex;gap:12px;align-items:center;margin-top:6px;flex-wrap:wrap">
+        <div class="kv"><div id="dash_fluxo_entries" style="font-weight:800">R$ 0,00</div></div>
+        <div class="kv"><div id="dash_fluxo_exits" style="font-weight:800">R$ 0,00</div></div>
+        <div class="kv"><div id="dash_fluxo_net" style="font-weight:800">R$ 0,00</div></div>
+      </div>
+    </div>
+
         <div style="flex:1;max-width:680px">
           <canvas id="chartFluxMonthly" height="180"></canvas>
         </div>
