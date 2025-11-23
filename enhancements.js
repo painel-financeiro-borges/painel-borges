@@ -317,16 +317,16 @@ canvas{width:100%;height:150px;background:transparent;border-radius:8px}
   </div>
 </div>
 
-  <!-- FLUXO -->
+<!-- FLUXO -->
 <div id="fluxo" class="page" style="display:none">
   <div class="card">
     <h2>Fluxo de Caixa Diário</h2>
     <div class="small">Lance entradas e saídas, escolha tipo de pagamento e veja o gráfico consolidado</div>
-    
+
     <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
       <input id="fx_date" class="input" type="date"/>
       <input id="fx_desc" class="input" placeholder="Descrição"/>
-      
+
       <select id="fx_type" class="input">
         <option value="entrada">Entrada</option>
         <option value="saida">Saída</option>
@@ -345,34 +345,25 @@ canvas{width:100%;height:150px;background:transparent;border-radius:8px}
       <button class="btn-ghost" onclick="resetFluxo()">🧹 Zerar Dados</button>
     </div>
 
+    <div style="margin-top:12px;display:flex;gap:12px;align-items:flex-start">
+      <div style="flex:1">
+        <table class="table" id="fluxoTable">
+          <thead><tr><th>Data</th><th>Desc</th><th>Tipo</th><th>Pagamento</th><th>Valor</th><th>Ações</th></tr></thead>
+          <tbody><tr><td colspan="6" class="small">Sem lançamentos</td></tr></tbody>
+        </table>
+      </div>
 
-      <div style="margin-top:12px;display:flex;gap:12px;align-items:flex-start">
-        <div style="flex:1">
-          <table class="table" id="fluxoTable">
-            <thead><tr><th>Data</th><th>Desc</th><th>Tipo</th><th>Pagamento</th><th>Valor</th><th>Ações</th></tr></thead>
-            <tbody><tr><td colspan="6" class="small">Sem lançamentos</td></tr></tbody>
-          </table>
-        </div>
-        <div style="width:340px">
-          <div class="small">Consolidação (últimos 12 dias)</div>
-          <canvas id="chartFluxo" height="220"></canvas>
-        </div>
+      <div style="width:340px">
+        <div class="small">Consolidação (últimos 12 dias)</div>
+        <canvas id="chartFluxo" height="220"></canvas>
       </div>
     </div>
-  </div>
 
-  <!-- RESERVAS -->
-  <div id="reservas" class="page" style="display:none">
-<!-- Progresso das Reservas (removido visualmente) -->
-<!-- <div style="margin-top:20px">
-  <h3>Progresso das Reservas</h3>
-  <div style="background:#eee;border-radius:10px;height:16px;overflow:hidden;">
-    <div id="reservas_progress_bar" style="background:#00c853;width:0%;height:100%;transition:width 0.5s;"></div>
   </div>
-  <div style="margin-top:6px;text-align:right;font-weight:bold;color:#333;">
-    <span id="reservas_progress_text">0%</span>
-  </div>
-</div> -->
+</div>
+
+<!-- RESERVAS -->
+<div id="reservas" class="page" style="display:none">
 
 <div class="card">
   <h2>Reservas — arraste para reorganizar</h2>
@@ -385,15 +376,13 @@ canvas{width:100%;height:150px;background:transparent;border-radius:8px}
 
     <button class="btn" onclick="addReservation()">Criar</button>
     <button class="btn-ghost" onclick="createDefaultReservas()">Criar Reservas Padrão</button>
-
-    <!-- Botão de zerar reservas -->
     <button class="btn-ghost" onclick="resetReservas()">🧹 Zerar Reservas</button>
   </div>
 
   <div id="resCards" style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px"></div>
 </div>
-</div>
 
+</div>
 
   <!-- INVESTIMENTOS -->
 <div id="investimentos" class="page" style="display:none">
@@ -559,7 +548,10 @@ function resetReservas() {
   if (!confirm("Deseja zerar TODAS as reservas?")) return;
 
   state.reservas = [];
-  state.transacoes = state.transacoes.filter(t => !t.reserva); // remove aportes
+  state.transacoes = Array.isArray(state.transacoes)
+    ? state.transacoes.filter(t => !t.reserva)
+    : [];
+
   saveLocal();
 }
 
@@ -587,7 +579,15 @@ function nowISO(){ return new Date().toISOString(); }
 const STATE_KEY = 'borges_panel_3_v1';
 
 function saveLocal(){
-  localStorage.setItem(STATE_KEY, JSON.stringify(state));
+  try{
+    localStorage.setItem(STATE_KEY, JSON.stringify(state));
+  }catch(e){
+    console.error('Erro ao salvar localStorage', e);
+  }
+}
+
+function saveAndRender(){
+  saveLocal();
   renderAll();
 }
 
@@ -600,7 +600,13 @@ function loadLocal(){
       // merge no state atual
       state = Object.assign(state, parsed);
 
-      // garantir que settings tenha todas as chaves modernas
+      // garantir arrays sempre existentes
+      state.reservas      = Array.isArray(state.reservas)      ? state.reservas      : [];
+      state.transacoes    = Array.isArray(state.transacoes)    ? state.transacoes    : [];
+      state.investimentos = Array.isArray(state.investimentos) ? state.investimentos : [];
+      state.fluxo         = Array.isArray(state.fluxo)         ? state.fluxo         : [];
+
+      // garantir settings completo
       state.settings = Object.assign({
         hideAll: false,
         hideEntradas: false,
@@ -613,7 +619,7 @@ function loadLocal(){
       }, state.settings || {});
     }
   }catch(e){
-    console.error('Erro parse local', e);
+    console.error('Erro parse localStorage', e);
   }
 }
 
@@ -621,11 +627,9 @@ function loadLocal(){
 function formatMoney(v, tipo){
 
   // 1) OCULTAÇÃO MASTER
-  if (state.settings.hideAll) {
-    return 'R$ ••••';
-  }
+  if (state.settings.hideAll) return 'R$ ••••';
 
-  // 2) OCULTAÇÃO POR TIPO ESPECÍFICO
+  // 2) OCULTAÇÃO POR TIPO
   if (tipo === 'entradas'      && state.settings.hideEntradas)      return 'R$ ••••';
   if (tipo === 'reservas'      && state.settings.hideReservas)      return 'R$ ••••';
   if (tipo === 'custo'         && state.settings.hideCusto)         return 'R$ ••••';
@@ -634,12 +638,11 @@ function formatMoney(v, tipo){
   if (tipo === 'investimentos' && state.settings.hideInvestimentos) return 'R$ ••••';
   if (tipo === 'transacoes'    && state.settings.hideTransacoes)    return 'R$ ••••';
 
-  // 3) NORMAL
   return moneyBRFormatted(v);
 }
 
 /* ===== UI: tabs wiring (safe) ===== */
-els('.tab').forEach(t=>t.addEventListener('click', (e)=>{
+els('.tab').forEach(t=>t.addEventListener('click', ()=>{
   els('.tab').forEach(x=>x.classList.remove('active'));
   t.classList.add('active');
   els('.page').forEach(p=>p.style.display='none');
@@ -662,55 +665,102 @@ function createDefaultReservas(){
     {name:'Apartamento',meta:20000},
     {name:'Dividas',meta:0}
   ];
+
   defaults.forEach((d,i)=>{
     if(!state.reservas.find(r=>r.name===d.name)){
-      state.reservas.push({ id: uid('r'), name: d.name, meta: d.meta || 0, saldo: 0, order: i, obs:'', updated: nowISO() });
+      state.reservas.push({
+        id: uid('r'),
+        name: d.name,
+        meta: d.meta || 0,
+        saldo: 0,
+        order: i,
+        obs:'',
+        updated: nowISO()
+      });
     }
   });
+
   reorderReservationsByDefault();
   saveLocal();
 }
+
 function reorderReservationsByDefault(){
-  const priority = ['Reserva de Segurança','Veículos','Roupas / Lazer / Levy','Gatona','Reserva Levy 18 anos','Oportunidades','Terreno/Lexus Eventos','Apartamento','Dividas'];
-  state.reservas.forEach(r=>{ if(r.order===undefined || r.order===null) r.order = priority.indexOf(r.name) !== -1 ? priority.indexOf(r.name) : 999; });
-  state.reservas.sort((a,b)=> (a.order||999) - (b.order||999) );
+  const priority = [
+    'Reserva de Segurança','Veículos','Roupas / Lazer / Levy','Gatona',
+    'Reserva Levy 18 anos','Oportunidades','Terreno/Lexus Eventos','Apartamento','Dividas'
+  ];
+  state.reservas.forEach(r=>{
+    r.order = priority.indexOf(r.name) !== -1 ? priority.indexOf(r.name) : 999;
+  });
+  state.reservas.sort((a,b)=> a.order - b.order);
 }
 
-/* ======= RESERVAS CRUD (mantive suas funções) ======= */
+/* ======= RESERVAS CRUD ======= */
 function addReservation(){
   const name = el('#r_name').value.trim();
   const meta = Number(el('#r_meta').value) || 0;
   const init = Number(el('#r_init').value) || 0;
-  if(!name){ alert('Nome da reserva é obrigatório'); return; }
+
+  if(!name){
+    alert('Nome da reserva é obrigatório');
+    return;
+  }
+
   const id = uid('r');
   const maxOrder = state.reservas.reduce((m,x)=>Math.max(m,x.order||0),0);
-  const r = { id, name, meta, saldo: init, order: maxOrder+1, obs:'', updated: nowISO() };
+
+  const r = {
+    id,
+    name,
+    meta,
+    saldo: init,
+    order: maxOrder+1,
+    obs:'',
+    updated: nowISO()
+  };
+
   state.reservas.push(r);
+
   if(init>0){
-    state.transacoes.unshift({ id: uid('t'), date: nowISO(), reserva: name, tipo:'aporte', valor:init, nota:'Inicial' });
+    state.transacoes.unshift({
+      id: uid('t'),
+      date: nowISO(),
+      reserva: name,
+      tipo:'aporte',
+      valor:init,
+      nota:'Inicial'
+    });
   }
-  el('#r_name').value=''; el('#r_meta').value=''; el('#r_init').value='';
+
+  el('#r_name').value='';
+  el('#r_meta').value='';
+  el('#r_init').value='';
+
   saveLocal();
-  renderReservations(); // Atualiza imediatamente a tela e o progresso
+  renderReservations();
 }
 
 function renderReservations(){
-  const container = el('#resCards'); if(!container) return;
+  const container = el('#resCards');
+  if(!container) return;
+
   container.innerHTML='';
-  state.reservas.sort((a,b)=> (a.order||0) - (b.order||0));
+  state.reservas.sort((a,b)=> a.order - b.order);
 
   if(!state.reservas.length){
     container.innerHTML = '<div class="small">Nenhuma reserva</div>';
-    renderReservasProgress(); // Zera a barra se não houver reservas
+    renderReservasProgress();
     return;
   }
 
   state.reservas.forEach(r=>{
     const pct = r.meta ? Math.round((r.saldo / r.meta) * 100) : 0;
+
     const card = document.createElement('div');
     card.className = 'res-card';
     card.setAttribute('draggable','true');
     card.dataset.id = r.id;
+
     card.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div style="font-weight:700">${r.name}</div>
@@ -724,27 +774,50 @@ function renderReservations(){
       <div style="margin-top:8px" class="small">Meta: ${formatMoney(r.meta)}</div>
       <div style="margin-top:6px;font-weight:800">${formatMoney(r.saldo)}</div>
       <div style="margin-top:8px">
-        <div class="progress"><div class="bar" style="width:${Math.min(100,pct)}%;transition:width 0.5s;background:${pct>=100 ? '#00c853' : pct>=50 ? '#ffd600' : '#d50000'};"></div></div>
+        <div class="progress">
+          <div class="bar"
+            style="width:${Math.min(100,pct)}%;
+            transition:width 0.5s;
+            background:${pct>=100 ? '#00c853' : pct>=50 ? '#ffd600' : '#d50000'};">
+          </div>
+        </div>
         <div class="small">${pct}%</div>
       </div>
     `;
-    card.addEventListener('dragstart', (ev)=>{ card.classList.add('dragging'); ev.dataTransfer.setData('text/plain', r.id); });
-    card.addEventListener('dragend', ()=>{ card.classList.remove('dragging'); });
-    card.addEventListener('dragover', (ev)=>{ ev.preventDefault(); });
-    card.addEventListener('drop', (ev)=>{ ev.preventDefault(); const draggedId = ev.dataTransfer.getData('text/plain'); handleReservaDrop(draggedId, r.id); });
+
+    card.addEventListener('dragstart', (ev)=>{
+      card.classList.add('dragging');
+      ev.dataTransfer.setData('text/plain', r.id);
+    });
+
+    card.addEventListener('dragend', ()=>{
+      card.classList.remove('dragging');
+    });
+
+    card.addEventListener('dragover', (ev)=> ev.preventDefault());
+
+    card.addEventListener('drop', (ev)=>{
+      ev.preventDefault();
+      const draggedId = ev.dataTransfer.getData('text/plain');
+      handleReservaDrop(draggedId, r.id);
+    });
+
     container.appendChild(card);
   });
 
-  renderReservasProgress(); // Atualiza a barra geral de progresso
+  renderReservasProgress();
 }
 
 function handleReservaDrop(draggedId, targetId){
   const dragged = state.reservas.find(r=>r.id===draggedId);
-  const target = state.reservas.find(r=>r.id===targetId);
+  const target  = state.reservas.find(r=>r.id===targetId);
   if(!dragged || !target) return;
+
   dragged.order = (target.order || 0) - 0.5;
-  state.reservas.sort((a,b)=> (a.order||0) - (b.order||0));
+
+  state.reservas.sort((a,b)=> a.order - b.order);
   state.reservas.forEach((r,i)=> r.order = i);
+
   saveLocal();
   renderReservations();
 }
@@ -764,45 +837,76 @@ function promptRetirar(ev, id){
 }
 
 function aporteReserva(id, valor, nota){
-  const r = state.reservas.find(x=>x.id===id); if(!r) return;
-  r.saldo = Number(r.saldo||0) + Number(valor||0);
+  const r = state.reservas.find(x=>x.id===id);
+  if(!r) return;
+
+  r.saldo += Number(valor||0);
   r.updated = nowISO();
-  state.transacoes.unshift({ id: uid('t'), date: nowISO(), reserva: r.name, tipo:'aporte', valor: Number(valor), nota: nota||'' });
+
+  state.transacoes.unshift({
+    id: uid('t'),
+    date: nowISO(),
+    reserva: r.name,
+    tipo:'aporte',
+    valor: Number(valor),
+    nota: nota||''
+  });
+
   saveLocal();
   renderReservations();
 }
 
 function retirarReserva(id, valor, nota){
-  const r = state.reservas.find(x=>x.id===id); if(!r) return;
-  r.saldo = Number(r.saldo||0) - Number(valor||0);
+  const r = state.reservas.find(x=>x.id===id);
+  if(!r) return;
+
+  r.saldo -= Number(valor||0);
   r.updated = nowISO();
-  state.transacoes.unshift({ id: uid('t'), date: nowISO(), reserva: r.name, tipo:'retirada', valor: Number(valor), nota: nota||'' });
+
+  state.transacoes.unshift({
+    id: uid('t'),
+    date: nowISO(),
+    reserva: r.name,
+    tipo:'retirada',
+    valor:Number(valor),
+    nota: nota||''
+  });
+
   saveLocal();
   renderReservations();
 }
 
 function removeReserva(id){
   if(!confirm('Excluir reserva e histórico?')) return;
+
   const r = state.reservas.find(x=>x.id===id);
+
   state.reservas = state.reservas.filter(x=>x.id!==id);
-  state.transacoes = state.transacoes.filter(t=>t.reserva !== (r? r.name : ''));
+
+  state.transacoes = state.transacoes.filter(
+    t => t.reserva !== (r ? r.name : '')
+  );
+
   saveLocal();
   renderReservations();
 }
 
 function openEditReservation(id){
-  const r = state.reservas.find(x=>x.id===id); if(!r) return;
+  const r = state.reservas.find(x=>x.id===id);
+  if(!r) return;
+
   showModal('Editar Reserva', `
     <label>Nome</label><input id="modal_r_name" class="input" value="${r.name}"/>
     <label>Meta (R$)</label><input id="modal_r_meta" type="number" class="input" value="${r.meta}"/>
     <label>Saldo Atual (R$)</label><input id="modal_r_saldo" type="number" class="input" value="${r.saldo}"/>
     <label>Observações</label><textarea id="modal_r_obs" class="input">${r.obs||''}</textarea>
   `, function(){
-    r.name = document.getElementById('modal_r_name').value.trim();
-    r.meta = Number(document.getElementById('modal_r_meta').value) || 0;
+    r.name  = document.getElementById('modal_r_name').value.trim();
+    r.meta  = Number(document.getElementById('modal_r_meta').value) || 0;
     r.saldo = Number(document.getElementById('modal_r_saldo').value) || 0;
-    r.obs = document.getElementById('modal_r_obs').value || '';
+    r.obs   = document.getElementById('modal_r_obs').value || '';
     r.updated = nowISO();
+
     saveLocal();
     renderReservations();
   });
@@ -811,7 +915,7 @@ function openEditReservation(id){
 /* ====== Progresso das Reservas ====== */
 function renderReservasProgress() {
   const reservas = state.reservas || [];
-  const bar = el('#reservas_progress_bar');
+  const bar  = el('#reservas_progress_bar');
   const text = el('#reservas_progress_text');
 
   if (!reservas.length) {
@@ -821,98 +925,208 @@ function renderReservasProgress() {
   }
 
   const totalSaldo = reservas.reduce((s,r)=> s + Number(r.saldo||0), 0);
-  const totalMeta  = reservas.reduce((s,r)=> s + Number(r.meta||0), 0);
-  const pct = totalMeta > 0 ? Math.min(100, Math.round((totalSaldo / totalMeta) * 100)) : 0;
+  const totalMeta  = reservas.reduce((s,r)=> s + Number(r.meta ||0), 0);
+
+  const pct = totalMeta > 0
+    ? Math.min(100, Math.round((totalSaldo / totalMeta) * 100))
+    : 0;
 
   if (bar) {
     bar.style.width = pct + '%';
-    bar.style.background = pct>=100 ? '#00c853' : pct>=50 ? '#ffd600' : '#d50000';
+    bar.style.background =
+      pct>=100 ? '#00c853' :
+      pct>=50  ? '#ffd600' :
+                 '#d50000';
   }
+
   if (text) text.innerText = pct + '%';
 }
 
 /* ====== INVESTIMENTOS ====== */
 function addInvestment(){
-  const name = el('#inv_ativo').value.trim();
-  const cat = el('#inv_categoria').value;
-  const qtd = Number(el('#inv_qtd').value) || 0;
+  const name  = el('#inv_ativo').value.trim();
+  const cat   = el('#inv_categoria').value;
+  const qtd   = Number(el('#inv_qtd').value) || 0;
   const preco = Number(el('#inv_preco').value) || 0;
-  if(!name) { alert('Nome do ativo é obrigatório'); return; }
-  const inv = { id: uid('i'), ativo: name, categoria: cat, quantidade: qtd, preco: preco, updated: nowISO() };
-  state.investimentos.push(inv);
-  el('#inv_ativo').value=''; el('#inv_qtd').value=''; el('#inv_preco').value='';
+
+  if(!name){
+    alert('Nome do ativo é obrigatório');
+    return;
+  }
+
+  state.investimentos.push({
+    id: uid('i'),
+    ativo: name,
+    categoria: cat,
+    quantidade: qtd,
+    preco: preco,
+    updated: nowISO()
+  });
+
+  el('#inv_ativo').value='';
+  el('#inv_qtd').value='';
+  el('#inv_preco').value='';
+
   saveLocal();
 }
+
 function renderInvestments(){
-  const tbody = el('#invTable tbody'); if(!tbody) return;
+  const tbody = el('#invTable tbody');
+  if(!tbody) return;
+
   tbody.innerHTML='';
-  if(!state.investimentos.length){ tbody.innerHTML = '<tr><td colspan="6" class="small">Nenhum investimento</td></tr>'; return; }
+
+  if(!state.investimentos.length){
+    tbody.innerHTML = '<tr><td colspan="6" class="small">Nenhum investimento</td></tr>';
+    return;
+  }
+
   state.investimentos.forEach(it=>{
-    const valor = (Number(it.quantidade||0) * Number(it.preco||0));
+    const valor = Number(it.quantidade||0) * Number(it.preco||0);
+
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${it.ativo}</td><td>${it.categoria}</td><td>${it.quantidade}</td><td>${formatMoney(it.preco)}</td><td>${formatMoney(valor)}</td>
-      <td><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn-ghost" onclick="openEditInvestment('${it.id}')">Editar</button><button class="btn-ghost" onclick="removeInvestment('${it.id}')">Remover</button></div></td>`;
+    tr.innerHTML = `
+      <td>${it.ativo}</td>
+      <td>${it.categoria}</td>
+      <td>${it.quantidade}</td>
+      <td>${formatMoney(it.preco)}</td>
+      <td>${formatMoney(valor)}</td>
+      <td>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn-ghost" onclick="openEditInvestment('${it.id}')">Editar</button>
+          <button class="btn-ghost" onclick="removeInvestment('${it.id}')">Remover</button>
+        </div>
+      </td>
+    `;
+
     tbody.appendChild(tr);
   });
 }
-function openEditInvestment(id){ const it = state.investimentos.find(x=>x.id===id); if(!it) return; showModal('Editar Investimento', `
+
+function openEditInvestment(id){
+  const it = state.investimentos.find(x=>x.id===id);
+  if(!it) return;
+
+  showModal('Editar Investimento', `
     <label>Ativo</label><input id="modal_i_name" class="input" value="${it.ativo}"/>
     <label>Categoria</label><input id="modal_i_cat" class="input" value="${it.categoria}"/>
     <label>Quantidade</label><input id="modal_i_qtd" type="number" class="input" value="${it.quantidade}"/>
     <label>Preço Unitário</label><input id="modal_i_preco" type="number" class="input" value="${it.preco}"/>
   `, function(){
-    it.ativo = document.getElementById('modal_i_name').value;
-    it.categoria = document.getElementById('modal_i_cat').value;
+    it.ativo      = document.getElementById('modal_i_name').value;
+    it.categoria  = document.getElementById('modal_i_cat').value;
     it.quantidade = Number(document.getElementById('modal_i_qtd').value) || 0;
-    it.preco = Number(document.getElementById('modal_i_preco').value) || 0;
-    it.updated = nowISO();
+    it.preco      = Number(document.getElementById('modal_i_preco').value) || 0;
+    it.updated    = nowISO();
+
     saveLocal();
   });
 }
-function removeInvestment(id){ if(!confirm('Remover investimento?')) return; state.investimentos = state.investimentos.filter(x=>x.id!==id); saveLocal(); }
+
+function removeInvestment(id){
+  if(!confirm('Remover investimento?')) return;
+
+  state.investimentos = state.investimentos.filter(x=>x.id!==id);
+  saveLocal();
+}
 
 /* ====== FLUXO DIÁRIO ====== */
 function addFluxo(){
-  const date = el('#fx_date').value || (new Date()).toISOString().slice(0,10);
-  const desc = el('#fx_desc').value || '(sem descrição)';
-  const type = el('#fx_type').value; if (type !== 'entrada' && type !== 'saida') return alert('Selecione o tipo de lançamento (entrada ou saída)');
+  const date    = el('#fx_date').value || (new Date()).toISOString().slice(0,10);
+  const desc    = el('#fx_desc').value || '(sem descrição)';
+  const type    = el('#fx_type').value;
   const payment = el('#fx_payment').value;
-  const val = Number(el('#fx_valor').value) || 0;
-  if(val <= 0) return alert('Valor deve ser maior que zero');
-  const entry = { id: uid('f'), date: date, desc, type, payment, value: val };
-  state.fluxo.unshift(entry);
-  el('#fx_desc').value=''; el('#fx_valor').value=''; el('#fx_date').value='';
+  const val     = Number(el('#fx_valor').value) || 0;
+
+  if(type !== 'entrada' && type !== 'saida'){
+    return alert('Selecione o tipo de lançamento');
+  }
+
+  if(val <= 0){
+    return alert('Valor deve ser maior que zero');
+  }
+
+  state.fluxo.unshift({
+    id: uid('f'),
+    date,
+    desc,
+    type,
+    payment,
+    value: val
+  });
+
+  el('#fx_desc').value='';
+  el('#fx_valor').value='';
+  el('#fx_date').value='';
+
   saveLocal();
 }
+
 function renderFluxo(){
-  const tbody = el('#fluxoTable tbody'); if(!tbody) return;
+  const tbody = el('#fluxoTable tbody');
+  if(!tbody) return;
+
   tbody.innerHTML='';
-  if(!state.fluxo.length){ tbody.innerHTML = '<tr><td colspan="6" class="small">Sem lançamentos</td></tr>'; return; }
+
+  if(!state.fluxo.length){
+    tbody.innerHTML = '<tr><td colspan="6" class="small">Sem lançamentos</td></tr>';
+    return;
+  }
+
   state.fluxo.slice(0,200).forEach(f=>{
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${new Date(f.date + 'T00:00:00').toLocaleDateString()}</td><td>${f.desc}</td><td>${f.type}</td><td>${f.payment}</td><td>${formatMoney(f.value)}</td>
-      <td><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-ghost" onclick="editFlux('${f.id}')">Editar</button><button class="btn-ghost" onclick="removeFlux('${f.id}')">Excluir</button></div></td>`;
+
+    tr.innerHTML = `
+      <td>${new Date(f.date + 'T00:00:00').toLocaleDateString()}</td>
+      <td>${f.desc}</td>
+      <td>${f.type}</td>
+      <td>${f.payment}</td>
+      <td>${formatMoney(f.value)}</td>
+      <td>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn-ghost" onclick="editFlux('${f.id}')">Editar</button>
+          <button class="btn-ghost" onclick="removeFlux('${f.id}')">Excluir</button>
+        </div>
+      </td>
+    `;
+
     tbody.appendChild(tr);
   });
 }
+
 function editFlux(id){
-  const f = state.fluxo.find(x=>x.id===id); if(!f) return;
+  const f = state.fluxo.find(x=>x.id===id);
+  if(!f) return;
+
   showModal('Editar Fluxo', `
     <label>Data</label><input id="modal_fx_date" class="input" type="date" value="${f.date}"/>
     <label>Descrição</label><input id="modal_fx_desc" class="input" value="${f.desc}"/>
-    <label>Tipo</label><select id="modal_fx_type" class="input"><option value="entrada">Entrada</option><option value="saida">Saída</option></select>
+    <label>Tipo</label>
+      <select id="modal_fx_type" class="input">
+        <option value="entrada">Entrada</option>
+        <option value="saida">Saída</option>
+      </select>
     <label>Pagamento</label><input id="modal_fx_payment" class="input" value="${f.payment}"/>
     <label>Valor</label><input id="modal_fx_valor" class="input" type="number" value="${f.value}"/>
   `, function(){
-    f.date = document.getElementById('modal_fx_date').value || f.date;
-    f.desc = document.getElementById('modal_fx_desc').value;
-    f.type = document.getElementById('modal_fx_type').value;
+
+    f.date    = document.getElementById('modal_fx_date').value   || f.date;
+    f.desc    = document.getElementById('modal_fx_desc').value;
+    f.type    = document.getElementById('modal_fx_type').value;
     f.payment = document.getElementById('modal_fx_payment').value;
-    f.value = Number(document.getElementById('modal_fx_valor').value) || 0;
+    f.value   = Number(document.getElementById('modal_fx_valor').value) || 0;
+
     saveLocal();
   });
 }
-function removeFlux(id){ if(!confirm('Excluir lançamento?')) return; state.fluxo = state.fluxo.filter(f => f.id !== id); saveLocal(); }
+
+function removeFlux(id){
+  if(!confirm('Excluir lançamento?')) return;
+
+  state.fluxo = state.fluxo.filter(f => f.id !== id);
+
+  saveLocal();
+}
 
 /* ====== CUSTO DE VIDA ====== */
 function addCusto(){
@@ -1480,8 +1694,6 @@ function attachHideButtons(){
   // Ajusta o texto inicial dos botões conforme o estado salvo
   updateHideButtonsLabels();
 
-
-  /* =======================
  /* =======================
    SUPORTE A TOQUE (MOBILE)
 ======================== */
@@ -1743,4 +1955,3 @@ window.driveSync = {
 
 </body>
 </html>
-
