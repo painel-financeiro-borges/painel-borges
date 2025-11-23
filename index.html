@@ -1144,7 +1144,7 @@ function computeResumoFinanceiro(monthKey){
   return { totalEntradas, totalSaidas, resultado, reservasTotal, investimentosTotal };
 }
 
-/* ====== Render Dashboard (Chart.js) ====== */
+/* ====== Render Dashboard (Chart.js) — Consolidado ====== */
 function renderDashboard(){
     const monthKey = getSelectedMonthKey() || new Date().toISOString().slice(0,7);
 
@@ -1181,29 +1181,29 @@ function renderDashboard(){
         : monthKey;
 
     // Fluxo de Caixa — Mês
+    const fluxoRes = computeFluxoMonthly(monthKey);
     el('#dash_fluxo_entries').innerText = state.settings.hideValues || state.settings.hideDashboard 
         ? 'R$ ••••' 
-        : formatMoney(sumFluxoEntries());
+        : formatMoney(fluxoRes.totalEntries || 0);
     el('#dash_fluxo_exits').innerText = state.settings.hideValues || state.settings.hideDashboard 
         ? 'R$ ••••' 
-        : formatMoney(sumFluxoExits());
+        : formatMoney(fluxoRes.totalExits || 0);
     el('#dash_fluxo_net').innerText = state.settings.hideValues || state.settings.hideDashboard 
         ? 'R$ ••••' 
-        : formatMoney(sumFluxoNet());
+        : formatMoney(fluxoRes.net || 0);
+    el('#dash_fluxo_net').style.color = (fluxoRes.net >= 0) ? 'var(--success)' : 'var(--danger)';
 
     // Planejamento Mensal — Progresso
+    const planRes = computePlanProgress(monthKey);
     el('#dash_plan_meta').innerText = state.settings.hideValues || state.settings.hideDashboard 
         ? 'Meta: R$ ••••' 
-        : 'Meta: ' + formatMoney(sumPlanMeta());
+        : 'Meta: ' + formatMoney(planRes.meta || 0);
     el('#dash_plan_done').innerText = state.settings.hideValues || state.settings.hideDashboard 
         ? 'Concluído: R$ ••••' 
-        : 'Concluído: ' + formatMoney(sumPlanDone());
-    el('#dash_plan_bar').style.width = state.settings.hideValues || state.settings.hideDashboard 
-        ? '0%' 
-        : getPlanProgress() + '%';
-    el('#dash_plan_pct').innerText = state.settings.hideValues || state.settings.hideDashboard 
-        ? '0%' 
-        : getPlanProgress() + '%';
+        : 'Concluído: ' + formatMoney(planRes.done || 0);
+    const pct = Math.min(100, Math.max(0, planRes.pct || 0));
+    el('#dash_plan_bar').style.width = state.settings.hideValues || state.settings.hideDashboard ? '0%' : pct + '%';
+    el('#dash_plan_pct').innerText = state.settings.hideValues || state.settings.hideDashboard ? '0%' : pct + '%';
 
     // Investimentos — total
     el('#dash_invest_total').innerText = state.settings.hideValues || state.settings.hideDashboard 
@@ -1214,17 +1214,21 @@ function renderDashboard(){
         : (state.investimentos||[]).length;
 
     // Últimas transações
-    const recentTable = el('#dash_recent tbody');
-    if(recentTable){
-        recentTable.querySelectorAll('tr').forEach(tr=>{
-            if(state.settings.hideValues || state.settings.hideDashboard){
-                tr.querySelectorAll('td').forEach((td,i)=>{
-                    if(i===3) td.innerText = 'R$ ••••';
-                });
-            }else{
-                renderRecentTransactions();
-            }
-        });
+    const tbody = el('#dash_recent tbody');
+    if(tbody){
+        tbody.innerHTML = '';
+        const recent = [].concat(state.transacoes || [], state.fluxo || []).slice(0,10);
+        if(!recent.length){
+            tbody.innerHTML = '<tr><td colspan="4" class="small">Sem registros</td></tr>';
+        } else {
+            recent.forEach(r=>{
+                const tr = document.createElement('tr');
+                const dateStr = r.date ? (r.date.length===10 ? new Date(r.date+'T00:00:00').toLocaleDateString() : new Date(r.date).toLocaleDateString()) : '-';
+                const valor = state.settings.hideValues || state.settings.hideDashboard ? 'R$ ••••' : formatMoney(r.valor || r.value || 0);
+                tr.innerHTML = `<td>${dateStr}</td><td>${r.tipo || r.type || 'mov'}</td><td>${r.reserva || r.desc || r.ativo || ''}</td><td>${valor}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
     }
 
     // alerta custo de vida
@@ -1255,114 +1259,43 @@ function renderDashboard(){
                     backgroundColor:['#60a5fa','#1e88e5','#16a34a','#f59e0b','#ef4444','#7c3aed','#0ea5a4'] 
                 }]
             },
-            options:{ 
-                maintainAspectRatio:false, 
-                plugins:{ legend:{ position:'right', labels:{ color:'#e6eef8' } } } 
-            }
+            options:{ maintainAspectRatio:false, plugins:{ legend:{ position:'right', labels:{ color:'#e6eef8' } } } }
         });
     }catch(e){/*silent*/}
-}
 
-  // Fluxo mensal chart
-  const fluxoRes = computeFluxoMonthly(monthKey);
-  el('#dash_fluxo_entries').innerText = formatMoney(fluxoRes.totalEntries || 0);
-  el('#dash_fluxo_exits').innerText = formatMoney(fluxoRes.totalExits || 0);
-  el('#dash_fluxo_net').innerText = formatMoney(fluxoRes.net || 0);
-  el('#dash_fluxo_net').style.color = (fluxoRes.net >= 0) ? 'var(--success)' : 'var(--danger)';
-  if(chartFluxMonthly){ chartFluxMonthly.destroy(); chartFluxMonthly = null; }
-  try{
-    const ctxF = document.getElementById('chartFluxMonthly').getContext('2d');
-    chartFluxMonthly = new Chart(ctxF, {
-      type:'bar',
-      data:{ labels:fluxoRes.labels, datasets:[ { label:'Entradas', data:fluxoRes.entriesArr, backgroundColor:'#16a34a' }, { label:'Saídas', data:fluxoRes.exitsArr, backgroundColor:'#ef4444' } ]},
-      options:{ maintainAspectRatio:false, scales:{ x:{ ticks:{ color:'#e6eef8' } }, y:{ ticks:{ color:'#e6eef8' } } }, plugins:{ legend:{ labels:{ color:'#e6eef8' } } } }
-    });
-  }catch(e){/*silent*/}
+    // Fluxo mensal chart
+    if(chartFluxMonthly){ chartFluxMonthly.destroy(); chartFluxMonthly = null; }
+    try{
+        const ctxF = document.getElementById('chartFluxMonthly').getContext('2d');
+        chartFluxMonthly = new Chart(ctxF, {
+            type:'bar',
+            data:{ labels:fluxoRes.labels, datasets:[ { label:'Entradas', data:fluxoRes.entriesArr, backgroundColor:'#16a34a' }, { label:'Saídas', data:fluxoRes.exitsArr, backgroundColor:'#ef4444' } ]},
+            options:{ maintainAspectRatio:false, scales:{ x:{ ticks:{ color:'#e6eef8' } }, y:{ ticks:{ color:'#e6eef8' } } }, plugins:{ legend:{ labels:{ color:'#e6eef8' } } } }
+        });
+    }catch(e){/*silent*/}
 
-  // Plan small chart (donut)
-  const planRes = computePlanProgress(monthKey);
-  el('#dash_plan_meta').innerText = `Meta: ${formatMoney(planRes.meta || 0)}`;
-  el('#dash_plan_done').innerText = `Concluído: ${formatMoney(planRes.done || 0)}`;
-  const pct = Math.min(100, Math.max(0, planRes.pct || 0));
-  el('#dash_plan_bar').style.width = pct + '%';
-  el('#dash_plan_pct').innerText = pct + '%';
-  if(chartPlan){ chartPlan.destroy(); chartPlan = null; }
-  try{
-    const ctxP = document.getElementById('chartPlan').getContext('2d');
-    const rem = Math.max(0, (planRes.meta || 0) - (planRes.done || 0));
-    chartPlan = new Chart(ctxP, { type:'doughnut', data:{ labels:['Concluído','Restante'], datasets:[{ data:[planRes.done || 0, rem], backgroundColor:['#60a5fa','#374151'] }] }, options:{ maintainAspectRatio:false, plugins:{ legend:{ display:false } } } });
-  }catch(e){/*silent*/}
+    // Plan small chart (donut)
+    if(chartPlan){ chartPlan.destroy(); chartPlan = null; }
+    try{
+        const ctxP = document.getElementById('chartPlan').getContext('2d');
+        const rem = Math.max(0, (planRes.meta || 0) - (planRes.done || 0));
+        chartPlan = new Chart(ctxP, { type:'doughnut', data:{ labels:['Concluído','Restante'], datasets:[{ data:[planRes.done || 0, rem], backgroundColor:['#60a5fa','#374151'] }] }, options:{ maintainAspectRatio:false, plugins:{ legend:{ display:false } } } });
+    }catch(e){/*silent*/}
 
-  // Invest composition small chart
-  try{
-    const cats = {};
-    state.investimentos.forEach(it=>{ const v = (Number(it.quantidade||0) * Number(it.preco||0)); cats[it.categoria] = (cats[it.categoria]||0) + v; });
-    const labels = Object.keys(cats); const values = labels.map(l=>cats[l]);
+    // Invest composition small chart
     if(chartInvCompSmall){ chartInvCompSmall.destroy(); chartInvCompSmall = null; }
-    const ctxI = document.getElementById('chartInvCompSmall') && document.getElementById('chartInvCompSmall').getContext('2d');
-    if(ctxI){
-      chartInvCompSmall = new Chart(ctxI, { type:'doughnut', data:{ labels: labels.length?labels:['Sem dados'], datasets:[{ data: values.length?values:[1], backgroundColor:['#60a5fa','#1e88e5','#16a34a','#f59e0b','#ef4444'] }] }, options:{ maintainAspectRatio:false, plugins:{ legend:{ position:'right', labels:{ color:'#e6eef8' } } } } });
-    }
-  }catch(e){/*silent*/}
+    try{
+        const cats = {};
+        state.investimentos.forEach(it=>{ const v = (Number(it.quantidade||0) * Number(it.preco||0)); cats[it.categoria] = (cats[it.categoria]||0) + v; });
+        const labels = Object.keys(cats); const values = labels.map(l=>cats[l]);
+        const ctxI = document.getElementById('chartInvCompSmall') && document.getElementById('chartInvCompSmall').getContext('2d');
+        if(ctxI){
+            chartInvCompSmall = new Chart(ctxI, { type:'doughnut', data:{ labels: labels.length?labels:['Sem dados'], datasets:[{ data: values.length?values:[1], backgroundColor:['#60a5fa','#1e88e5','#16a34a','#f59e0b','#ef4444'] }] }, options:{ maintainAspectRatio:false, plugins:{ legend:{ position:'right', labels:{ color:'#e6eef8' } } } } });
+        }
+    }catch(e){/*silent*/}
 
-  // Recents
-  const tbody = el('#dash_recent tbody'); if(!tbody) return;
-  tbody.innerHTML = '';
-  const recent = [].concat(state.transacoes || [], state.fluxo || []).slice(0,10);
-  if(!recent.length) tbody.innerHTML = '<tr><td colspan="4" class="small">Sem registros</td></tr>';
-  else {
-    recent.forEach(r=>{
-      const tr = document.createElement('tr');
-      const dateStr = r.date ? (r.date.length===10 ? new Date(r.date+'T00:00:00').toLocaleDateString() : new Date(r.date).toLocaleDateString()) : '-';
-      tr.innerHTML = `<td>${dateStr}</td><td>${r.tipo || r.type || 'mov'}</td><td>${r.reserva || r.desc || r.ativo || ''}</td><td>${formatMoney(r.valor || r.value || 0)}</td>`;
-      tbody.appendChild(tr);
-    });
-  }
-  el('#dash_updated').innerText = new Date().toLocaleString();
-}
-
-/* ===== Expor bloco de notas (para colar no GPT) ===== */
-function compileExportText(){
-  const resumo = computeResumoFinanceiro(getSelectedMonthKey()||new Date().toISOString().slice(0,7));
-  const topCats = computeCustoByCategory(getSelectedMonthKey()).cats || {};
-  const topCatsList = Object.keys(topCats).map(k=> `${k}: ${formatMoney(topCats[k])}`).join(' • ');
-  const investSummary = (state.investimentos||[]).slice(0,8).map(i => `${i.ativo} (${i.categoria}) — ${formatMoney(Number(i.quantidade||0)*Number(i.preco||0))}`).join('\n');
-  const text = [
-    `RESUMO FINANCEIRO — ${new Date().toLocaleDateString()}`,
-    `ENTRADAS: ${formatMoney(resumo.totalEntradas)}`,
-    `SAÍDAS: ${formatMoney(resumo.totalSaidas)}`,
-    `RESULTADO: ${formatMoney(resumo.resultado)}`,
-    `RESERVAS (total saldo): ${formatMoney(resumo.reservasTotal)}`,
-    `INVESTIMENTOS (total): ${formatMoney(resumo.investimentosTotal)}`,
-    `CUSTO DE VIDA (mês): ${formatMoney(computeCustoByCategory(getSelectedMonthKey()).total || 0)}`,
-    `PRINCIPAIS CATEGORIAS: ${topCatsList || '—'}`,
-    `INVESTIMENTOS (top 8):\n${investSummary || '—'}`,
-    `\nTRANSAÇÕES RECENTES:\n${(state.transacoes||[]).slice(0,10).map(t=>`${t.date || t.date}: ${t.reserva || ''} ${t.tipo || ''} ${formatMoney(t.valor||0)}`).join('\n')}`
-  ].join('\n');
-  return text;
-}
-function exportToClipboardAndModal(){
-  const txt = compileExportText();
-  // copy
-  navigator.clipboard.writeText(txt).then(()=>{
-    showModal('Exportar (Bloco de Notas) — Texto copiado', `<textarea class="input" style="height:260px">${txt}</textarea>`, null);
-    alert('Resumo copiado para a área de transferência. Cole no ChatGPT para análise.');
-  }).catch(()=>{ showModal('Exportar (Bloco de Notas)', `<textarea class="input" style="height:260px">${txt}</textarea>`, null); alert('Não foi possível copiar automaticamente. Abra o modal e copie manualmente.'); });
-}
-
-/* ===== Render all structural tables/cards ===== */
-function renderAll(){
-  reorderReservationsByDefault();
-  renderReservations();
-  renderInvestments();
-  renderFluxo();
-  renderCusto();
-  renderNoteTabs();
-  getMonthOptions();
-  const key = getSelectedMonthKey() || new Date().toISOString().slice(0,7);
-  if(state.planejamento[key]) renderPlanForMonth(key);
-  renderDashboard(); // garante dashboard atualizado
-  enableTouchForOnclicks(); // manter suporte touch atualizado
+    // Atualiza data/hora última renderização
+    el('#dash_updated').innerText = new Date().toLocaleString();
 }
 
 /* ===== INIT ===== */
