@@ -417,34 +417,48 @@ canvas{width:100%;height:150px;border-radius:8px;background:transparent}
     </div>
   </div>
 
-<!-- ========================================================= -->
-<!-- 🧩 BLOCO 07 — FLUXO DIÁRIO                               -->
-<!-- ========================================================= -->
+<!-- ====================== BLOCO 07 — FLUXO DIÁRIO ========================= -->
 
-  <div id="fluxo" class="page" style="display:none">
-    <div class="card">
-      <h2>Fluxo Diário</h2>
-      <div class="small">Registre entradas e saídas por dia.</div>
+<div id="fluxo" class="page" style="display:none">
+  <div class="card">
+    <h2>Fluxo Diário</h2>
+    <div class="small">Registre entradas e saídas por dia.</div>
 
-      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
-        <input id="fx_data" class="input" type="date"/>
-        <input id="fx_desc" class="input" placeholder="Descrição"/>
-        <select id="fx_tipo" class="input">
-          <option value="entrada">Entrada</option>
-          <option value="saida">Saída</option>
-        </select>
-        <input id="fx_valor" type="number" class="input" placeholder="Valor"/>
-        <button class="btn">Adicionar</button>
-      </div>
+    <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
 
-      <table class="table" id="fluxoTable" style="margin-top:12px">
-        <thead>
-          <tr><th>Data</th><th>Descrição</th><th>Tipo</th><th>Valor</th><th>Ações</th></tr>
-        </thead>
-        <tbody><tr><td colspan="5" class="small">Sem registros</td></tr></tbody>
-      </table>
+      <input id="fx_date" class="input" type="date"/>
+
+      <input id="fx_desc" class="input" placeholder="Descrição"/>
+
+      <select id="fx_tipo" class="input">
+        <option value="entrada">Entrada</option>
+        <option value="saida">Saída</option>
+      </select>
+
+      <select id="fx_payment" class="input">
+        <option value="">(pagamento)</option>
+        <option value="pix">PIX</option>
+        <option value="credito">Crédito</option>
+        <option value="debito">Débito</option>
+        <option value="dinheiro">Dinheiro</option>
+      </select>
+
+      <input id="fx_valor" type="number" class="input" placeholder="Valor"/>
+
+      <button class="btn" onclick="addFluxo()">Adicionar</button>
+
     </div>
+
+    <table class="table" id="fluxoTable" style="margin-top:12px">
+      <thead>
+        <tr>
+          <th>Data</th><th>Descrição</th><th>Tipo</th><th>Pagamento</th><th>Valor</th><th>Ações</th>
+        </tr>
+      </thead>
+      <tbody><tr><td colspan="6" class="small">Sem registros</td></tr></tbody>
+    </table>
   </div>
+</div>
 
 <!-- ========================================================= -->
 <!-- 🧩 BLOCO 08 — RESERVAS                                   -->
