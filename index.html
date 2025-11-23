@@ -1340,48 +1340,49 @@ function enableTouchForOnclicks(){
 window._borges_state = state;
 window.saveLocal = saveLocal;
 
-// ===== NOVA LÓGICA DE TOGGLE =====
-function toggleBox(btnId, boxId, label) {
+// ===== NOVA LÓGICA DE TOGGLE (apenas boxes do DASHBOARD) =====
+function toggleBoxDashboard(boxId, btnId, label) {
   const box = document.getElementById(boxId);
   const btn = document.getElementById(btnId);
+  if (!box || !btn) return; // segurança caso o elemento não exista
   const hidden = box.style.display === 'none';
   box.style.display = hidden ? '' : 'none';
   btn.innerText = hidden ? `Ocultar ${label}` : `Mostrar ${label}`;
 }
 
-// TOP STATS
-el('#btnToggleTopStats').addEventListener('click', () => {
-  toggleBox('btnToggleTopStats', 'top_stats', 'Entradas/Saídas/Resultado');
+// DASHBOARD TOP STATS
+el('#btnToggleTopStats')?.addEventListener('click', () => {
+  toggleBoxDashboard('top_stats', 'btnToggleTopStats', 'Entradas/Saídas/Resultado');
 });
 
-// RESERVAS
-el('#btnToggleReservas').addEventListener('click', () => {
-  toggleBox('btnToggleReservas', 'box_reservas', 'Reservas');
+// DASHBOARD RESERVAS
+el('#btnToggleReservas')?.addEventListener('click', () => {
+  toggleBoxDashboard('box_reservas', 'btnToggleReservas', 'Reservas');
 });
 
-// CUSTO
-el('#btnToggleCusto').addEventListener('click', () => {
-  toggleBox('btnToggleCusto', 'box_custo', 'Custo de Vida');
+// DASHBOARD CUSTO
+el('#btnToggleCusto')?.addEventListener('click', () => {
+  toggleBoxDashboard('box_custo', 'btnToggleCusto', 'Custo de Vida');
 });
 
-// FLUXO
-el('#btnToggleFluxo').addEventListener('click', () => {
-  toggleBox('btnToggleFluxo', 'box_fluxo', 'Fluxo de Caixa');
+// DASHBOARD FLUXO
+el('#btnToggleFluxo')?.addEventListener('click', () => {
+  toggleBoxDashboard('box_fluxo', 'btnToggleFluxo', 'Fluxo de Caixa');
 });
 
-// PLANEJAMENTO
-el('#btnTogglePlanejamento').addEventListener('click', () => {
-  toggleBox('btnTogglePlanejamento', 'box_planejamento', 'Planejamento');
+// DASHBOARD PLANEJAMENTO
+el('#btnTogglePlanejamento')?.addEventListener('click', () => {
+  toggleBoxDashboard('box_planejamento', 'btnTogglePlanejamento', 'Planejamento');
 });
 
-// INVESTIMENTOS
-el('#btnToggleInvest').addEventListener('click', () => {
-  toggleBox('btnToggleInvest', 'box_invest', 'Investimentos');
+// DASHBOARD INVESTIMENTOS
+el('#btnToggleInvest')?.addEventListener('click', () => {
+  toggleBoxDashboard('box_invest', 'btnToggleInvest', 'Investimentos');
 });
 
-// TRANSAÇÕES
-el('#btnToggleTransacoes').addEventListener('click', () => {
-  toggleBox('btnToggleTransacoes', 'box_transacoes', 'Transações Recentes');
+// DASHBOARD TRANSAÇÕES
+el('#btnToggleTransacoes')?.addEventListener('click', () => {
+  toggleBoxDashboard('box_transacoes', 'btnToggleTransacoes', 'Transações Recentes');
 });
 
 </script>
