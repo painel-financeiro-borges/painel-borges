@@ -125,6 +125,10 @@ canvas{width:100%;height:150px;background:transparent;border-radius:8px}
 
     <div class="spacer"></div>
 
+<button id="btnHideAll" class="btn-pro">Ocultar Tudo</button>
+<button id="btnHideFinance" class="btn-pro">Ocultar Entradas/Saídas/Resultado</button>
+<button id="btnHideDashboard" class="btn-pro">Ocultar Resumos & Últimas Transações</button>
+
     <button id="btnSeed" class="btn-ghost">Criar Padrões</button>
     <button id="btnSyncAll" class="btn">Sincronizar com Drive</button>
     <button id="btnExportNotes" class="btn-export">Exportar (Bloco de Notas)</button>
@@ -1142,45 +1146,122 @@ function computeResumoFinanceiro(monthKey){
 
 /* ====== Render Dashboard (Chart.js) ====== */
 function renderDashboard(){
-  const monthKey = getSelectedMonthKey() || new Date().toISOString().slice(0,7);
+    const monthKey = getSelectedMonthKey() || new Date().toISOString().slice(0,7);
 
-  // resumo financeiro
-  const resumo = computeResumoFinanceiro(monthKey);
-  el('#dash_entradas').innerText = formatMoney(resumo.totalEntradas || 0);
-  el('#dash_saidas').innerText = formatMoney(resumo.totalSaidas || 0);
-  el('#dash_resultado').innerText = formatMoney(resumo.resultado || 0);
-  el('#dash_result_status').innerText = resumo.resultado >= 0 ? 'Positivo' : 'Negativo';
+    // resumo financeiro
+    const resumo = computeResumoFinanceiro(monthKey);
+    el('#dash_entradas').innerText = state.settings.hideValues || state.settings.hideFinance 
+        ? 'R$ ••••' 
+        : formatMoney(resumo.totalEntradas || 0);
+    el('#dash_saidas').innerText = state.settings.hideValues || state.settings.hideFinance 
+        ? 'R$ ••••' 
+        : formatMoney(resumo.totalSaidas || 0);
+    el('#dash_resultado').innerText = state.settings.hideValues || state.settings.hideFinance 
+        ? 'R$ ••••' 
+        : formatMoney(resumo.resultado || 0);
+    el('#dash_result_status').innerText = state.settings.hideValues || state.settings.hideFinance 
+        ? '—' 
+        : (resumo.resultado >= 0 ? 'Positivo' : 'Negativo');
 
-  // reservas & investimentos
-  el('#dash_reservas_total').innerText = formatMoney(resumo.reservasTotal || 0);
-  el('#dash_reservas_count').innerText = (state.reservas||[]).length;
-  el('#dash_invest_total').innerText = formatMoney(resumo.investimentosTotal || 0);
-  el('#dash_inv_count').innerText = (state.investimentos||[]).length;
+    // Reservas — total
+    el('#dash_reservas_total').innerText = state.settings.hideValues || state.settings.hideDashboard 
+        ? 'R$ ••••' 
+        : formatMoney(resumo.reservasTotal || 0);
+    el('#dash_reservas_count').innerText = state.settings.hideValues || state.settings.hideDashboard 
+        ? '—' 
+        : (state.reservas||[]).length;
 
-  // alerta custo de vida
-  const custoRes = computeCustoByCategory(monthKey);
-  el('#dash_custo_total').innerText = formatMoney(custoRes.total || 0);
-  el('#dash_custo_month_label').innerText = monthKey;
-  const alertEl = el('#dash_alert');
-  if(custoRes.total > resumo.totalEntradas){
-    alertEl.style.display = 'block';
-    alertEl.innerText = 'Alerta: seu custo de vida atual ultrapassa as entradas. Revise despesas.';
-    alertEl.style.borderLeft = '4px solid var(--danger)';
-  } else {
-    if(custoRes.total === 0) alertEl.style.display = 'none';
-    else { alertEl.style.display = 'block'; alertEl.innerText = 'Seu custo de vida está dentro da margem.'; alertEl.style.borderLeft = '4px solid var(--success)'; }
-  }
+    // Custo de Vida — total
+    const custoRes = computeCustoByCategory(monthKey);
+    el('#dash_custo_total').innerText = state.settings.hideValues || state.settings.hideDashboard 
+        ? 'R$ ••••' 
+        : formatMoney(custoRes.total || 0);
+    el('#dash_custo_month_label').innerText = state.settings.hideValues || state.settings.hideDashboard 
+        ? '—' 
+        : monthKey;
 
-  // Charts: custo (doughnut)
-  if(chartCustoTop){ chartCustoTop.destroy(); chartCustoTop = null; }
-  try{
-    const ctxC = document.getElementById('chartCustoTop').getContext('2d');
-    chartCustoTop = new Chart(ctxC, {
-      type:'doughnut',
-      data:{ labels: custoRes.labels.length ? custoRes.labels : ['Sem dados'], datasets:[{ data: custoRes.values.length ? custoRes.values : [1], backgroundColor:['#60a5fa','#1e88e5','#16a34a','#f59e0b','#ef4444','#7c3aed','#0ea5a4'] }]},
-      options:{ maintainAspectRatio:false, plugins:{ legend:{ position:'right', labels:{ color:'#e6eef8' } } } }
-    });
-  }catch(e){/*silent*/}
+    // Fluxo de Caixa — Mês
+    el('#dash_fluxo_entries').innerText = state.settings.hideValues || state.settings.hideDashboard 
+        ? 'R$ ••••' 
+        : formatMoney(sumFluxoEntries());
+    el('#dash_fluxo_exits').innerText = state.settings.hideValues || state.settings.hideDashboard 
+        ? 'R$ ••••' 
+        : formatMoney(sumFluxoExits());
+    el('#dash_fluxo_net').innerText = state.settings.hideValues || state.settings.hideDashboard 
+        ? 'R$ ••••' 
+        : formatMoney(sumFluxoNet());
+
+    // Planejamento Mensal — Progresso
+    el('#dash_plan_meta').innerText = state.settings.hideValues || state.settings.hideDashboard 
+        ? 'Meta: R$ ••••' 
+        : 'Meta: ' + formatMoney(sumPlanMeta());
+    el('#dash_plan_done').innerText = state.settings.hideValues || state.settings.hideDashboard 
+        ? 'Concluído: R$ ••••' 
+        : 'Concluído: ' + formatMoney(sumPlanDone());
+    el('#dash_plan_bar').style.width = state.settings.hideValues || state.settings.hideDashboard 
+        ? '0%' 
+        : getPlanProgress() + '%';
+    el('#dash_plan_pct').innerText = state.settings.hideValues || state.settings.hideDashboard 
+        ? '0%' 
+        : getPlanProgress() + '%';
+
+    // Investimentos — total
+    el('#dash_invest_total').innerText = state.settings.hideValues || state.settings.hideDashboard 
+        ? 'R$ ••••' 
+        : formatMoney(sumInvestments());
+    el('#dash_inv_count').innerText = state.settings.hideValues || state.settings.hideDashboard 
+        ? '—' 
+        : (state.investimentos||[]).length;
+
+    // Últimas transações
+    const recentTable = el('#dash_recent tbody');
+    if(recentTable){
+        recentTable.querySelectorAll('tr').forEach(tr=>{
+            if(state.settings.hideValues || state.settings.hideDashboard){
+                tr.querySelectorAll('td').forEach((td,i)=>{
+                    if(i===3) td.innerText = 'R$ ••••';
+                });
+            }else{
+                renderRecentTransactions();
+            }
+        });
+    }
+
+    // alerta custo de vida
+    const alertEl = el('#dash_alert');
+    if(custoRes.total > resumo.totalEntradas){
+        alertEl.style.display = 'block';
+        alertEl.innerText = 'Alerta: seu custo de vida atual ultrapassa as entradas. Revise despesas.';
+        alertEl.style.borderLeft = '4px solid var(--danger)';
+    } else {
+        if(custoRes.total === 0) alertEl.style.display = 'none';
+        else { 
+            alertEl.style.display = 'block'; 
+            alertEl.innerText = 'Seu custo de vida está dentro da margem.'; 
+            alertEl.style.borderLeft = '4px solid var(--success)'; 
+        }
+    }
+
+    // Charts: custo (doughnut)
+    if(chartCustoTop){ chartCustoTop.destroy(); chartCustoTop = null; }
+    try{
+        const ctxC = document.getElementById('chartCustoTop').getContext('2d');
+        chartCustoTop = new Chart(ctxC, {
+            type:'doughnut',
+            data:{ 
+                labels: custoRes.labels.length ? custoRes.labels : ['Sem dados'], 
+                datasets:[{ 
+                    data: custoRes.values.length ? custoRes.values : [1], 
+                    backgroundColor:['#60a5fa','#1e88e5','#16a34a','#f59e0b','#ef4444','#7c3aed','#0ea5a4'] 
+                }]
+            },
+            options:{ 
+                maintainAspectRatio:false, 
+                plugins:{ legend:{ position:'right', labels:{ color:'#e6eef8' } } } 
+            }
+        });
+    }catch(e){/*silent*/}
+}
 
   // Fluxo mensal chart
   const fluxoRes = computeFluxoMonthly(monthKey);
@@ -1297,6 +1378,32 @@ function renderAll(){
   el('#btnSyncAll').addEventListener('click', ()=>{ syncAllToDrive(); });
   el('#btnHideValues').addEventListener('click', ()=>{ state.settings.hideValues = !state.settings.hideValues; el('#btnHideValues').innerText = state.settings.hideValues ? 'Mostrar Valores' : 'Ocultar Valores'; saveLocal(); });
   el('#btnExportNotes').addEventListener('click', ()=>{ exportToClipboardAndModal(); });
+
+// Ocultar tudo
+el('#btnHideAll').addEventListener('click', ()=>{
+    state.settings.hideValues = !state.settings.hideValues;
+    // Atualiza todos os botões de toggle
+    el('#btnHideAll').innerText = state.settings.hideValues ? 'Mostrar Tudo' : 'Ocultar Tudo';
+    el('#btnHideFinance').innerText = state.settings.hideValues ? 'Mostrar Entradas/Saídas/Resultado' : 'Ocultar Entradas/Saídas/Resultado';
+    el('#btnHideDashboard').innerText = state.settings.hideValues ? 'Mostrar Resumos & Últimas Transações' : 'Ocultar Resumos & Últimas Transações';
+    saveLocal();
+});
+
+// Ocultar Entradas/Saídas/Resultado
+el('#btnHideFinance').addEventListener('click', ()=>{
+    const hide = !state.settings.hideFinance;
+    state.settings.hideFinance = hide;
+    el('#btnHideFinance').innerText = hide ? 'Mostrar Entradas/Saídas/Resultado' : 'Ocultar Entradas/Saídas/Resultado';
+    renderAll();
+});
+
+// Ocultar Resumos & Últimas Transações
+el('#btnHideDashboard').addEventListener('click', ()=>{
+    const hide = !state.settings.hideDashboard;
+    state.settings.hideDashboard = hide;
+    el('#btnHideDashboard').innerText = hide ? 'Mostrar Resumos & Últimas Transações' : 'Ocultar Resumos & Últimas Transações';
+    renderAll();
+});
 
   // observe DOM mutations (to attach touch handlers to dynamic elements)
   const mo = new MutationObserver(muts => { muts.forEach(m => { if(m.addedNodes && m.addedNodes.length){ m.addedNodes.forEach(node => { if(node.nodeType===1){ if(node.matches && node.matches('[onclick]')) attachTouch(node); node.querySelectorAll && node.querySelectorAll('[onclick]').forEach(elm=>attachTouch(elm)); } }); } }); });
@@ -1535,7 +1642,3 @@ window.driveSync = {
 
 </body>
 </html>
-
-
-
-
