@@ -2140,12 +2140,16 @@
     const btnLogin = document.getElementById("btnLogin");
     const btnLogout = document.getElementById("btnLogout");
 
-    btnLogin.addEventListener("click", () => {
-      signInWithPopup(auth, provider)
-        .catch(err => alert("Erro ao entrar: " + err.message));
-    });
+    if (btnLogin) {
+      btnLogin.addEventListener("click", () => {
+        signInWithPopup(auth, provider)
+          .catch(err => alert("Erro ao entrar: " + err.message));
+      });
+    }
 
-    btnLogout.addEventListener("click", () => signOut(auth));
+    if (btnLogout) {
+      btnLogout.addEventListener("click", () => signOut(auth));
+    }
 
     onAuthStateChanged(auth, user => {
       if (user) {
