@@ -761,6 +761,8 @@
       <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn" onclick="exportAll()">Exportar Tudo (.json)</button>
         <button class="btn" onclick="exportToClipboardAndModal()">Exportar Tudo (Bloco de Notas)</button>
+        <button class="btn" onclick="createHistoricalSnapshot()" style="background:var(--primary-dark)">Criar Versão
+          Histórica</button>
 
         <input id="fileImport" type="file" accept=".json" style="background:transparent;color:var(--muted)" />
         <button class="btn-ghost" onclick="importAll()">Importar Backup</button>
@@ -1998,7 +2000,33 @@
       }
     };
 
+    window.createHistoricalSnapshot = async function () {
+      const user = auth.currentUser;
+      if (!user) {
+        alert("⚠️ Você precisa estar logado para criar uma versão histórica.");
+        return;
+      }
 
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const docId = user.uid + '_' + timestamp;
+
+      try {
+        // Using a root collection 'user_versions' with ID = UID_TIMESTAMP
+        // This allows multiple snapshots per user.
+        const snapshotRef = doc(window.db, "user_versions", docId);
+
+        const payload = JSON.parse(JSON.stringify(window.state));
+        payload._snapshotAt = new Date().toISOString();
+        payload._uid = user.uid; // Storing UID in data for security rules check
+
+        await setDoc(snapshotRef, payload);
+        alert(`✅ Versão histórica criada com sucesso!\nID: ${docId}`);
+
+      } catch (e) {
+        console.error("Erro ao criar snapshot:", e);
+        alert("❌ Erro ao criar versão: " + e.message);
+      }
+    };
 
     async function loadStateFromFirestore(user) {
       if (!user || !user.uid) {
