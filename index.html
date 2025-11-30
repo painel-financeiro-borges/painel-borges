@@ -1557,9 +1557,11 @@
           state = parsed;
           if (!state.settings) state.settings = { hideValues: false };
           saveLocal();
+          renderAll();
           alert('✅ Backup importado com sucesso!');
         } catch (err) {
-          alert('❌ Arquivo inválido.');
+          console.error('Erro de parsing:', err);
+          alert('❌ Arquivo inválido ou corrompido. Verifique o console para mais detalhes.');
         }
       };
       reader.readAsText(f);
@@ -1868,21 +1870,29 @@
       //   if (confirm('Criar reservas padrão?')) createDefaultReservas();
       // });
 
-      el('#btnSyncAll').addEventListener('click', () => {
-        if (window.saveStateToFirestore) window.saveStateToFirestore();
-        else alert('Funcionalidade de nuvem não inicializada.');
-      });
+      const btnSync = el('#btnSyncAll');
+      if (btnSync) {
+        btnSync.addEventListener('click', () => {
+          if (window.saveStateToFirestore) window.saveStateToFirestore();
+          else alert('Funcionalidade de nuvem não inicializada.');
+        });
+      }
 
-      el('#btnHideValues').addEventListener('click', () => {
-        state.settings.hideValues = !state.settings.hideValues;
-        el('#btnHideValues').innerText =
-          state.settings.hideValues ? 'Mostrar Valores' : 'Ocultar Valores';
-        saveLocal();
-      });
+      const btnHide = el('#btnHideValues');
+      if (btnHide) {
+        btnHide.addEventListener('click', () => {
+          state.settings.hideValues = !state.settings.hideValues;
+          btnHide.innerText = state.settings.hideValues ? 'Mostrar Valores' : 'Ocultar Valores';
+          saveLocal();
+        });
+      }
 
-      el('#btnExportNotes').addEventListener('click', () => {
-        exportToClipboardAndModal();
-      });
+      const btnExport = el('#btnExportNotes');
+      if (btnExport) {
+        btnExport.addEventListener('click', () => {
+          exportToClipboardAndModal();
+        });
+      }
 
       // Observa mutações para ativar suporte a toque
       const mo = new MutationObserver(muts => {
