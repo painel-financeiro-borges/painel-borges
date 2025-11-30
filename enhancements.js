@@ -102,10 +102,15 @@
       return b;
     };
 
-    // area-specific hide buttons
-    container.appendChild(addBtn('Ocultar Entradas', () => toggleAreaHide('dash_top_stats')));
-    container.appendChild(addBtn('Ocultar Resultado', () => toggleAreaHide('dash_result')));
-    container.appendChild(addBtn('Ocultar Resumos', () => toggleAreaHide('dash_summary')));
+    // Add 'Ocultar Valores' button here
+    const btnHideValues = addBtn('Ocultar Valores', () => {
+      state.settings.hideValues = !state.settings.hideValues;
+      saveLocal();
+      renderAll();
+    }, 'btn-pro');
+    btnHideValues.id = 'btnHideValues_dash'; // Unique ID
+    container.appendChild(btnHideValues);
+
     // spacer
     const spacer = document.createElement('div'); spacer.style.flex = '1';
     container.appendChild(spacer);
