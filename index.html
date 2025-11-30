@@ -1876,7 +1876,9 @@
   <!-- ===================== INIT ===================== -->
   <script>
     (function init() {
-      el('#apiUrlDisplay').innerText = '(Drive API Direct)';
+      const apiDisplay = el('#apiUrlDisplay');
+      if (apiDisplay) apiDisplay.innerText = '(Drive API Direct)';
+
       loadLocal();
 
       if (!state.reservas || !state.reservas.length)
@@ -1884,11 +1886,6 @@
 
       getMonthOptions();
       renderAll();
-
-      // el('#btnSeed') removed from DOM
-      // el('#btnSeed').addEventListener('click', () => {
-      //   if (confirm('Criar reservas padrão?')) createDefaultReservas();
-      // });
 
       const btnSync = el('#btnSyncAll');
       if (btnSync) {
@@ -1907,12 +1904,9 @@
         });
       }
 
-      const btnExport = el('#btnExportNotes');
-      if (btnExport) {
-        btnExport.addEventListener('click', () => {
-          exportToClipboardAndModal();
-        });
-      }
+      // btnExportNotes removed as button was deleted from DOM
+
+      // Observa mutações para ativar suporte a toque
 
       // Observa mutações para ativar suporte a toque
       const mo = new MutationObserver(muts => {
@@ -2080,19 +2074,36 @@
     };
 
     async function loadStateFromFirestore(user) {
+      if (!user || !user.uid) {
+        console.error("Erro: Usuário não identificado para carregar dados.");
+        return;
+      }
+      console.log("Carregando dados da nuvem para UID:", user.uid);
+
       try {
         const docRef = doc(db, "users", user.uid);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
           const data = docSnap.data();
-          // Optional: Confirm before overwriting local data on login?
-          // For now, let's notify and ask, or just log.
-          // User requested: "chamando-a na inicialização... para substituir a lógica de carregamento"
-          // Let's ask to be safe, or just do it if local is empty?
-          // Let's ask.
+
           if (confirm("☁️ Backup encontrado na nuvem. Deseja carregar e substituir os dados locais atuais?")) {
-            window.state = Object.assign({}, window.state, data);
+            // Garantir estrutura completa ao carregar da nuvem
+            const defaultState = {
+              reservas: [],
+              isolatedReservas: [],
+              transacoes: [],
+              investimentos: [],
+              fluxo: [],
+              custo: [],
+              planejamento: {},
+              caderno: [],
+              settings: { hideValues: false },
+              assets: [],
+              alertas: []
+            };
+
+            window.state = Object.assign({}, defaultState, window.state, data);
             window.saveLocal();
             window.renderAll();
             alert("✅ Dados carregados da nuvem.");
