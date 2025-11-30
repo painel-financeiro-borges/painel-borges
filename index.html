@@ -2004,7 +2004,7 @@
       const monthKey = now.toISOString().slice(0, 7); // YYYY-MM
 
       try {
-        const archiveRef = doc(db, "archives", user.uid, "months", monthKey);
+        const archiveRef = doc(db, "users", user.uid, "archives", monthKey);
 
         // Check if exists
         const docSnap = await getDoc(archiveRef);
@@ -2034,7 +2034,7 @@
       }
 
       try {
-        const archivesRef = collection(db, "archives", user.uid, "months");
+        const archivesRef = collection(db, "users", user.uid, "archives");
         const querySnapshot = await getDocs(archivesRef);
 
         if (querySnapshot.empty) {
