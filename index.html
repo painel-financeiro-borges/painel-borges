@@ -762,6 +762,8 @@
       <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn" onclick="exportAll()">Exportar Tudo (.json)</button>
         <button class="btn" onclick="exportToClipboardAndModal()">Exportar Tudo (Bloco de Notas)</button>
+        <button class="btn" onclick="archiveCurrentState()" style="background:var(--primary-dark)">Arquivar Mês
+          Atual</button>
         <input id="fileImport" type="file" accept=".json" style="background:transparent;color:var(--muted)" />
         <button class="btn-ghost" onclick="importAll()">Importar Backup</button>
         <div class="spacer"></div>
@@ -1987,6 +1989,38 @@
         alert("❌ Erro ao salvar na nuvem: " + e.message);
         const btn = document.getElementById('btnSyncAll');
         if (btn) btn.innerText = 'Salvar no Cloud';
+      }
+    };
+
+    window.archiveCurrentState = async function () {
+      const user = auth.currentUser;
+      if (!user) {
+        alert("⚠️ Você precisa estar logado para arquivar.");
+        return;
+      }
+      const now = new Date();
+      const monthKey = now.toISOString().slice(0, 7); // YYYY-MM
+
+      try {
+        const archiveRef = doc(db, "archives", user.uid, "months", monthKey);
+
+        // Check if exists
+        const docSnap = await getDoc(archiveRef);
+        if (docSnap.exists()) {
+          if (!confirm(`⚠️ Já existe um arquivo para o mês ${monthKey}. Deseja sobrescrevê-lo?`)) {
+            return;
+          }
+        }
+
+        const payload = JSON.parse(JSON.stringify(window.state));
+        payload._archivedAt = now.toISOString();
+
+        await setDoc(archiveRef, payload);
+        alert(`✅ Mês ${monthKey} arquivado com sucesso!`);
+
+      } catch (e) {
+        console.error("Erro ao arquivar:", e);
+        alert("❌ Erro ao arquivar: " + e.message);
       }
     };
 
