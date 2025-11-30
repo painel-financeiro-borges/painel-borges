@@ -108,6 +108,8 @@ canvas{width:100%;height:150px;background:transparent;border-radius:8px}
     <div class="subtitle">Holding • Reservas • Investimentos</div>
   </div>
   <div class="spacer"></div>
+  <button id="btnLogin" class="btn-ghost">Entrar com Google</button>
+  <button id="btnLogout" class="btn-ghost" style="display:none;">Sair</button>
   <div class="small">Offline + Drive sync (API configurada)</div>
 </header>
 
@@ -1199,47 +1201,85 @@ function renderAll(){
   enableTouchForOnclicks(); // manter suporte touch atualizado
 }
 
-/* ===== INIT ===== */
+<!-- ===================== INIT ===================== -->
+<script>
 (function init(){
   el('#apiUrlDisplay').innerText = API_URL || '(não configurada)';
   loadLocal();
-  if(!state.reservas || !state.reservas.length) createDefaultReservas();
+
+  if (!state.reservas || !state.reservas.length) 
+    createDefaultReservas();
+
   getMonthOptions();
   renderAll();
 
-  // attach buttons
-  el('#btnSeed').addEventListener('click', ()=>{ if(confirm('Criar reservas padrão?')) createDefaultReservas(); });
-  el('#btnSyncAll').addEventListener('click', ()=>{ syncAllToDrive(); });
-  el('#btnHideValues').addEventListener('click', ()=>{ state.settings.hideValues = !state.settings.hideValues; el('#btnHideValues').innerText = state.settings.hideValues ? 'Mostrar Valores' : 'Ocultar Valores'; saveLocal(); });
-  el('#btnExportNotes').addEventListener('click', ()=>{ exportToClipboardAndModal(); });
+  el('#btnSeed').addEventListener('click', () => {
+    if (confirm('Criar reservas padrão?')) createDefaultReservas();
+  });
 
-  // observe DOM mutations (to attach touch handlers to dynamic elements)
-  const mo = new MutationObserver(muts => { muts.forEach(m => { if(m.addedNodes && m.addedNodes.length){ m.addedNodes.forEach(node => { if(node.nodeType===1){ if(node.matches && node.matches('[onclick]')) attachTouch(node); node.querySelectorAll && node.querySelectorAll('[onclick]').forEach(elm=>attachTouch(elm)); } }); } }); });
-  mo.observe(document.body, { childList:true, subtree:true });
+  el('#btnSyncAll').addEventListener('click', () => {
+    syncAllToDrive();
+  });
 
+  el('#btnHideValues').addEventListener('click', () => {
+    state.settings.hideValues = !state.settings.hideValues;
+    el('#btnHideValues').innerText =
+      state.settings.hideValues ? 'Mostrar Valores' : 'Ocultar Valores';
+    saveLocal();
+  });
+
+  el('#btnExportNotes').addEventListener('click', () => {
+    exportToClipboardAndModal();
+  });
+
+  // Observa mutações para ativar suporte a toque
+  const mo = new MutationObserver(muts => {
+    muts.forEach(m => {
+      if (m.addedNodes && m.addedNodes.length) {
+        m.addedNodes.forEach(node => {
+          if (node.nodeType === 1) {
+            if (node.matches && node.matches('[onclick]'))
+              attachTouch(node);
+
+            if (node.querySelectorAll)
+              node.querySelectorAll('[onclick]').forEach(elm => attachTouch(elm));
+          }
+        });
+      }
+    });
+  });
+
+  mo.observe(document.body, { childList: true, subtree: true });
 })();
-
-/* ===== MOBILE TOUCH SUPPORT ===== */
-function attachTouch(el){
-  if(!el) return;
-  try{ if(el.__touchAttached) return;
-    el.addEventListener('touchstart', function onTouch(e){ e.preventDefault(); el.click(); }, {passive:false});
-    el.__touchAttached = true;
-  }catch(err){}
-}
-function enableTouchForOnclicks(){
-  document.querySelectorAll('[onclick]').forEach(el => attachTouch(el));
-  document.querySelectorAll('.btn, .btn-ghost, button').forEach(b=>{ if(!b.__touchAttached){ b.addEventListener('touchstart', function(e){ e.preventDefault(); b.click(); }, {passive:false}); b.__touchAttached = true; }});
-}
-
-/* ===== Expose debug helpers ===== */
-window._borges_state = state;
-window.saveLocal = saveLocal;
-
 </script>
 
-</body>
-</html>
+<!-- ===================== MOBILE TOUCH SUPPORT ===================== -->
+<script>
+function attachTouch(el){
+  if (!el) return;
+  try {
+    if (el.__touchAttached) return;
+    el.addEventListener('touchstart', e => {
+      e.preventDefault();
+      el.click();
+    }, { passive: false });
+    el.__touchAttached = true;
+  } catch(err){}
+}
+
+function enableTouchForOnclicks(){
+  document.querySelectorAll('[onclick]').forEach(el => attachTouch(el));
+  document.querySelectorAll('.btn, .btn-ghost, button').forEach(b=>{
+    if (!b.__touchAttached){
+      b.addEventListener('touchstart', e => {
+        e.preventDefault();
+        b.click();
+      }, { passive:false });
+      b.__touchAttached = true;
+    }
+  });
+}
+</script>
 
 <!-- ===================== DEBUG HELPERS ===================== -->
 <script>
@@ -1247,38 +1287,8 @@ window._borges_state = state;
 window.saveLocal = saveLocal;
 </script>
 
-<!-- === Google API === -->
-<script src="https://apis.google.com/js/api.js"></script>
-
-<!-- ===================== DRIVE SYNC ===================== -->
+<!-- ===================== GOOGLE DRIVE SYNC ===================== -->
 <script>
-if (!state.assets) state.assets = [];
-if (!state.settings) state.settings = { hideValues:false };
-if (!state.settings.hidden) state.settings.hidden = {};
-
-function toggleHideArea(area){
-  state.settings.hidden[area] = !state.settings.hidden[area];
-  saveLocal();
-}
-
-function toggleHideTab(tabId){
-  state.settings.hidden['tab_'+tabId] = !state.settings.hidden['tab_'+tabId];
-  updateTabVisibility();
-  saveLocal();
-}
-
-function updateTabVisibility(){
-  document.querySelectorAll('.page').forEach(p=>{
-    const id = p.id;
-    if(state.settings.hidden['tab_'+id]) p.style.display = 'none';
-  });
-  if (typeof renderAll === "function") renderAll();
-}
-
-/* ====== Ativos & Passivos ====== */
-/* (mantive toda sua lógica — nada alterado) */
-
-/* ====== GOOGLE DRIVE ====== */
 const DRIVE_CLIENT_ID = '929006917338-i9ucbhout981fjje6e6n7njs8kdpk9h7.apps.googleusercontent.com';
 const DRIVE_FILE_NAME = 'borges_panel_sync.json';
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
@@ -1289,22 +1299,29 @@ let gapiInited = false;
 let authInstance = null;
 
 function initGAPI(){
-  return new Promise((resolve,reject)=>{
-    if(gapiInited) return resolve();
-    gapi.load('client:auth2', async ()=>{
+  return new Promise((resolve, reject) => {
+    if (gapiInited) return resolve();
+    gapi.load('client:auth2', async () => {
       try{
-        await gapi.client.init({ clientId: DRIVE_CLIENT_ID, scope: DRIVE_SCOPE });
+        await gapi.client.init({
+          clientId: DRIVE_CLIENT_ID,
+          scope: DRIVE_SCOPE
+        });
         authInstance = gapi.auth2.getAuthInstance();
         gapiInited = true;
         resolve();
-      }catch(e){ reject(e); }
+      } catch(e){ reject(e); }
     });
   });
 }
 
 async function isSignedIn(){
-  try{ await initGAPI(); return authInstance.isSignedIn.get(); }
-  catch(e){ return false; }
+  try{
+    await initGAPI();
+    return authInstance.isSignedIn.get();
+  } catch(e){
+    return false;
+  }
 }
 
 async function signInDrive(){
@@ -1319,28 +1336,33 @@ async function signInDrive(){
 }
 
 function signOutDrive(){
-  if(authInstance) authInstance.signOut();
+  if (authInstance) authInstance.signOut();
   showDriveStatus('Desconectado');
 }
 
 function showDriveStatus(t){
   const el = document.getElementById('driveStatus');
-  if(el) el.innerText = t;
+  if (el) el.innerText = t;
 }
 
 async function findDriveFileByName(name){
   await initGAPI();
   const q = `name='${name.replace(/'/g,"\\'")}' and trashed=false`;
   const r = await gapi.client.drive.files.list({
-    q, fields:'files(id,name,modifiedTime)'
+    q,
+    fields: 'files(id,name,modifiedTime)'
   });
   return r.result.files?.[0] || null;
 }
 
 async function downloadDriveFile(id){
   await initGAPI();
-  const r = await gapi.client.drive.files.get({ fileId:id, alt:'media' });
-  try { return JSON.parse(r.body); } catch{ return r.result; }
+  const r = await gapi.client.drive.files.get({
+    fileId: id,
+    alt: 'media'
+  });
+  try { return JSON.parse(r.body); }
+  catch { return r.result; }
 }
 
 async function createDriveFile(name, content){
@@ -1358,13 +1380,12 @@ ${JSON.stringify(content)}
 --${boundary}--`;
 
   const r = await gapi.client.request({
-    path:'/upload/drive/v3/files',
-    method:'POST',
-    params:{ uploadType:'multipart' },
-    headers:{ 'Content-Type':`multipart/related; boundary=${boundary}` },
+    path: '/upload/drive/v3/files',
+    method: 'POST',
+    params: { uploadType:'multipart' },
+    headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
     body
   });
-
   return r.result;
 }
 
@@ -1383,10 +1404,10 @@ ${JSON.stringify(content)}
 --${boundary}--`;
 
   const r = await gapi.client.request({
-    path:`/upload/drive/v3/files/${id}`,
-    method:'PATCH',
-    params:{ uploadType:'multipart' },
-    headers:{ 'Content-Type':`multipart/related; boundary=${boundary}` },
+    path: `/upload/drive/v3/files/${id}`,
+    method: 'PATCH',
+    params: { uploadType:'multipart' },
+    headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
     body
   });
 
@@ -1394,10 +1415,11 @@ ${JSON.stringify(content)}
 }
 
 async function downloadFromDriveIfExists(){
-  if(!await isSignedIn()) return;
+  if (!await isSignedIn()) return;
   showDriveStatus('Sincronizando...');
+
   const file = await findDriveFileByName(DRIVE_FILE_NAME);
-  if(!file) return;
+  if (!file) return;
 
   state = Object.assign({}, state, await downloadDriveFile(file.id));
   saveLocal();
@@ -1405,16 +1427,20 @@ async function downloadFromDriveIfExists(){
 }
 
 async function uploadStateToDrive(){
-  if(!await isSignedIn()) return;
-  const payload = Object.assign({}, state);
+  if (!await isSignedIn()) return;
 
+  const payload = Object.assign({}, state);
   const file = await findDriveFileByName(DRIVE_FILE_NAME);
-  if(!file){
+
+  if (!file){
     await createDriveFile(DRIVE_FILE_NAME, payload);
     showDriveStatus('Criado');
   } else {
-    if(AUTO_CREATE_BACKUP_BEFORE_UPDATE){
-      await createDriveFile(BACKUP_PREFIX + new Date().toISOString().replace(/[:.]/g,'-') + '.json', payload);
+    if (AUTO_CREATE_BACKUP_BEFORE_UPDATE){
+      await createDriveFile(
+        BACKUP_PREFIX + new Date().toISOString().replace(/[:.]/g,'-') + '.json',
+        payload
+      );
     }
     await updateDriveFile(file.id, payload);
     showDriveStatus('Atualizado');
@@ -1425,30 +1451,67 @@ async function uploadStateToDrive(){
   const original = saveLocal;
   window.saveLocal = function(){
     original();
-    setTimeout(()=>uploadStateToDrive(),600);
+    setTimeout(() => uploadStateToDrive(), 600);
   };
 })();
-
-function attachDriveControls(a,b,c,d){
-  document.addEventListener('DOMContentLoaded', ()=>{
-    document.getElementById(a).onclick = signInDrive;
-    document.getElementById(b).onclick = signOutDrive;
-    document.getElementById(c).onclick = uploadStateToDrive;
-    document.getElementById(d).innerText = 'Desconectado';
-  });
-}
-
-window.driveSync = {
-  initGAPI, signInDrive, signOutDrive,
-  uploadStateToDrive, downloadFromDriveIfExists,
-  attachDriveControls
-};
 </script>
 
-<!-- ===================== ENHANCEMENTS (OCULTAR E NOVA ABA) ===================== -->
+<!-- Google API -->
+<script src="https://apis.google.com/js/api.js"></script>
+
+<!-- ===================== FIREBASE LOGIN ===================== -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
+  authDomain: "painel-financeiro-borges.firebaseapp.com",
+  projectId: "painel-financeiro-borges",
+  storageBucket: "painel-financeiro-borges.firebasestorage.app",
+  messagingSenderId: "354997627208",
+  appId: "1:354997627208:web:90604d0a7dcd45b6e4eb7d",
+  measurementId: "G-KH9BDWN2WH"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+const btnLogin = document.getElementById("btnLogin");
+const btnLogout = document.getElementById("btnLogout");
+
+btnLogin.addEventListener("click", () => {
+  signInWithPopup(auth, provider)
+    .catch(err => alert("Erro ao entrar: " + err.message));
+});
+
+btnLogout.addEventListener("click", () => signOut(auth));
+
+onAuthStateChanged(auth, user => {
+  if (user){
+    console.log("Logado como:", user.email);
+    btnLogin.style.display = "none";
+    btnLogout.style.display = "inline-block";
+    window.userEmail = user.email;
+  } else {
+    console.log("Deslogado");
+    btnLogin.style.display = "inline-block";
+    btnLogout.style.display = "none";
+    window.userEmail = null;
+  }
+});
+</script>
+
+<!-- ===================== ENHANCEMENTS ===================== -->
 <script src="enhancements.js"></script>
+
+<!-- ===================== DEBUG HELPERS (FINAL) ===================== -->
+<script>
+window._borges_state = state;
+window.saveLocal = saveLocal;
+</script>
 
 </body>
 </html>
-
-
