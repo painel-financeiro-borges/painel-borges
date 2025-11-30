@@ -1178,8 +1178,8 @@
         const desc = prompt('Descrição da conta (ex: Consórcio)'); if (!desc) return; let input = prompt('Valor (R$)', '0');
         if (!input) return;
 
-        input = input.replace(/\./g, '').replace(',', '.');
-        // remove pontos e troca vírgula por ponto
+        input = input.replace(/[\.\s]/g, '').replace(',', '.');
+        // remove pontos e espaços (milhar) e troca vírgula por ponto (decimal)
 
         const val = parseFloat(input) || 0; const item = { id: uid('pl'), desc, value: val, state: 0 }; state.planejamento[monthKey].periods[pid].items.push(item); saveLocal(); renderPlanItems(monthKey, pid); renderPlanSummary(monthKey);
       }
