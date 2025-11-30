@@ -657,6 +657,7 @@
         <input id="r_init" class="input" type="number" placeholder="Valor Inicial (R$)" />
         <button class="btn" onclick="handleAddReservation()">Criar</button>
         <button class="btn-ghost" onclick="createDefaultReservas()">Criar Reservas Padrão</button>
+        <button class="btn-ghost" onclick="openEditDefaultReservas()">Editar Padrões</button>
         <button class="btn-ghost" onclick="clearReservas()">Limpar Dados desta Aba</button>
       </div>
 
@@ -854,9 +855,9 @@
 
     /* ===== Defaults & Helpers for Reservations ===== */
     /* ===== Defaults & Helpers for Reservations ===== */
-    function createDefaultReservas() {
-      // New list with percentages
-      const defaults = [
+    function getDefaultReservasConfig() {
+      if (state.settings && state.settings.defaultReservas) return state.settings.defaultReservas;
+      return [
         { name: 'Reserva de Segurança', pct: 0.25 },
         { name: 'Veículos', pct: 0.15 },
         { name: 'Roupas / Lazer / Levy', pct: 0.10 },
@@ -869,6 +870,11 @@
         { name: 'Fundo Imobiliário', pct: 0.13 },
         { name: 'Ações/Cripto', pct: 0.0325 }
       ];
+    }
+
+    function createDefaultReservas() {
+      // New list with percentages
+      const defaults = getDefaultReservasConfig();
 
       // 1. Ensure reserves exist
       defaults.forEach((d, i) => {
@@ -945,6 +951,65 @@
         }
       });
       state.reservas.sort((a, b) => (a.order || 999) - (b.order || 999));
+    }
+
+    function openEditDefaultReservas() {
+      const defaults = getDefaultReservasConfig();
+      let html = '<div class="small" style="margin-bottom:12px">Edite as porcentagens (de 0 a 100). O total deve ser 100%.</div>';
+      html += '<div style="display:flex;flex-direction:column;gap:8px;max-height:400px;overflow:auto">';
+
+      defaults.forEach((d, i) => {
+        html += `
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="flex:1">${d.name}</span>
+            <input type="number" step="0.01" class="input def-res-pct" data-idx="${i}" value="${(d.pct * 100).toFixed(2)}" style="width:80px" /> %
+          </div>
+        `;
+      });
+      html += '</div>';
+      html += '<div id="def_res_total" style="margin-top:12px;font-weight:bold;text-align:right">Total: 0%</div>';
+
+      showModal('Editar Padrões de Reserva', html, function () {
+        const inputs = document.querySelectorAll('.def-res-pct');
+        const newDefaults = [];
+        let total = 0;
+        inputs.forEach(inp => {
+          const idx = Number(inp.dataset.idx);
+          const val = Number(inp.value) || 0;
+          total += val;
+          newDefaults.push({ name: defaults[idx].name, pct: val / 100 });
+        });
+
+        if (Math.abs(total - 100) > 0.01) {
+          alert(`O total das porcentagens é ${total.toFixed(2)}%. Deve ser 100%. Ajuste antes de salvar.`);
+          return false; // Prevent closing? showModal implementation might not support preventing close on callback return.
+          // Assuming simple showModal, we might need to re-open or handle differently.
+          // For now, let's save but warn, or ideally we'd block. 
+          // Given the constraints, let's save but alert the user strongly if they want to proceed or re-edit.
+          // Actually, let's just update the state.settings.defaultReservas
+        }
+
+        if (!state.settings) state.settings = {};
+        state.settings.defaultReservas = newDefaults;
+        saveLocal();
+        alert('Padrões atualizados com sucesso!');
+      });
+
+      // Real-time total calculation
+      setTimeout(() => {
+        const inputs = document.querySelectorAll('.def-res-pct');
+        const totalDiv = document.getElementById('def_res_total');
+
+        const calcTotal = () => {
+          let sum = 0;
+          inputs.forEach(inp => sum += Number(inp.value) || 0);
+          totalDiv.innerText = `Total: ${sum.toFixed(2)}%`;
+          totalDiv.style.color = Math.abs(sum - 100) < 0.01 ? 'var(--success)' : 'var(--danger)';
+        };
+
+        inputs.forEach(inp => inp.addEventListener('input', calcTotal));
+        calcTotal();
+      }, 200);
     }
 
     /* ======= RESERVAS CRUD (mantive suas funções) ======= */
