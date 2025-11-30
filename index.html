@@ -532,6 +532,7 @@
           <input id="cv_valor" class="input" type="number" placeholder="Valor (R$)" />
           <button class="btn" onclick="addCusto()">Adicionar</button>
           <button class="btn-ghost" onclick="clearCustoMonth()">Limpar mês</button>
+          <button class="btn-ghost" onclick="clearCusto()">Limpar Dados desta Aba</button>
         </div>
 
         <div style="margin-top:12px;display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">
@@ -598,6 +599,7 @@
           </select>
           <input id="fx_valor" class="input" type="number" placeholder="Valor (R$)" />
           <button class="btn" onclick="addFluxo()">Registrar</button>
+          <button class="btn-ghost" onclick="clearFluxo()">Limpar Dados desta Aba</button>
         </div>
 
         <div style="margin-top:12px;display:flex;gap:12px;align-items:flex-start">
@@ -651,6 +653,7 @@
           <input id="r_init" class="input" type="number" placeholder="Valor Inicial (R$)" />
           <button class="btn" onclick="addReservation()">Criar</button>
           <button class="btn-ghost" onclick="createDefaultReservas()">Criar Reservas Padrão</button>
+          <button class="btn-ghost" onclick="clearReservas()">Limpar Dados desta Aba</button>
         </div>
 
         <div id="resCards"
@@ -679,6 +682,7 @@
           <input id="inv_qtd" class="input" type="number" placeholder="Quantidade" />
           <input id="inv_preco" class="input" type="number" placeholder="Preço unitário" />
           <button class="btn" onclick="addInvestment()">Adicionar</button>
+          <button class="btn-ghost" onclick="clearInvestimentos()">Limpar Dados desta Aba</button>
         </div>
 
         <div style="margin-top:12px;display:flex;gap:12px">
@@ -1539,6 +1543,12 @@
           }
         });
       }
+
+      /* ===== Clear Tab Data Functions ===== */
+      function clearCusto() { if (!confirm('Tem certeza que deseja apagar TODOS os dados de Custo de Vida?')) return; state.custo = []; saveLocal(); renderCusto(); }
+      function clearFluxo() { if (!confirm('Tem certeza que deseja apagar TODOS os dados de Fluxo Diário?')) return; state.fluxo = []; saveLocal(); renderFluxo(); }
+      function clearReservas() { if (!confirm('Tem certeza que deseja apagar TODAS as Reservas?')) return; state.reservas = []; saveLocal(); renderReservations(); }
+      function clearInvestimentos() { if (!confirm('Tem certeza que deseja apagar TODOS os Investimentos?')) return; state.investimentos = []; saveLocal(); renderInvestments(); }
 
       /* ===== Render all structural tables/cards ===== */
       function renderAll() {
