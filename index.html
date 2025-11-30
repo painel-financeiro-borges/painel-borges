@@ -378,6 +378,7 @@
     <div id="dashboard" class="page card" style="margin-top:12px">
       <h2>Dashboard</h2>
 
+      <div id="dash_reminders_wrapper"></div>
       <div id="dash_alert" class="alert-banner" style="display:none"></div>
 
       <!-- TOP STATS -->
@@ -1567,6 +1568,7 @@
         if (state.planejamento[key]) renderPlanForMonth(key);
         renderDashboard(); // garante dashboard atualizado
         enableTouchForOnclicks(); // manter suporte touch atualizado
+        if (window.enhancements && window.enhancements.renderAlertsDashboard) window.enhancements.renderAlertsDashboard();
       }
     </script>
 
