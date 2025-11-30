@@ -570,6 +570,7 @@
         <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
           <select id="plan_mes" class="input"></select>
           <button class="btn" onclick="createPlanForMonth()">Criar/Carregar mês</button>
+          <button class="btn-ghost" onclick="clearPlanejamento()">Limpar Dados desta Aba</button>
         </div>
         <div id="planPeriods" style="margin-top:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px"></div>
         <div style="margin-top:12px">
@@ -724,6 +725,7 @@
           <button class="btn" onclick="createNoteTab()">Criar Aba</button>
           <div class="spacer"></div>
           <button class="btn-ghost" onclick="exportCaderno()">Exportar Caderno</button>
+          <button class="btn-ghost" onclick="clearCaderno()">Limpar Dados desta Aba</button>
         </div>
 
         <div id="noteTabs" style="margin-top:12px"></div>
@@ -1549,6 +1551,8 @@
       function clearFluxo() { if (!confirm('Tem certeza que deseja apagar TODOS os dados de Fluxo Diário?')) return; state.fluxo = []; saveLocal(); renderFluxo(); }
       function clearReservas() { if (!confirm('Tem certeza que deseja apagar TODAS as Reservas?')) return; state.reservas = []; saveLocal(); renderReservations(); }
       function clearInvestimentos() { if (!confirm('Tem certeza que deseja apagar TODOS os Investimentos?')) return; state.investimentos = []; saveLocal(); renderInvestments(); }
+      function clearPlanejamento() { if (!confirm('Tem certeza que deseja apagar TODO o Planejamento?')) return; state.planejamento = {}; saveLocal(); getMonthOptions(); renderPlanForMonth(getSelectedMonthKey()); }
+      function clearCaderno() { if (!confirm('Tem certeza que deseja apagar TODO o Caderno de Notas?')) return; state.caderno = []; saveLocal(); renderNoteTabs(); el('#noteBlocks').innerHTML = ''; }
 
       /* ===== Render all structural tables/cards ===== */
       function renderAll() {
