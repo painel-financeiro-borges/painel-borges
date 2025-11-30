@@ -647,11 +647,15 @@
       <h2>Reservas — arraste para reorganizar</h2>
       <div class="small">Ordem recomendada nas abas Reservas</div>
 
-      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <select id="reserva_type_selector" class="input" style="width:auto" onchange="renderReservations()">
+          <option value="normal">Reservas Normais</option>
+          <option value="isolated">Reservas Isoladas</option>
+        </select>
         <input id="r_name" class="input" placeholder="Nome da reserva (ex: Segurança)" />
         <input id="r_meta" class="input" type="number" placeholder="Meta (R$)" />
         <input id="r_init" class="input" type="number" placeholder="Valor Inicial (R$)" />
-        <button class="btn" onclick="addReservation()">Criar</button>
+        <button class="btn" onclick="handleAddReservation()">Criar</button>
         <button class="btn-ghost" onclick="createDefaultReservas()">Criar Reservas Padrão</button>
         <button class="btn-ghost" onclick="clearReservas()">Limpar Dados desta Aba</button>
       </div>
@@ -795,6 +799,7 @@
     /* ===== Estado Global ===== */
     var state = {
       reservas: [],
+      isolatedReservas: [], // New isolated reserves array
       transacoes: [],
       investimentos: [],
       fluxo: [],
@@ -824,6 +829,7 @@
           // merge with default keys
           state = Object.assign(state, parsed);
           if (!state.settings) state.settings = { hideValues: false };
+          if (!state.isolatedReservas) state.isolatedReservas = []; // Ensure isolatedReservas exists
         }
       } catch (e) { console.error('Erro parse local', e); }
     }
@@ -874,6 +880,18 @@
     }
 
     /* ======= RESERVAS CRUD (mantive suas funções) ======= */
+    /* ====== RESERVAS LOGIC (Normal & Isolated) ====== */
+    function getActiveReservesList() {
+      const type = document.getElementById('reserva_type_selector') ? document.getElementById('reserva_type_selector').value : 'normal';
+      return type === 'isolated' ? state.isolatedReservas : state.reservas;
+    }
+
+    function handleAddReservation() {
+      const type = document.getElementById('reserva_type_selector').value;
+      if (type === 'isolated') addIsolatedReservation();
+      else addReservation();
+    }
+
     function addReservation() {
       const name = el('#r_name').value.trim();
       const meta = Number(el('#r_meta').value) || 0;
@@ -888,34 +906,68 @@
       }
       el('#r_name').value = ''; el('#r_meta').value = ''; el('#r_init').value = '';
       saveLocal();
-      renderReservations(); // Atualiza imediatamente a tela e o progresso
+      renderReservations();
+    }
+
+    function addIsolatedReservation() {
+      const name = el('#r_name').value.trim();
+      const meta = Number(el('#r_meta').value) || 0;
+      const init = Number(el('#r_init').value) || 0;
+      if (!name) { alert('Nome da reserva isolada é obrigatório'); return; }
+      const id = uid('ir');
+      // Isolated reserves don't strictly need ordering but we can add if needed
+      const r = { id, name, meta, saldo: init, obs: '', updated: nowISO() };
+      if (!state.isolatedReservas) state.isolatedReservas = [];
+      state.isolatedReservas.push(r);
+      // NOTE: Isolated reserves transactions do NOT go to main state.transacoes to avoid affecting dashboard
+      el('#r_name').value = ''; el('#r_meta').value = ''; el('#r_init').value = '';
+      saveLocal();
+      renderReservations();
     }
 
     function renderReservations() {
       const container = el('#resCards'); if (!container) return;
       container.innerHTML = '';
-      state.reservas.sort((a, b) => (a.order || 0) - (b.order || 0));
 
-      if (!state.reservas.length) {
-        container.innerHTML = '<div class="small">Nenhuma reserva</div>';
-        renderReservasProgress(); // Zera a barra se não houver reservas
+      const type = document.getElementById('reserva_type_selector') ? document.getElementById('reserva_type_selector').value : 'normal';
+      const list = type === 'isolated' ? (state.isolatedReservas || []) : state.reservas;
+
+      // Sort normal reserves
+      if (type === 'normal') list.sort((a, b) => (a.order || 0) - (b.order || 0));
+
+      if (!list.length) {
+        container.innerHTML = `<div class="small">Nenhuma reserva ${type === 'isolated' ? 'isolada' : ''}</div>`;
+        renderReservasProgress();
         return;
       }
 
-      state.reservas.forEach(r => {
+      list.forEach(r => {
         const pct = r.meta ? Math.round((r.saldo / r.meta) * 100) : 0;
         const card = document.createElement('div');
         card.className = 'res-card';
-        card.setAttribute('draggable', 'true');
+        if (type === 'normal') card.setAttribute('draggable', 'true');
         card.dataset.id = r.id;
+
+        // Different actions for isolated
+        const actionsHtml = type === 'normal'
+          ? `
+            <button class="btn-ghost" onclick="promptAporte(event,'${r.id}')">+ Aportar</button>
+            <button class="btn-ghost" onclick="promptRetirar(event,'${r.id}')">- Retirar</button>
+            <button class="btn-ghost" onclick="openEditReservation('${r.id}')">✎ Editar</button>
+            <button class="btn-ghost" onclick="removeReserva('${r.id}')">✖ Excluir</button>
+          `
+          : `
+            <button class="btn-ghost" onclick="promptAporteIsolated(event,'${r.id}')">+ Aportar</button>
+            <button class="btn-ghost" onclick="promptRetirarIsolated(event,'${r.id}')">- Retirar</button>
+            <button class="btn-ghost" onclick="openEditReservation('${r.id}', true)">✎ Editar</button>
+            <button class="btn-ghost" onclick="removeIsolatedReserva('${r.id}')">✖ Excluir</button>
+          `;
+
         card.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <div style="font-weight:700">${r.name}</div>
+        <div style="font-weight:700">${r.name} ${type === 'isolated' ? '<span class="small">(Isolada)</span>' : ''}</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="btn-ghost" onclick="promptAporte(event,'${r.id}')">+ Aportar</button>
-          <button class="btn-ghost" onclick="promptRetirar(event,'${r.id}')">- Retirar</button>
-          <button class="btn-ghost" onclick="openEditReservation('${r.id}')">✎ Editar</button>
-          <button class="btn-ghost" onclick="removeReserva('${r.id}')">✖ Excluir</button>
+          ${actionsHtml}
         </div>
       </div>
       <div style="margin-top:8px" class="small">Meta: ${formatMoney(r.meta)}</div>
@@ -925,14 +977,16 @@
         <div class="small">${pct}%</div>
       </div>
     `;
-        card.addEventListener('dragstart', (ev) => { card.classList.add('dragging'); ev.dataTransfer.setData('text/plain', r.id); });
-        card.addEventListener('dragend', () => { card.classList.remove('dragging'); });
-        card.addEventListener('dragover', (ev) => { ev.preventDefault(); });
-        card.addEventListener('drop', (ev) => { ev.preventDefault(); const draggedId = ev.dataTransfer.getData('text/plain'); handleReservaDrop(draggedId, r.id); });
+        if (type === 'normal') {
+          card.addEventListener('dragstart', (ev) => { card.classList.add('dragging'); ev.dataTransfer.setData('text/plain', r.id); });
+          card.addEventListener('dragend', () => { card.classList.remove('dragging'); });
+          card.addEventListener('dragover', (ev) => { ev.preventDefault(); });
+          card.addEventListener('drop', (ev) => { ev.preventDefault(); const draggedId = ev.dataTransfer.getData('text/plain'); handleReservaDrop(draggedId, r.id); });
+        }
         container.appendChild(card);
       });
 
-      renderReservasProgress(); // Atualiza a barra geral de progresso
+      renderReservasProgress(); // Updates progress bar (logic handles type inside)
     }
 
     function handleReservaDrop(draggedId, targetId) {
@@ -953,11 +1007,37 @@
       aporteReserva(id, v, 'Aporte manual');
     }
 
+    function promptAporteIsolated(ev, id) {
+      ev.stopPropagation();
+      const v = Number(prompt('Valor do aporte (Isolado) R$', '0')) || 0;
+      if (v <= 0) return;
+      const r = state.isolatedReservas.find(x => x.id === id);
+      if (r) {
+        r.saldo = Number(r.saldo || 0) + v;
+        r.updated = nowISO();
+        saveLocal();
+        renderReservations();
+      }
+    }
+
     function promptRetirar(ev, id) {
       ev.stopPropagation();
       const v = Number(prompt('Valor da retirada R$', '0')) || 0;
       if (v <= 0) return;
       retirarReserva(id, v, 'Retirada manual');
+    }
+
+    function promptRetirarIsolated(ev, id) {
+      ev.stopPropagation();
+      const v = Number(prompt('Valor da retirada (Isolada) R$', '0')) || 0;
+      if (v <= 0) return;
+      const r = state.isolatedReservas.find(x => x.id === id);
+      if (r) {
+        r.saldo = Number(r.saldo || 0) - v;
+        r.updated = nowISO();
+        saveLocal();
+        renderReservations();
+      }
     }
 
     function aporteReserva(id, valor, nota) {
@@ -987,9 +1067,17 @@
       renderReservations();
     }
 
-    function openEditReservation(id) {
-      const r = state.reservas.find(x => x.id === id); if (!r) return;
-      showModal('Editar Reserva', `
+    function removeIsolatedReserva(id) {
+      if (!confirm('Excluir reserva isolada?')) return;
+      state.isolatedReservas = state.isolatedReservas.filter(x => x.id !== id);
+      saveLocal();
+      renderReservations();
+    }
+
+    function openEditReservation(id, isIsolated = false) {
+      const list = isIsolated ? state.isolatedReservas : state.reservas;
+      const r = list.find(x => x.id === id); if (!r) return;
+      showModal('Editar Reserva' + (isIsolated ? ' (Isolada)' : ''), `
     <label>Nome</label><input id="modal_r_name" class="input" value="${r.name}"/>
     <label>Meta (R$)</label><input id="modal_r_meta" type="number" class="input" value="${r.meta}"/>
     <label>Saldo Atual (R$)</label><input id="modal_r_saldo" type="number" class="input" value="${r.saldo}"/>
@@ -1007,6 +1095,9 @@
 
     /* ====== Progresso das Reservas ====== */
     function renderReservasProgress() {
+      // Only show progress for normal reserves for now, or both? 
+      // User request implies isolated are "isolated", so maybe only normal reserves count towards global progress?
+      // Let's stick to normal reserves for the global progress bar unless asked otherwise.
       const reservas = state.reservas || [];
       const bar = el('#reservas_progress_bar');
       const text = el('#reservas_progress_text');
@@ -1376,7 +1467,7 @@
       const saidasFromCusto = (state.custo || []).reduce((s, c) => s + Number(c.value || 0), 0);
       const totalSaidas = saidasFromTrans + saidasFromFluxo;
       // Removido saidasFromCusto para não duplicar custo de vida
-      // Reservas total (saldo)
+      // Reservas total (saldo) - ONLY NORMAL RESERVES
       const reservasTotal = (state.reservas || []).reduce((s, r) => s + Number(r.saldo || 0), 0);
       // Investimentos total (quantidade * preco)
       const investimentosTotal = (state.investimentos || []).reduce((s, i) => s + (Number(i.quantidade || 0) * Number(i.preco || 0)), 0);
