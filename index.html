@@ -1501,24 +1501,7 @@
         }).catch(() => { showModal('Exportar (Bloco de Notas)', `<textarea class="input" style="height:260px">${txt}</textarea>`, null); alert('Não foi possível copiar automaticamente. Abra o modal e copie manualmente.'); });
       }
 
-      /* ===== Render all structural tables/cards ===== */
-      function renderAll() {
-        reorderReservationsByDefault();
-        renderReservations();
-        renderInvestments();
-        renderFluxo();
-        renderCusto();
-        renderNoteTabs();
-        getMonthOptions();
-        const key = getSelectedMonthKey() || new Date().toISOString().slice(0, 7);
-        if (state.planejamento[key]) renderPlanForMonth(key);
-        renderDashboard(); // garante dashboard atualizado
-        enableTouchForOnclicks(); // manter suporte touch atualizado
-      }
-    </script>
-
-    <!-- ===================== MOBILE TOUCH SUPPORT ===================== -->
-    <script>
+      /* ===== MOBILE TOUCH SUPPORT ===== */
       function attachTouch(el) {
         if (!el) return;
         try {
@@ -1543,7 +1526,24 @@
           }
         });
       }
+
+      /* ===== Render all structural tables/cards ===== */
+      function renderAll() {
+        reorderReservationsByDefault();
+        renderReservations();
+        renderInvestments();
+        renderFluxo();
+        renderCusto();
+        renderNoteTabs();
+        getMonthOptions();
+        const key = getSelectedMonthKey() || new Date().toISOString().slice(0, 7);
+        if (state.planejamento[key]) renderPlanForMonth(key);
+        renderDashboard(); // garante dashboard atualizado
+        enableTouchForOnclicks(); // manter suporte touch atualizado
+      }
     </script>
+
+
 
     <!-- ===================== INIT ===================== -->
     <script>
