@@ -858,7 +858,7 @@
     function getDefaultReservasConfig() {
       if (state.settings && state.settings.defaultReservas) return state.settings.defaultReservas;
       return [
-        { name: 'Reserva de Segurança', pct: 0.25 },
+        { name: 'Reserva de Segurança', pct: 0.20 },
         { name: 'Veículos', pct: 0.15 },
         { name: 'Roupas / Lazer / Levy', pct: 0.10 },
         { name: 'Gatona', pct: 0.05 },
@@ -1916,56 +1916,82 @@
     const BACKUP_PREFIX = 'borges_panel_backup_';
 
     let gapiInited = false;
-    let authInstance = null;
+    let gisInited = false;
+    let tokenClient = null;
 
-    const API_KEY = 'AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8'; // Using Firebase API Key which usually supports Drive API too
+    const API_KEY = 'AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8';
 
     function initGAPI() {
       return new Promise((resolve, reject) => {
-        if (gapiInited) return resolve();
-        gapi.load('client:auth2', async () => {
+        if (gapiInited && gisInited) return resolve();
+
+        // Init GAPI Client
+        gapi.load('client', async () => {
           try {
             await gapi.client.init({
               apiKey: API_KEY,
-              clientId: DRIVE_CLIENT_ID,
-              scope: DRIVE_SCOPE
+              discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
             });
-            await gapi.client.load('drive', 'v3');
-            authInstance = gapi.auth2.getAuthInstance();
             gapiInited = true;
-            resolve();
+            maybeResolve();
           } catch (e) {
-            console.error('GAPI Init Error:', JSON.stringify(e, null, 2));
-            alert('Erro ao inicializar Google Drive API: ' + JSON.stringify(e));
+            console.error('GAPI Init Error:', e);
             reject(e);
           }
         });
+
+        // Init GIS
+        const checkGIS = setInterval(() => {
+          if (typeof google !== 'undefined' && google.accounts) {
+            clearInterval(checkGIS);
+            tokenClient = google.accounts.oauth2.initTokenClient({
+              client_id: DRIVE_CLIENT_ID,
+              scope: DRIVE_SCOPE,
+              callback: (resp) => {
+                // Default callback, can be overridden
+                if (resp.error) console.error('GIS Error:', resp);
+              }
+            });
+            gisInited = true;
+            maybeResolve();
+          }
+        }, 50);
+
+        function maybeResolve() {
+          if (gapiInited && gisInited) resolve();
+        }
       });
     }
 
     async function isSignedIn() {
-      try {
-        await initGAPI();
-        return authInstance.isSignedIn.get();
-      } catch (e) {
-        return false;
-      }
+      if (!gapiInited) return false;
+      return gapi.client.getToken() !== null;
     }
 
     async function signInDrive() {
-      try {
-        await initGAPI();
-        await authInstance.signIn();
-        showDriveStatus('Conectado');
-        await downloadFromDriveIfExists();
-      } catch (e) {
-        alert('Erro ao conectar ao Google Drive');
-      }
+      await initGAPI();
+      return new Promise((resolve, reject) => {
+        tokenClient.callback = async (resp) => {
+          if (resp.error) {
+            reject(resp);
+            return;
+          }
+          gapi.client.setToken(resp);
+          showDriveStatus('Conectado');
+          await downloadFromDriveIfExists();
+          resolve();
+        };
+        tokenClient.requestAccessToken({ prompt: 'consent' });
+      });
     }
 
     function signOutDrive() {
-      if (authInstance) authInstance.signOut();
-      showDriveStatus('Desconectado');
+      const token = gapi.client.getToken();
+      if (token !== null) {
+        google.accounts.oauth2.revoke(token.access_token);
+        gapi.client.setToken(null);
+        showDriveStatus('Desconectado');
+      }
     }
 
     function showDriveStatus(t) {
@@ -2088,6 +2114,8 @@
 
   <!-- Google API -->
   <script src="https://apis.google.com/js/api.js"></script>
+  <!-- Google Identity Services -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <!-- ===================== FIREBASE LOGIN ===================== -->
   <script type="module">
