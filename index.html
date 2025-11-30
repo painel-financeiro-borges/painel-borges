@@ -846,6 +846,7 @@
         const id = t.dataset.tab;
         const page = document.getElementById(id);
         if (page) page.style.display = 'block';
+        if (id === 'lembretes' && window.enhancements && window.enhancements.createRemindersTab) window.enhancements.createRemindersTab();
         renderAll();
       }));
 
@@ -1873,4 +1874,8 @@
     <script>
       window._borges_state = state;
       window.saveLocal = saveLocal;
-    </s
+    </script>
+
+</body>
+
+</html>
