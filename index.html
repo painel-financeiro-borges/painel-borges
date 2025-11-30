@@ -1478,6 +1478,18 @@
         const topCats = computeCustoByCategory(getSelectedMonthKey()).cats || {};
         const topCatsList = Object.keys(topCats).map(k => `${k}: ${formatMoney(topCats[k])}`).join(' • ');
         const investSummary = (state.investimentos || []).slice(0, 8).map(i => `${i.ativo} (${i.categoria}) — ${formatMoney(Number(i.quantidade || 0) * Number(i.preco || 0))}`).join('\n');
+
+        let cadernoText = '';
+        if (state.caderno && state.caderno.length) {
+          cadernoText = state.caderno.map(tab => {
+            const blocks = (tab.blocks || []).map(b => {
+              const items = (b.items || []).map(it => `    - ${it.text} [${it.state === 1 ? '✔' : (it.state === 2 ? '✖' : ' ')}]`).join('\n');
+              return `  [Bloco: ${b.title}]\n${items}`;
+            }).join('\n\n');
+            return `[Aba: ${tab.name}]\n${blocks}`;
+          }).join('\n\n====================\n\n');
+        }
+
         const text = [
           `RESUMO FINANCEIRO — ${new Date().toLocaleDateString()}`,
           `ENTRADAS: ${formatMoney(resumo.totalEntradas)}`,
@@ -1488,7 +1500,8 @@
           `CUSTO DE VIDA (mês): ${formatMoney(computeCustoByCategory(getSelectedMonthKey()).total || 0)}`,
           `PRINCIPAIS CATEGORIAS: ${topCatsList || '—'}`,
           `INVESTIMENTOS (top 8):\n${investSummary || '—'}`,
-          `\nTRANSAÇÕES RECENTES:\n${(state.transacoes || []).slice(0, 10).map(t => `${t.date || t.date}: ${t.reserva || ''} ${t.tipo || ''} ${formatMoney(t.valor || 0)}`).join('\n')}`
+          `\nTRANSAÇÕES RECENTES:\n${(state.transacoes || []).slice(0, 10).map(t => `${t.date || t.date}: ${t.reserva || ''} ${t.tipo || ''} ${formatMoney(t.valor || 0)}`).join('\n')}`,
+          `\nCADERNO DE NOTAS:\n${cadernoText || '—'}`
         ].join('\n');
         return text;
       }
