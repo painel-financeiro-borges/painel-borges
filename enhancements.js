@@ -108,7 +108,7 @@
       saveLocal();
       renderAll();
     }, 'btn-pro');
-    btnHideValues.id = 'btnHideValues_dash'; // Unique ID
+    btnHideValues.id = 'btnHideValues'; // Correct ID as requested
     container.appendChild(btnHideValues);
 
     // spacer
