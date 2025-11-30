@@ -1941,7 +1941,9 @@
         });
 
         // Init GIS
+        let attempts = 0;
         const checkGIS = setInterval(() => {
+          attempts++;
           if (typeof google !== 'undefined' && google.accounts) {
             clearInterval(checkGIS);
             tokenClient = google.accounts.oauth2.initTokenClient({
@@ -1954,6 +1956,10 @@
             });
             gisInited = true;
             maybeResolve();
+          } else if (attempts > 200) { // ~10 seconds timeout
+            clearInterval(checkGIS);
+            console.error('Google Identity Services script failed to load.');
+            reject(new Error('GIS script load timeout'));
           }
         }, 50);
 
