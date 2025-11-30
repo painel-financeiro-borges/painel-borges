@@ -1957,7 +1957,7 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db = getFirestore(app);
+    window.db = getFirestore(app);
     const provider = new GoogleAuthProvider();
 
     const btnLogin = document.getElementById("btnLogin");
@@ -1986,7 +1986,7 @@
         const btn = document.getElementById('btnSyncAll');
         if (btn) btn.innerText = 'Salvando...';
 
-        const docRef = doc(db, "users", user.uid);
+        const docRef = doc(window.db, "users", user.uid);
         // Deep copy state to avoid issues, though Firestore handles objects well
         const payload = JSON.parse(JSON.stringify(window.state));
         await setDoc(docRef, payload);
@@ -2011,7 +2011,7 @@
       const monthKey = now.toISOString().slice(0, 7); // YYYY-MM
 
       try {
-        const archiveRef = doc(db, "users", user.uid, "archives", monthKey);
+        const archiveRef = doc(window.db, "users", user.uid, "archives", monthKey);
 
         // Check if exists
         const docSnap = await getDoc(archiveRef);
@@ -2042,7 +2042,7 @@
 
       try {
         // Accessing subcollection 'archives' under the user document for security
-        const archivesRef = collection(db, "users", user.uid, "archives");
+        const archivesRef = collection(window.db, "users", user.uid, "archives");
         const querySnapshot = await getDocs(archivesRef);
 
         if (querySnapshot.empty) {
@@ -2081,7 +2081,7 @@
       console.log("Carregando dados da nuvem para UID:", user.uid);
 
       try {
-        const docRef = doc(db, "users", user.uid);
+        const docRef = doc(window.db, "users", user.uid);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
