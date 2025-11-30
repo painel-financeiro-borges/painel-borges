@@ -846,7 +846,7 @@
         const id = t.dataset.tab;
         const page = document.getElementById(id);
         if (page) page.style.display = 'block';
-        if (id === 'lembretes' && window.enhancements && window.enhancements.createRemindersTab) window.enhancements.createRemindersTab();
+        if (id === 'lembretes') window.enhancements.createRemindersTab();
         renderAll();
       }));
 
