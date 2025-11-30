@@ -2125,7 +2125,7 @@
         window.userEmail = user.email;
 
         // Attempt to load data
-        loadStateFromFirestore(user);
+        if (user) loadStateFromFirestore(user);
 
       } else {
         console.log("Deslogado");
