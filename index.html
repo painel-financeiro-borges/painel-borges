@@ -369,7 +369,6 @@
       <div class="tab" data-tab="backup">Backup</div>
 
       <div class="spacer"></div>
-
       <button id="btnSyncAll" class="btn">Salvar no Cloud</button>
     </div>
   </div>
@@ -1561,7 +1560,21 @@
       reader.onload = e => {
         try {
           const parsed = JSON.parse(e.target.result);
-          state = Object.assign({}, state, parsed);
+          // Garantir que chaves novas existam mesmo em backups antigos
+          const defaultState = {
+            reservas: [],
+            isolatedReservas: [],
+            transacoes: [],
+            investimentos: [],
+            fluxo: [],
+            custo: [],
+            planejamento: {},
+            caderno: [],
+            settings: { hideValues: false },
+            assets: [],
+            alertas: []
+          };
+          state = Object.assign({}, defaultState, parsed);
           if (!state.settings) state.settings = { hideValues: false };
           saveLocal();
           renderAll();
