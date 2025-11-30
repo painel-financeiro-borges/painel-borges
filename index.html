@@ -853,29 +853,97 @@
     }));
 
     /* ===== Defaults & Helpers for Reservations ===== */
+    /* ===== Defaults & Helpers for Reservations ===== */
     function createDefaultReservas() {
+      // New list with percentages
       const defaults = [
-        { name: 'Reserva de Segurança', meta: 24000 },
-        { name: 'Veículos', meta: 3000 },
-        { name: 'Roupas / Lazer / Levy', meta: 1000 },
-        { name: 'Gatona', meta: 600 },
-        { name: 'Reserva Levy 18 anos', meta: 1000 },
-        { name: 'Oportunidades', meta: 5000 },
-        { name: 'Terreno/Lexus Eventos', meta: 50000 },
-        { name: 'Apartamento', meta: 20000 },
-        { name: 'Dividas', meta: 0 }
+        { name: 'Reserva de Segurança', pct: 0.25 },
+        { name: 'Veículos', pct: 0.15 },
+        { name: 'Roupas / Lazer / Levy', pct: 0.10 },
+        { name: 'Gatona', pct: 0.05 },
+        { name: 'Reserva Levy 18 anos', pct: 0.05 },
+        { name: 'Oportunidades', pct: 0.07 },
+        { name: 'Terreno/Lexus Eventos', pct: 0.07 },
+        { name: 'Apartamento', pct: 0.05 },
+        { name: 'Dividas', pct: 0.0975 },
+        { name: 'Fundo Imobiliário', pct: 0.13 },
+        { name: 'Ações/Cripto', pct: 0.0325 }
       ];
+
+      // 1. Ensure reserves exist
       defaults.forEach((d, i) => {
         if (!state.reservas.find(r => r.name === d.name)) {
-          state.reservas.push({ id: uid('r'), name: d.name, meta: d.meta || 0, saldo: 0, order: i, obs: '', updated: nowISO() });
+          state.reservas.push({ id: uid('r'), name: d.name, meta: 0, saldo: 0, order: i, obs: `Alocação sugerida: ${(d.pct * 100).toFixed(2)}%`, updated: nowISO() });
         }
       });
       reorderReservationsByDefault();
       saveLocal();
+      renderReservations();
+
+      // 2. Prompt for allocation simulation
+      const html = `
+        <div class="small" style="margin-bottom:12px">Digite o valor total disponível para distribuir entre as reservas padrão.</div>
+        <input id="modal_alloc_value" type="number" class="input" placeholder="Valor (R$)" />
+        <div id="modal_alloc_result" style="margin-top:16px;max-height:300px;overflow:auto;border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:8px;display:none"></div>
+      `;
+
+      showModal('Simular Alocação de Reservas', html, function () {
+        // This callback is for the "Confirmar" button of the modal, which usually closes it.
+        // We want to calculate BEFORE closing, or use a custom button inside.
+        // Since showModal is simple, let's inject a calculation button logic into the modal body after render.
+      });
+
+      // Inject logic into the opened modal (a bit hacky but fits the current simple modal system)
+      setTimeout(() => {
+        const input = document.getElementById('modal_alloc_value');
+        const resultDiv = document.getElementById('modal_alloc_result');
+        if (input && resultDiv) {
+          input.addEventListener('input', () => {
+            const val = Number(input.value);
+            if (!val) { resultDiv.style.display = 'none'; return; }
+
+            let resHtml = '<table class="table" style="width:100%"><thead><tr><th>Reserva</th><th>%</th><th>Valor</th></tr></thead><tbody>';
+            let totalCalc = 0;
+            defaults.forEach(d => {
+              const amount = val * d.pct;
+              totalCalc += amount;
+              resHtml += `<tr>
+                <td>${d.name}</td>
+                <td>${(d.pct * 100).toFixed(2)}%</td>
+                <td style="font-weight:bold">${formatMoney(amount)}</td>
+              </tr>`;
+            });
+            resHtml += `</tbody></table>
+            <div style="margin-top:8px;text-align:right;font-weight:bold;border-top:1px solid #333;padding-top:4px">Total: ${formatMoney(totalCalc)}</div>`;
+
+            resultDiv.innerHTML = resHtml;
+            resultDiv.style.display = 'block';
+          });
+          input.focus();
+        }
+      }, 200);
     }
+
     function reorderReservationsByDefault() {
-      const priority = ['Reserva de Segurança', 'Veículos', 'Roupas / Lazer / Levy', 'Gatona', 'Reserva Levy 18 anos', 'Oportunidades', 'Terreno/Lexus Eventos', 'Apartamento', 'Dividas'];
-      state.reservas.forEach(r => { if (r.order === undefined || r.order === null) r.order = priority.indexOf(r.name) !== -1 ? priority.indexOf(r.name) : 999; });
+      const priority = [
+        'Reserva de Segurança',
+        'Veículos',
+        'Roupas / Lazer / Levy',
+        'Gatona',
+        'Reserva Levy 18 anos',
+        'Oportunidades',
+        'Terreno/Lexus Eventos',
+        'Apartamento',
+        'Dividas',
+        'Fundo Imobiliário',
+        'Ações/Cripto'
+      ];
+      state.reservas.forEach(r => {
+        if (r.order === undefined || r.order === null) {
+          const idx = priority.indexOf(r.name);
+          r.order = idx !== -1 ? idx : 999;
+        }
+      });
       state.reservas.sort((a, b) => (a.order || 999) - (b.order || 999));
     }
 
