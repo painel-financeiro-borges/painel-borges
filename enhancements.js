@@ -71,7 +71,63 @@
 
   function applyTabHides() {
     // hide pages by id if requested
-    page.innerHTML = `
+    Object.keys(state.settings.hiddenTabs).forEach(tabId => {
+      const page = document.getElementById(tabId);
+      if (page) page.style.display = state.settings.hiddenTabs[tabId] ? 'none' : '';
+    });
+  }
+
+  // ---------- UI INSERTION ----------
+  function insertPrivacyControls() {
+    // locate dashboard header area — safe fallback: insert near h2 with text "Dashboard"
+    const dashboardH2 = Array.from(document.querySelectorAll('h2')).find(h => /Dashboard/i.test(h.innerText));
+    if (!dashboardH2) return;
+    // don't insert twice
+    if (document.getElementById('enh_privacy_controls')) return;
+
+    const container = document.createElement('div');
+    container.id = 'enh_privacy_controls';
+    container.style.display = 'flex';
+    container.style.gap = '8px';
+    container.style.alignItems = 'center';
+    container.style.marginTop = '8px';
+
+    const addBtn = (text, onclick, cls = 'btn-ghost') => {
+      const b = document.createElement('button');
+      b.className = cls;
+      b.type = 'button';
+      b.innerText = text;
+      b.style.cursor = 'pointer';
+      b.addEventListener('click', onclick);
+      return b;
+    };
+
+    // area-specific hide buttons
+    container.appendChild(addBtn('Ocultar Entradas', () => toggleAreaHide('dash_top_stats')));
+    container.appendChild(addBtn('Ocultar Resultado', () => toggleAreaHide('dash_result')));
+    container.appendChild(addBtn('Ocultar Resumos', () => toggleAreaHide('dash_summary')));
+    // spacer
+    const spacer = document.createElement('div'); spacer.style.flex = '1';
+    container.appendChild(spacer);
+    container.appendChild(addBtn('Ocultar Aba Dashboard', () => toggleTabHide('dashboard')));
+    // insert after the H2's parent card header
+    dashboardH2.parentNode.insertBefore(container, dashboardH2.nextSibling);
+  }
+
+  // ---------- ASSETS & LIABILITIES (Ativos & Passivos) COMPONENT ----------
+  function createAssetsTab() {
+    const page = document.getElementById('ativos-passivos');
+    if (!page) return;
+    page.innerHTML = '<h2>Ativos & Passivos - TESTE OK</h2>';
+  }
+
+  // ---------- ALERTS & REMINDERS (Lembretes) COMPONENT ----------
+  function createRemindersTab() {
+    const page = document.getElementById('lembretes');
+    if (!page) return;
+
+    if (!page.innerHTML.trim()) {
+      page.innerHTML = `
         <div class="card">
           <h2>Lembretes & Alertas</h2>
           <div class="small">Adicione lembretes importantes que aparecerão no topo do Dashboard.</div>
@@ -92,86 +148,86 @@
         </div>
       `;
 
-    const createBtn = page.querySelector('#alert_create_btn');
-    if (createBtn) {
-      createBtn.addEventListener('click', () => {
-        const text = (page.querySelector('#alert_text').value || '').trim();
-        if (!text) return;
-        addAlerta(text);
-        page.querySelector('#alert_text').value = '';
-      });
+      const createBtn = page.querySelector('#alert_create_btn');
+      if (createBtn) {
+        createBtn.addEventListener('click', () => {
+          const text = (page.querySelector('#alert_text').value || '').trim();
+          if (!text) return;
+          addAlerta(text);
+          page.querySelector('#alert_text').value = '';
+        });
+      }
     }
-  }
 
-  let btn = document.querySelector('.tab[data-tab="lembretes"]');
-  if (!btn) {
-    const backupTab = document.querySelector('.tab[data-tab="backup"]');
-    if (backupTab) {
-      const tabListParent = backupTab.parentNode;
-      btn = document.createElement('div');
-      btn.className = 'tab';
-      btn.dataset.tab = 'lembretes';
-      btn.innerText = 'Lembretes';
-      tabListParent.insertBefore(btn, backupTab);
+    let btn = document.querySelector('.tab[data-tab="lembretes"]');
+    if (!btn) {
+      const backupTab = document.querySelector('.tab[data-tab="backup"]');
+      if (backupTab) {
+        const tabListParent = backupTab.parentNode;
+        btn = document.createElement('div');
+        btn.className = 'tab';
+        btn.dataset.tab = 'lembretes';
+        btn.innerText = 'Lembretes';
+        tabListParent.insertBefore(btn, backupTab);
+      }
     }
+
+    if (btn) {
+      btn.onclick = function () {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+        const pageEl = document.getElementById('lembretes');
+        if (pageEl) pageEl.style.display = 'block';
+        renderRemindersTab();
+      };
+    }
+
+    renderRemindersTab();
   }
 
-  if (btn) {
-    btn.onclick = function () {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      btn.classList.add('active');
-      document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-      const pageEl = document.getElementById('lembretes');
-      if (pageEl) pageEl.style.display = 'block';
-      renderRemindersTab();
-    };
+  function addAlerta(texto) {
+    const alerta = { id: uid('al'), text: texto, created: nowISO(), concluido: false };
+    state.alertas.unshift(alerta);
+    saveLocal();
+    renderRemindersTab();
+    renderAlertsDashboard();
   }
 
-  renderRemindersTab();
-}
+  function toggleAlerta(id) {
+    const a = state.alertas.find(x => x.id === id);
+    if (!a) return;
+    a.concluido = !a.concluido;
+    saveLocal();
+    renderRemindersTab();
+    renderAlertsDashboard();
+  }
 
-function addAlerta(texto) {
-  const alerta = { id: uid('al'), text: texto, created: nowISO(), concluido: false };
-  state.alertas.unshift(alerta);
-  saveLocal();
-  renderRemindersTab();
-  renderAlertsDashboard();
-}
+  function removeAlerta(id) {
+    if (!confirm('Remover lembrete?')) return;
+    state.alertas = state.alertas.filter(x => x.id !== id);
+    saveLocal();
+    renderRemindersTab();
+    renderAlertsDashboard();
+  }
 
-function toggleAlerta(id) {
-  const a = state.alertas.find(x => x.id === id);
-  if (!a) return;
-  a.concluido = !a.concluido;
-  saveLocal();
-  renderRemindersTab();
-  renderAlertsDashboard();
-}
+  function renderRemindersTab() {
+    const activeDiv = document.getElementById('alertsListActive');
+    const doneDiv = document.getElementById('alertsListDone');
+    if (!activeDiv || !doneDiv) return;
 
-function removeAlerta(id) {
-  if (!confirm('Remover lembrete?')) return;
-  state.alertas = state.alertas.filter(x => x.id !== id);
-  saveLocal();
-  renderRemindersTab();
-  renderAlertsDashboard();
-}
+    activeDiv.innerHTML = '';
+    doneDiv.innerHTML = '';
 
-function renderRemindersTab() {
-  const activeDiv = document.getElementById('alertsListActive');
-  const doneDiv = document.getElementById('alertsListDone');
-  if (!activeDiv || !doneDiv) return;
+    const ativos = state.alertas.filter(a => !a.concluido);
+    const concluidos = state.alertas.filter(a => a.concluido);
 
-  activeDiv.innerHTML = '';
-  doneDiv.innerHTML = '';
-
-  const ativos = state.alertas.filter(a => !a.concluido);
-  const concluidos = state.alertas.filter(a => a.concluido);
-
-  if (!ativos.length) activeDiv.innerHTML = '<div class="small">Nenhum lembrete ativo</div>';
-  ativos.forEach(a => {
-    const row = document.createElement('div');
-    row.className = 'res-card';
-    row.style.marginBottom = '8px';
-    row.innerHTML = `
+    if (!ativos.length) activeDiv.innerHTML = '<div class="small">Nenhum lembrete ativo</div>';
+    ativos.forEach(a => {
+      const row = document.createElement('div');
+      row.className = 'res-card';
+      row.style.marginBottom = '8px';
+      row.innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div style="font-weight:600">${a.text}</div>
           <div style="display:flex;gap:8px">
@@ -181,17 +237,17 @@ function renderRemindersTab() {
         </div>
         <div class="small" style="margin-top:4px">${new Date(a.created).toLocaleDateString()}</div>
       `;
-    activeDiv.appendChild(row);
-    row.querySelector('[data-act="done"]').addEventListener('click', () => toggleAlerta(a.id));
-    row.querySelector('[data-act="del"]').addEventListener('click', () => removeAlerta(a.id));
-  });
+      activeDiv.appendChild(row);
+      row.querySelector('[data-act="done"]').addEventListener('click', () => toggleAlerta(a.id));
+      row.querySelector('[data-act="del"]').addEventListener('click', () => removeAlerta(a.id));
+    });
 
-  if (!concluidos.length) doneDiv.innerHTML = '<div class="small">Nenhum lembrete concluído</div>';
-  concluidos.forEach(a => {
-    const row = document.createElement('div');
-    row.style.padding = '8px';
-    row.style.borderBottom = '1px solid rgba(255,255,255,0.1)';
-    row.innerHTML = `
+    if (!concluidos.length) doneDiv.innerHTML = '<div class="small">Nenhum lembrete concluído</div>';
+    concluidos.forEach(a => {
+      const row = document.createElement('div');
+      row.style.padding = '8px';
+      row.style.borderBottom = '1px solid rgba(255,255,255,0.1)';
+      row.innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div style="text-decoration:line-through;color:var(--muted)">${a.text}</div>
           <div style="display:flex;gap:8px">
@@ -200,91 +256,91 @@ function renderRemindersTab() {
           </div>
         </div>
       `;
-    doneDiv.appendChild(row);
-    row.querySelector('[data-act="undo"]').addEventListener('click', () => toggleAlerta(a.id));
-    row.querySelector('[data-act="del"]').addEventListener('click', () => removeAlerta(a.id));
-  });
-}
+      doneDiv.appendChild(row);
+      row.querySelector('[data-act="undo"]').addEventListener('click', () => toggleAlerta(a.id));
+      row.querySelector('[data-act="del"]').addEventListener('click', () => removeAlerta(a.id));
+    });
+  }
 
-function renderAlertsDashboard() {
-  // Try to find wrapper
-  const wrapper = document.getElementById('dash_reminders_wrapper');
-  // If wrapper not found (e.g. index.html not updated yet), try dash_alert parent
-  if (!wrapper) return;
+  function renderAlertsDashboard() {
+    // Try to find wrapper
+    const wrapper = document.getElementById('dash_reminders_wrapper');
+    // If wrapper not found (e.g. index.html not updated yet), try dash_alert parent
+    if (!wrapper) return;
 
-  wrapper.innerHTML = '';
-  const ativos = state.alertas.filter(a => !a.concluido);
-  if (!ativos.length) return;
+    wrapper.innerHTML = '';
+    const ativos = state.alertas.filter(a => !a.concluido);
+    if (!ativos.length) return;
 
-  const container = document.createElement('div');
-  container.style.background = 'rgba(239,68,68,0.15)';
-  container.style.borderLeft = '4px solid #ef4444';
-  container.style.padding = '10px';
-  container.style.borderRadius = '8px';
-  container.style.marginBottom = '12px';
-  container.style.color = '#fca5a5';
+    const container = document.createElement('div');
+    container.style.background = 'rgba(239,68,68,0.15)';
+    container.style.borderLeft = '4px solid #ef4444';
+    container.style.padding = '10px';
+    container.style.borderRadius = '8px';
+    container.style.marginBottom = '12px';
+    container.style.color = '#fca5a5';
 
-  if (ativos.length === 1) {
-    const a = ativos[0];
-    container.innerHTML = `
+    if (ativos.length === 1) {
+      const a = ativos[0];
+      container.innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div style="font-weight:600">🔔 ${a.text}</div>
           <button class="btn-ghost" id="dash_solve_${a.id}" style="font-size:12px;padding:4px 8px">Resolvido</button>
         </div>
       `;
-    wrapper.appendChild(container);
-    document.getElementById(`dash_solve_${a.id}`).addEventListener('click', () => toggleAlerta(a.id));
-  } else {
-    // Multiple alerts
-    let html = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      wrapper.appendChild(container);
+      document.getElementById(`dash_solve_${a.id}`).addEventListener('click', () => toggleAlerta(a.id));
+    } else {
+      // Multiple alerts
+      let html = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <div style="font-weight:700">🔔 ${ativos.length} Lembretes Pendentes</div>
         <button class="btn-ghost" id="dash_toggle_alerts" style="font-size:12px">Expandir</button>
       </div>`;
 
-    const listId = 'dash_alerts_list';
-    html += `<div id="${listId}" style="display:none;flex-direction:column;gap:6px">`;
-    ativos.forEach(a => {
-      html += `
+      const listId = 'dash_alerts_list';
+      html += `<div id="${listId}" style="display:none;flex-direction:column;gap:6px">`;
+      ativos.forEach(a => {
+        html += `
           <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,0.2);padding:6px;border-radius:4px">
             <span>${a.text}</span>
             <button class="btn-ghost" data-act="solve" data-id="${a.id}" style="font-size:11px">Resolvido</button>
           </div>
         `;
-    });
-    html += `</div>`;
-    container.innerHTML = html;
-    wrapper.appendChild(container);
+      });
+      html += `</div>`;
+      container.innerHTML = html;
+      wrapper.appendChild(container);
 
-    const toggleBtn = container.querySelector('#dash_toggle_alerts');
-    const listDiv = container.querySelector(`#${listId}`);
+      const toggleBtn = container.querySelector('#dash_toggle_alerts');
+      const listDiv = container.querySelector(`#${listId}`);
 
-    toggleBtn.addEventListener('click', () => {
-      const isHidden = listDiv.style.display === 'none';
-      listDiv.style.display = isHidden ? 'flex' : 'none';
-      toggleBtn.innerText = isHidden ? 'Recolher' : 'Expandir';
-    });
+      toggleBtn.addEventListener('click', () => {
+        const isHidden = listDiv.style.display === 'none';
+        listDiv.style.display = isHidden ? 'flex' : 'none';
+        toggleBtn.innerText = isHidden ? 'Recolher' : 'Expandir';
+      });
 
-    container.querySelectorAll('[data-act="solve"]').forEach(b => {
-      b.addEventListener('click', () => toggleAlerta(b.getAttribute('data-id')));
-    });
+      container.querySelectorAll('[data-act="solve"]').forEach(b => {
+        b.addEventListener('click', () => toggleAlerta(b.getAttribute('data-id')));
+      });
+    }
   }
-}
 
-// ---------- RENDER / ACTIONS FOR ASSETS ----------
-function renderAssets() {
-  const container = document.getElementById('assetsList');
-  if (!container) return;
-  container.innerHTML = '';
-  if (!state.assets.length) {
-    container.innerHTML = '<div class="small">Nenhum ativo / passivo</div>';
-    return;
-  }
-  state.assets.forEach(a => {
-    const net = computeAssetNet(a);
-    const netColor = net >= 0 ? 'color:var(--success)' : 'color:var(--danger)';
-    const card = document.createElement('div');
-    card.className = 'res-card';
-    card.innerHTML = `
+  // ---------- RENDER / ACTIONS FOR ASSETS ----------
+  function renderAssets() {
+    const container = document.getElementById('assetsList');
+    if (!container) return;
+    container.innerHTML = '';
+    if (!state.assets.length) {
+      container.innerHTML = '<div class="small">Nenhum ativo / passivo</div>';
+      return;
+    }
+    state.assets.forEach(a => {
+      const net = computeAssetNet(a);
+      const netColor = net >= 0 ? 'color:var(--success)' : 'color:var(--danger)';
+      const card = document.createElement('div');
+      card.className = 'res-card';
+      card.innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div style="font-weight:700">${a.name} <span class="small">(${a.type})</span></div>
           <div style="display:flex;gap:6px">
@@ -302,181 +358,181 @@ function renderAssets() {
         </div>
         <div style="margin-top:8px" id="chart_${a.id}"></div>
       `;
-    container.appendChild(card);
-    // attach events
-    card.querySelectorAll('button').forEach(b => {
-      const act = b.getAttribute('data-act');
-      const id = b.getAttribute('data-id');
-      if (act === 'edit') b.addEventListener('click', () => { openAssetEditor(id); });
-      if (act === 'del') b.addEventListener('click', () => { removeAsset(id); });
-      if (act === 'addE') b.addEventListener('click', () => { promptAssetTx(id, 'entrada'); });
-      if (act === 'addS') b.addEventListener('click', () => { promptAssetTx(id, 'saida'); });
-      if (act === 'view') b.addEventListener('click', () => { showAssetTransactions(id); });
+      container.appendChild(card);
+      // attach events
+      card.querySelectorAll('button').forEach(b => {
+        const act = b.getAttribute('data-act');
+        const id = b.getAttribute('data-id');
+        if (act === 'edit') b.addEventListener('click', () => { openAssetEditor(id); });
+        if (act === 'del') b.addEventListener('click', () => { removeAsset(id); });
+        if (act === 'addE') b.addEventListener('click', () => { promptAssetTx(id, 'entrada'); });
+        if (act === 'addS') b.addEventListener('click', () => { promptAssetTx(id, 'saida'); });
+        if (act === 'view') b.addEventListener('click', () => { showAssetTransactions(id); });
+      });
+      // render tiny chart (if Chart.js present)
+      renderAssetChartSmall(a);
     });
-    // render tiny chart (if Chart.js present)
-    renderAssetChartSmall(a);
-  });
-}
+  }
 
-function computeAssetNet(a) {
-  const tx = a.transactions || [];
-  const entradas = tx.filter(t => t.type === 'entrada').reduce((s, t) => s + Number(t.value || 0), 0);
-  const saidas = tx.filter(t => t.type === 'saida').reduce((s, t) => s + Number(t.value || 0), 0);
-  return entradas - saidas;
-}
+  function computeAssetNet(a) {
+    const tx = a.transactions || [];
+    const entradas = tx.filter(t => t.type === 'entrada').reduce((s, t) => s + Number(t.value || 0), 0);
+    const saidas = tx.filter(t => t.type === 'saida').reduce((s, t) => s + Number(t.value || 0), 0);
+    return entradas - saidas;
+  }
 
-function promptAssetTx(id, tipo) {
-  const val = Number(prompt('Valor R$', '0')) || 0;
-  if (val <= 0) return;
-  const desc = prompt('Descrição', '') || '';
-  addAssetTransaction(id, tipo, val, desc);
-}
+  function promptAssetTx(id, tipo) {
+    const val = Number(prompt('Valor R$', '0')) || 0;
+    if (val <= 0) return;
+    const desc = prompt('Descrição', '') || '';
+    addAssetTransaction(id, tipo, val, desc);
+  }
 
-function addAssetTransaction(id, tipo, valor, nota) {
-  const a = state.assets.find(x => x.id === id);
-  if (!a) return;
-  const tx = { id: uid('tx'), date: (new Date()).toLocaleDateString(), type: tipo, value: Number(valor), note: nota || '' };
-  a.transactions.unshift(tx);
-  a.saldo = (Number(a.saldo || 0) + (tipo === 'entrada' ? Number(valor) : -Number(valor)));
-  a.updated = nowISO();
-  saveLocal();
-  renderAssets();
-  showAssetTransactions(id);
-}
+  function addAssetTransaction(id, tipo, valor, nota) {
+    const a = state.assets.find(x => x.id === id);
+    if (!a) return;
+    const tx = { id: uid('tx'), date: (new Date()).toLocaleDateString(), type: tipo, value: Number(valor), note: nota || '' };
+    a.transactions.unshift(tx);
+    a.saldo = (Number(a.saldo || 0) + (tipo === 'entrada' ? Number(valor) : -Number(valor)));
+    a.updated = nowISO();
+    saveLocal();
+    renderAssets();
+    showAssetTransactions(id);
+  }
 
-function showAssetTransactions(id) {
-  const a = state.assets.find(x => x.id === id);
-  const panel = document.getElementById('assetTxPanel');
-  if (!panel) return;
-  panel.innerHTML = `<div style="font-weight:700;margin-bottom:8px">${a.name} — Transações</div>`;
-  if (!a.transactions || !a.transactions.length) { panel.innerHTML += '<div class="small">Sem transações</div>'; return; }
-  const table = document.createElement('table');
-  table.className = 'table';
-  table.style.width = '100%';
-  table.innerHTML = `<thead><tr><th>Data</th><th>Tipo</th><th>Desc</th><th>Valor</th><th></th></tr></thead><tbody></tbody>`;
-  a.transactions.forEach(t => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${t.date}</td><td>${t.type}</td><td>${t.note || '(sem)'}</td><td>${safeFormatMoney(t.value)}</td>
+  function showAssetTransactions(id) {
+    const a = state.assets.find(x => x.id === id);
+    const panel = document.getElementById('assetTxPanel');
+    if (!panel) return;
+    panel.innerHTML = `<div style="font-weight:700;margin-bottom:8px">${a.name} — Transações</div>`;
+    if (!a.transactions || !a.transactions.length) { panel.innerHTML += '<div class="small">Sem transações</div>'; return; }
+    const table = document.createElement('table');
+    table.className = 'table';
+    table.style.width = '100%';
+    table.innerHTML = `<thead><tr><th>Data</th><th>Tipo</th><th>Desc</th><th>Valor</th><th></th></tr></thead><tbody></tbody>`;
+    a.transactions.forEach(t => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${t.date}</td><td>${t.type}</td><td>${t.note || '(sem)'}</td><td>${safeFormatMoney(t.value)}</td>
         <td><button class="btn-ghost" data-deltx="${t.id}" data-asset="${a.id}">Excluir</button></td>`;
-    table.querySelector('tbody').appendChild(tr);
-  });
-  panel.appendChild(table);
-  // attach delete handlers
-  table.querySelectorAll('button[data-deltx]').forEach(b => {
-    b.addEventListener('click', (e) => {
-      const txId = b.getAttribute('data-deltx');
-      const assetId = b.getAttribute('data-asset');
-      removeAssetTx(assetId, txId);
+      table.querySelector('tbody').appendChild(tr);
     });
-  });
-}
+    panel.appendChild(table);
+    // attach delete handlers
+    table.querySelectorAll('button[data-deltx]').forEach(b => {
+      b.addEventListener('click', (e) => {
+        const txId = b.getAttribute('data-deltx');
+        const assetId = b.getAttribute('data-asset');
+        removeAssetTx(assetId, txId);
+      });
+    });
+  }
 
-function removeAssetTx(assetId, txId) {
-  const a = state.assets.find(x => x.id === assetId);
-  if (!a) return;
-  if (!confirm('Excluir transação?')) return;
-  a.transactions = a.transactions.filter(t => t.id !== txId);
-  // recalc saldo from cost and transactions
-  a.saldo = a.transactions.reduce((s, t) => s + (t.type === 'entrada' ? Number(t.value) : -Number(t.value)), Number(a.cost || 0));
-  saveLocal();
-  renderAssets();
-  showAssetTransactions(assetId);
-}
+  function removeAssetTx(assetId, txId) {
+    const a = state.assets.find(x => x.id === assetId);
+    if (!a) return;
+    if (!confirm('Excluir transação?')) return;
+    a.transactions = a.transactions.filter(t => t.id !== txId);
+    // recalc saldo from cost and transactions
+    a.saldo = a.transactions.reduce((s, t) => s + (t.type === 'entrada' ? Number(t.value) : -Number(t.value)), Number(a.cost || 0));
+    saveLocal();
+    renderAssets();
+    showAssetTransactions(assetId);
+  }
 
-function openAssetEditor(id) {
-  const a = state.assets.find(x => x.id === id);
-  if (!a) return;
-  const html = `
+  function openAssetEditor(id) {
+    const a = state.assets.find(x => x.id === id);
+    if (!a) return;
+    const html = `
       <label>Nome</label><input id="modal_ap_name" class="input" value="${a.name}"/>
       <label>Tipo</label><select id="modal_ap_type" class="input"><option value="ativo">Ativo</option><option value="passivo">Passivo</option></select>
       <label>Custo inicial</label><input id="modal_ap_cost" class="input" type="number" value="${a.cost}"/>
     `;
-  safeShowModal('Editar Ativo/Passivo', html, function () {
-    a.name = document.getElementById('modal_ap_name').value.trim();
-    a.type = document.getElementById('modal_ap_type').value;
-    a.cost = Number(document.getElementById('modal_ap_cost').value) || 0;
-    saveLocal(); renderAssets();
-  });
-}
-
-function removeAsset(id) {
-  if (!confirm('Excluir ativo/passivo e transações?')) return;
-  state.assets = state.assets.filter(x => x.id !== id);
-  saveLocal();
-  renderAssets();
-}
-
-function clearAtivosPassivos() {
-  if (!confirm('Tem certeza que deseja apagar TODOS os Ativos e Passivos?')) return;
-  state.assets = [];
-  saveLocal();
-  renderAssets();
-}
-
-function renderAssetChartSmall(a) {
-  const container = document.getElementById('chart_' + a.id);
-  if (!container) return;
-  container.innerHTML = '';
-  if (typeof Chart === 'undefined') return;
-  const canvas = document.createElement('canvas');
-  canvas.height = 80;
-  container.appendChild(canvas);
-  const labels = (a.transactions || []).slice(0, 10).map(t => t.date).reverse();
-  const entradas = (a.transactions || []).slice(0, 10).map(t => t.type === 'entrada' ? Number(t.value) : 0).reverse();
-  const saidas = (a.transactions || []).slice(0, 10).map(t => t.type === 'saida' ? Number(t.value) : 0).reverse();
-  try {
-    new Chart(canvas.getContext('2d'), {
-      type: 'bar',
-      data: {
-        labels, datasets: [
-          { label: 'Entradas', data: entradas, backgroundColor: 'rgba(16,185,129,0.9)' },
-          { label: 'Saídas', data: saidas, backgroundColor: 'rgba(239,68,68,0.9)' }
-        ]
-      },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
+    safeShowModal('Editar Ativo/Passivo', html, function () {
+      a.name = document.getElementById('modal_ap_name').value.trim();
+      a.type = document.getElementById('modal_ap_type').value;
+      a.cost = Number(document.getElementById('modal_ap_cost').value) || 0;
+      saveLocal(); renderAssets();
     });
-  } catch (e) { console.warn('chart draw fail', e); }
-}
+  }
 
-// ---------- INIT: insert UI and bind ----------
-function initEnhancements() {
-  insertPrivacyControls();
-  createAssetsTab();
-  createRemindersTab(); // NEW
-  applyAreaHides();
-  applyTabHides();
-  renderAlertsDashboard(); // NEW
-
-  // expose small API for manual triggers
-  window.enhancements = {
-    renderAssets,
-    renderAlertsDashboard,
-    createRemindersTab,
-    toggleAreaHide,
-    toggleTabHide
-  };
-
-  // Auto render assets if the tab visible
-  if (location.hash && location.hash.includes('ativos-passivos')) {
-    document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-    const p = document.getElementById('ativos-passivos');
-    if (p) p.style.display = 'block';
+  function removeAsset(id) {
+    if (!confirm('Excluir ativo/passivo e transações?')) return;
+    state.assets = state.assets.filter(x => x.id !== id);
+    saveLocal();
     renderAssets();
   }
-  // Auto render reminders if tab visible
-  if (location.hash && location.hash.includes('lembretes')) {
-    document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-    const p = document.getElementById('lembretes');
-    if (p) p.style.display = 'block';
-    renderRemindersTab();
+
+  function clearAtivosPassivos() {
+    if (!confirm('Tem certeza que deseja apagar TODOS os Ativos e Passivos?')) return;
+    state.assets = [];
+    saveLocal();
+    renderAssets();
   }
-}
 
-// run after DOM ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initEnhancements);
-} else {
-  setTimeout(initEnhancements, 50);
-}
+  function renderAssetChartSmall(a) {
+    const container = document.getElementById('chart_' + a.id);
+    if (!container) return;
+    container.innerHTML = '';
+    if (typeof Chart === 'undefined') return;
+    const canvas = document.createElement('canvas');
+    canvas.height = 80;
+    container.appendChild(canvas);
+    const labels = (a.transactions || []).slice(0, 10).map(t => t.date).reverse();
+    const entradas = (a.transactions || []).slice(0, 10).map(t => t.type === 'entrada' ? Number(t.value) : 0).reverse();
+    const saidas = (a.transactions || []).slice(0, 10).map(t => t.type === 'saida' ? Number(t.value) : 0).reverse();
+    try {
+      new Chart(canvas.getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels, datasets: [
+            { label: 'Entradas', data: entradas, backgroundColor: 'rgba(16,185,129,0.9)' },
+            { label: 'Saídas', data: saidas, backgroundColor: 'rgba(239,68,68,0.9)' }
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
+      });
+    } catch (e) { console.warn('chart draw fail', e); }
+  }
 
-}) ();
+  // ---------- INIT: insert UI and bind ----------
+  function initEnhancements() {
+    createRemindersTab(); // NEW - Moved to top
+    insertPrivacyControls();
+    createAssetsTab();
+    applyAreaHides();
+    applyTabHides();
+    renderAlertsDashboard(); // NEW
+
+    // expose small API for manual triggers
+    window.enhancements = {
+      renderAssets,
+      renderAlertsDashboard,
+      createRemindersTab,
+      toggleAreaHide,
+      toggleTabHide
+    };
+
+    // Auto render assets if the tab visible
+    if (location.hash && location.hash.includes('ativos-passivos')) {
+      document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+      const p = document.getElementById('ativos-passivos');
+      if (p) p.style.display = 'block';
+      renderAssets();
+    }
+    // Auto render reminders if tab visible
+    if (location.hash && location.hash.includes('lembretes')) {
+      document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+      const p = document.getElementById('lembretes');
+      if (p) p.style.display = 'block';
+      renderRemindersTab();
+    }
+  }
+
+  // run after DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initEnhancements);
+  } else {
+    setTimeout(initEnhancements, 50);
+  }
+
+})();
