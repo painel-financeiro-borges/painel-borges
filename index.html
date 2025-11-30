@@ -1517,6 +1517,34 @@
       }
     </script>
 
+    <!-- ===================== MOBILE TOUCH SUPPORT ===================== -->
+    <script>
+      function attachTouch(el) {
+        if (!el) return;
+        try {
+          if (el.__touchAttached) return;
+          el.addEventListener('touchstart', e => {
+            e.preventDefault();
+            el.click();
+          }, { passive: false });
+          el.__touchAttached = true;
+        } catch (err) { }
+      }
+
+      function enableTouchForOnclicks() {
+        document.querySelectorAll('[onclick]').forEach(el => attachTouch(el));
+        document.querySelectorAll('.btn, .btn-ghost, button').forEach(b => {
+          if (!b.__touchAttached) {
+            b.addEventListener('touchstart', e => {
+              e.preventDefault();
+              b.click();
+            }, { passive: false });
+            b.__touchAttached = true;
+          }
+        });
+      }
+    </script>
+
     <!-- ===================== INIT ===================== -->
     <script>
       (function init() {
@@ -1569,33 +1597,7 @@
       })();
     </script>
 
-    <!-- ===================== MOBILE TOUCH SUPPORT ===================== -->
-    <script>
-      function attachTouch(el) {
-        if (!el) return;
-        try {
-          if (el.__touchAttached) return;
-          el.addEventListener('touchstart', e => {
-            e.preventDefault();
-            el.click();
-          }, { passive: false });
-          el.__touchAttached = true;
-        } catch (err) { }
-      }
 
-      function enableTouchForOnclicks() {
-        document.querySelectorAll('[onclick]').forEach(el => attachTouch(el));
-        document.querySelectorAll('.btn, .btn-ghost, button').forEach(b => {
-          if (!b.__touchAttached) {
-            b.addEventListener('touchstart', e => {
-              e.preventDefault();
-              b.click();
-            }, { passive: false });
-            b.__touchAttached = true;
-          }
-        });
-      }
-    </script>
 
     <!-- ===================== DEBUG HELPERS ===================== -->
     <script>
