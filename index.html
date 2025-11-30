@@ -2034,6 +2034,7 @@
       }
 
       try {
+        // Accessing subcollection 'archives' under the user document for security
         const archivesRef = collection(db, "users", user.uid, "archives");
         const querySnapshot = await getDocs(archivesRef);
 
