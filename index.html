@@ -761,10 +761,7 @@
       <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn" onclick="exportAll()">Exportar Tudo (.json)</button>
         <button class="btn" onclick="exportToClipboardAndModal()">Exportar Tudo (Bloco de Notas)</button>
-        <button class="btn" onclick="archiveCurrentState()" style="background:var(--primary-dark)">Arquivar Mês
-          Atual</button>
-        <button class="btn" onclick="downloadAllArchives()" style="background:var(--primary-dark)">Exportar Histórico
-          Completo (.json)</button>
+
         <input id="fileImport" type="file" accept=".json" style="background:transparent;color:var(--muted)" />
         <button class="btn-ghost" onclick="importAll()">Importar Backup</button>
         <div class="spacer"></div>
@@ -2001,77 +1998,7 @@
       }
     };
 
-    window.archiveCurrentState = async function () {
-      const user = auth.currentUser;
-      if (!user) {
-        alert("⚠️ Você precisa estar logado para arquivar.");
-        return;
-      }
-      const now = new Date();
-      const monthKey = now.toISOString().slice(0, 7); // YYYY-MM
 
-      try {
-        const archiveRef = doc(window.db, "users", user.uid, "archives", monthKey);
-
-        // Check if exists
-        const docSnap = await getDoc(archiveRef);
-        if (docSnap.exists()) {
-          if (!confirm(`⚠️ Já existe um arquivo para o mês ${monthKey}. Deseja sobrescrevê-lo?`)) {
-            return;
-          }
-        }
-
-        const payload = JSON.parse(JSON.stringify(window.state));
-        payload._archivedAt = now.toISOString();
-
-        await setDoc(archiveRef, payload);
-        alert(`✅ Mês ${monthKey} arquivado com sucesso!`);
-
-      } catch (e) {
-        console.error("Erro ao arquivar:", e);
-        alert("❌ Erro ao arquivar: " + e.message);
-      }
-    };
-
-    window.downloadAllArchives = async function () {
-      const user = auth.currentUser;
-      if (!user) {
-        alert("⚠️ Você precisa estar logado para baixar o histórico.");
-        return;
-      }
-
-      try {
-        // Accessing subcollection 'archives' under the user document for security
-        const archivesRef = collection(window.db, "users", user.uid, "archives");
-        const querySnapshot = await getDocs(archivesRef);
-
-        if (querySnapshot.empty) {
-          alert("⚠️ Nenhum histórico arquivado encontrado.");
-          return;
-        }
-
-        const fullHistory = {};
-        querySnapshot.forEach((doc) => {
-          fullHistory[doc.id] = doc.data();
-        });
-
-        const blob = new Blob([JSON.stringify(fullHistory, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'borges_full_history_' + new Date().toISOString().slice(0, 10) + '.json';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-
-        alert("✅ Histórico completo baixado com sucesso!");
-
-      } catch (e) {
-        console.error("Erro ao baixar histórico:", e);
-        alert("❌ Erro ao baixar histórico: " + e.message);
-      }
-    };
 
     async function loadStateFromFirestore(user) {
       if (!user || !user.uid) {
