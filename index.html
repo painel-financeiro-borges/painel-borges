@@ -954,62 +954,109 @@
     }
 
     function openEditDefaultReservas() {
-      const defaults = getDefaultReservasConfig();
-      let html = '<div class="small" style="margin-bottom:12px">Edite as porcentagens (de 0 a 100). O total deve ser 100%.</div>';
-      html += '<div style="display:flex;flex-direction:column;gap:8px;max-height:400px;overflow:auto">';
+      // Clone defaults to avoid direct mutation until save
+      let currentDefaults = JSON.parse(JSON.stringify(getDefaultReservasConfig()));
 
-      defaults.forEach((d, i) => {
+      const renderModalContent = () => {
+        let html = '<div class="small" style="margin-bottom:12px">Edite nomes e porcentagens. O total deve ser 100%.</div>';
+        html += '<div id="def_res_list" style="display:flex;flex-direction:column;gap:8px;max-height:400px;overflow:auto;padding-right:4px">';
+
+        currentDefaults.forEach((d, i) => {
+          html += `
+            <div class="def-res-row" style="display:flex;gap:8px;align-items:center">
+              <input type="text" class="input def-res-name" data-idx="${i}" value="${d.name}" placeholder="Nome da Reserva" style="flex:1" />
+              <input type="number" step="0.01" class="input def-res-pct" data-idx="${i}" value="${(d.pct * 100).toFixed(2)}" style="width:80px" />
+              <span style="font-size:12px">%</span>
+              <button class="btn-ghost" style="color:var(--danger);padding:4px 8px" onclick="removeDefaultResItem(${i})">✖</button>
+            </div>
+          `;
+        });
+        html += '</div>';
         html += `
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <span style="flex:1">${d.name}</span>
-            <input type="number" step="0.01" class="input def-res-pct" data-idx="${i}" value="${(d.pct * 100).toFixed(2)}" style="width:80px" /> %
+          <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
+            <button class="btn-ghost" onclick="addDefaultResItem()">+ Adicionar Nova Reserva</button>
+            <div id="def_res_total" style="font-weight:bold">Total: 0%</div>
           </div>
         `;
-      });
-      html += '</div>';
-      html += '<div id="def_res_total" style="margin-top:12px;font-weight:bold;text-align:right">Total: 0%</div>';
+        return html;
+      };
 
-      showModal('Editar Padrões de Reserva', html, function () {
-        const inputs = document.querySelectorAll('.def-res-pct');
-        const newDefaults = [];
-        let total = 0;
-        inputs.forEach(inp => {
-          const idx = Number(inp.dataset.idx);
-          const val = Number(inp.value) || 0;
-          total += val;
-          newDefaults.push({ name: defaults[idx].name, pct: val / 100 });
-        });
-
-        if (Math.abs(total - 100) > 0.01) {
-          alert(`O total das porcentagens é ${total.toFixed(2)}%. Deve ser 100%. Ajuste antes de salvar.`);
-          return false; // Prevent closing? showModal implementation might not support preventing close on callback return.
-          // Assuming simple showModal, we might need to re-open or handle differently.
-          // For now, let's save but warn, or ideally we'd block. 
-          // Given the constraints, let's save but alert the user strongly if they want to proceed or re-edit.
-          // Actually, let's just update the state.settings.defaultReservas
-        }
-
-        if (!state.settings) state.settings = {};
-        state.settings.defaultReservas = newDefaults;
-        saveLocal();
-        alert('Padrões atualizados com sucesso!');
-      });
-
-      // Real-time total calculation
-      setTimeout(() => {
-        const inputs = document.querySelectorAll('.def-res-pct');
+      // Helper to attach events after render
+      const attachEvents = () => {
+        const inputsPct = document.querySelectorAll('.def-res-pct');
+        const inputsName = document.querySelectorAll('.def-res-name');
         const totalDiv = document.getElementById('def_res_total');
 
         const calcTotal = () => {
           let sum = 0;
-          inputs.forEach(inp => sum += Number(inp.value) || 0);
-          totalDiv.innerText = `Total: ${sum.toFixed(2)}%`;
-          totalDiv.style.color = Math.abs(sum - 100) < 0.01 ? 'var(--success)' : 'var(--danger)';
+          inputsPct.forEach(inp => sum += Number(inp.value) || 0);
+          if (totalDiv) {
+            totalDiv.innerText = `Total: ${sum.toFixed(2)}%`;
+            totalDiv.style.color = Math.abs(sum - 100) < 0.01 ? 'var(--success)' : 'var(--danger)';
+          }
         };
 
-        inputs.forEach(inp => inp.addEventListener('input', calcTotal));
+        inputsPct.forEach(inp => inp.addEventListener('input', (e) => {
+          const idx = Number(e.target.dataset.idx);
+          currentDefaults[idx].pct = (Number(e.target.value) || 0) / 100;
+          calcTotal();
+        }));
+
+        inputsName.forEach(inp => inp.addEventListener('input', (e) => {
+          const idx = Number(e.target.dataset.idx);
+          currentDefaults[idx].name = e.target.value;
+        }));
+
         calcTotal();
-      }, 200);
+      };
+
+      // Expose helpers globally so onclick works (temporary hack for this modal system)
+      window.removeDefaultResItem = (idx) => {
+        currentDefaults.splice(idx, 1);
+        refreshModal();
+      };
+      window.addDefaultResItem = () => {
+        currentDefaults.push({ name: '', pct: 0 });
+        refreshModal();
+      };
+
+      const refreshModal = () => {
+        // Re-render content inside the existing modal body if possible, or close/reopen
+        // Since our showModal is simple, we might need to re-inject content.
+        // Let's try finding the modal content container.
+        const modalBody = document.querySelector('.modal-content-body'); // Assuming class or we find by structure
+        // If we can't find a stable container, we just re-call showModal which replaces the content.
+        // But showModal usually creates a new overlay. Let's close and reopen or update innerHTML of a known container.
+        // For simplicity with current infra: update a container we created.
+        const container = document.getElementById('def_res_container');
+        if (container) {
+          container.innerHTML = renderModalContent();
+          attachEvents();
+        }
+      };
+
+      // Initial Show
+      showModal('Editar Padrões de Reserva', `<div id="def_res_container">${renderModalContent()}</div>`, function () {
+        // Save logic
+        if (!state.settings) state.settings = {};
+
+        // Validate total just to warn
+        const total = currentDefaults.reduce((s, d) => s + d.pct, 0) * 100;
+        if (Math.abs(total - 100) > 0.01) {
+          if (!confirm(`O total das porcentagens é ${total.toFixed(2)}%. Deseja salvar mesmo assim?`)) return false;
+        }
+
+        state.settings.defaultReservas = currentDefaults;
+        saveLocal();
+        alert('Padrões atualizados com sucesso!');
+
+        // Cleanup global helpers
+        delete window.removeDefaultResItem;
+        delete window.addDefaultResItem;
+      });
+
+      // Initial attach
+      setTimeout(attachEvents, 100);
     }
 
     /* ======= RESERVAS CRUD (mantive suas funções) ======= */
