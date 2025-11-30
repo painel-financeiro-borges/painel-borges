@@ -123,7 +123,65 @@
   function createAssetsTab() {
     const page = document.getElementById('ativos-passivos');
     if (!page) return;
-    page.innerHTML = '<h2>Ativos & Passivos - TESTE OK</h2>';
+
+    page.innerHTML = `
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h2>Ativos & Passivos</h2>
+          <button id="btn_clear_assets" class="btn-ghost" style="color:var(--danger)">Limpar Dados dessa Área</button>
+        </div>
+        <div class="small">Gerencie bens (imóveis, veículos) e dívidas de longo prazo.</div>
+        
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;align-items:flex-end">
+          <div style="flex:1;min-width:200px">
+            <label>Nome do Ativo/Passivo</label>
+            <input id="new_asset_name" class="input" placeholder="Ex: Apartamento Centro" />
+          </div>
+          <div style="width:140px">
+             <label>Tipo</label>
+             <select id="new_asset_type" class="input">
+               <option value="ativo">Ativo</option>
+               <option value="passivo">Passivo</option>
+             </select>
+          </div>
+          <div style="width:140px">
+            <label>Custo Inicial (R$)</label>
+            <input id="new_asset_cost" type="number" class="input" placeholder="0.00" />
+          </div>
+          <button id="btn_add_asset" class="btn">Adicionar</button>
+        </div>
+
+        <div id="assetsList" style="margin-top:24px;display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:16px"></div>
+        
+        <div id="assetTxPanel" style="margin-top:24px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.1)"></div>
+      </div>
+    `;
+
+    // Bind events
+    const btnAdd = page.querySelector('#btn_add_asset');
+    if (btnAdd) {
+      btnAdd.addEventListener('click', () => {
+        const name = page.querySelector('#new_asset_name').value.trim();
+        const type = page.querySelector('#new_asset_type').value;
+        const cost = Number(page.querySelector('#new_asset_cost').value) || 0;
+        if (!name) return alert('Nome é obrigatório');
+
+        const asset = { id: uid('as'), name, type, cost, saldo: cost, transactions: [], updated: nowISO() };
+        state.assets.push(asset);
+        saveLocal();
+        renderAssets();
+
+        page.querySelector('#new_asset_name').value = '';
+        page.querySelector('#new_asset_cost').value = '';
+      });
+    }
+
+    const btnClear = page.querySelector('#btn_clear_assets');
+    if (btnClear) {
+      btnClear.addEventListener('click', clearAtivosPassivos);
+    }
+
+    renderAssets();
   }
 
   // ---------- ALERTS & REMINDERS (Lembretes) COMPONENT ----------
@@ -471,10 +529,12 @@
   }
 
   function clearAtivosPassivos() {
-    if (!confirm('Tem certeza que deseja apagar TODOS os Ativos e Passivos?')) return;
+    if (!confirm('Tem certeza que deseja apagar TODOS os dados de Ativos e Passivos?')) return;
     state.assets = [];
     saveLocal();
     renderAssets();
+    const panel = document.getElementById('assetTxPanel');
+    if (panel) panel.innerHTML = '';
   }
 
   function renderAssetChartSmall(a) {
