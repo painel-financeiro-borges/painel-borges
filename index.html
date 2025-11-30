@@ -782,7 +782,7 @@
       /* ================= CONFIG ================= */
 
       /* ===== Estado Global ===== */
-      let state = {
+      var state = {
         reservas: [],
         transacoes: [],
         investimentos: [],
@@ -804,6 +804,7 @@
       /* ===== Persistence ===== */
       const STATE_KEY = 'borges_panel_3_v1';
       function saveLocal() { localStorage.setItem(STATE_KEY, JSON.stringify(state)); renderAll(); }
+      window.saveLocal = saveLocal;
       function loadLocal() {
         try {
           const raw = localStorage.getItem(STATE_KEY);
@@ -1203,7 +1204,7 @@
       }
       function renderNoteTabs() {
         const container = el('#noteTabs'); if (!container) return;
-        container.innerHTML = '';
+        container.innerHTML = '<div class="small">Nenhuma aba criada</div>';
         if (!state.caderno.length) { container.innerHTML = '<div class="small">Nenhuma aba criada</div>'; return; }
         state.caderno.forEach((t, idx) => {
           const div = document.createElement('div'); div.className = 'note-tab'; div.dataset.id = t.id;
