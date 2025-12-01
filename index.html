@@ -1722,8 +1722,13 @@
         if (!f.date) continue;
         if (f.date.slice(0, 7) !== monthKey) continue;
         const day = Number(f.date.slice(8, 10));
-        if (f.type === 'entrada') entriesByDay[day] = (entriesByDay[day] || 0) + Number(f.value || 0);
-        else exitsByDay[day] = (exitsByDay[day] || 0) + Number(f.value || 0);
+        // Check for 'entrada' explicitly, otherwise treat as 'saida' if it's 'saida' or fallback
+        // Assuming 'type' is either 'entrada' or 'saida'
+        if (f.type === 'entrada') {
+          entriesByDay[day] = (entriesByDay[day] || 0) + Number(f.value || 0);
+        } else if (f.type === 'saida') {
+          exitsByDay[day] = (exitsByDay[day] || 0) + Number(f.value || 0);
+        }
       }
       const maxDay = Math.max(...Object.keys(entriesByDay).map(Number).concat(Object.keys(exitsByDay).map(Number)).concat([30]));
       const labels = []; const entriesArr = []; const exitsArr = [];
