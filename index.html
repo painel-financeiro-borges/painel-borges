@@ -763,6 +763,8 @@
         <button class="btn" onclick="exportToClipboardAndModal()">Exportar Tudo (Bloco de Notas)</button>
         <button class="btn" onclick="cleanOldFluxo()" style="background:var(--danger)">Limpar Fluxo Antigo (> 12
           meses)</button>
+        <button class="btn" onclick="downloadLastHistoricalSnapshot()" style="background:var(--primary)">Baixar Última
+          Versão Salva</button>
 
         <input id="fileImport" type="file" accept=".json" style="background:transparent;color:var(--muted)" />
         <button class="btn-ghost" onclick="importAll()">Importar Backup</button>
@@ -1956,7 +1958,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
       from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, collection, getDocs, query, where, orderBy }
+    import { getFirestore, doc, setDoc, getDoc, collection, getDocs, query, where, orderBy, limit }
       from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -2012,6 +2014,50 @@
         alert("❌ Erro ao salvar na nuvem: " + e.message);
         const btn = document.getElementById('btnSyncAll');
         if (btn) btn.innerText = 'Salvar no Cloud';
+      }
+    };
+
+    window.downloadLastHistoricalSnapshot = async function () {
+      const user = auth.currentUser;
+      if (!user) {
+        alert("⚠️ Você precisa estar logado para baixar versões.");
+        return;
+      }
+
+      try {
+        const q = query(
+          collection(window.db, "user_versions"),
+          where("_uid", "==", user.uid),
+          orderBy("_snapshotAt", "desc"),
+          limit(1)
+        );
+
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+          alert("⚠️ Nenhuma versão histórica encontrada.");
+          return;
+        }
+
+        const docSnap = querySnapshot.docs[0];
+        const data = docSnap.data();
+        const docId = docSnap.id;
+
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'borges_last_version_' + docId + '.json';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+
+        alert("✅ Download iniciado para a versão: " + docId);
+
+      } catch (e) {
+        console.error("Erro ao baixar última versão:", e);
+        alert("❌ Erro ao baixar versão: " + e.message);
       }
     };
 
