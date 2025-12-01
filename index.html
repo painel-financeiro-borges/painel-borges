@@ -381,42 +381,57 @@
     <div id="dash_alert" class="alert-banner" style="display:none"></div>
 
     <!-- TOP STATS -->
-    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px">
-      <div class="card" style="flex:1;min-width:220px">
-        <div class="small">Entradas</div>
-        <div id="dash_entradas" style="font-weight:800;font-size:22px">R$ 0,00</div>
-        <div class="small">Lançamentos: <span id="count_entradas">0</span></div>
+    <div class="card" style="margin-top:8px;padding:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <h3 style="margin:0;font-size:16px">Resumo Geral</h3>
+        <button class="btn-ghost small-toggle" onclick="toggleDashSection('topstats')">👁️</button>
       </div>
-      <div class="card" style="flex:1;min-width:220px">
-        <div class="small">Saídas</div>
-        <div id="dash_saidas" style="font-weight:800;font-size:22px">R$ 0,00</div>
-        <div class="small">Lançamentos: <span id="count_saidas">0</span></div>
-      </div>
-      <div class="card" style="flex:1;min-width:220px">
-        <div class="small">Resultado</div>
-        <div id="dash_resultado" style="font-weight:800;font-size:22px">R$ 0,00</div>
-        <div class="small">Status: <span id="dash_result_status">—</span></div>
+      <div id="content_topstats" style="display:flex;gap:12px;flex-wrap:wrap">
+        <div class="card" style="flex:1;min-width:220px;box-shadow:none;border:1px solid #eee">
+          <div class="small">Entradas</div>
+          <div id="dash_entradas" style="font-weight:800;font-size:22px">R$ 0,00</div>
+          <div class="small">Lançamentos: <span id="count_entradas">0</span></div>
+        </div>
+        <div class="card" style="flex:1;min-width:220px;box-shadow:none;border:1px solid #eee">
+          <div class="small">Saídas</div>
+          <div id="dash_saidas" style="font-weight:800;font-size:22px">R$ 0,00</div>
+          <div class="small">Lançamentos: <span id="count_saidas">0</span></div>
+        </div>
+        <div class="card" style="flex:1;min-width:220px;box-shadow:none;border:1px solid #eee">
+          <div class="small">Resultado</div>
+          <div id="dash_resultado" style="font-weight:800;font-size:22px">R$ 0,00</div>
+          <div class="small">Status: <span id="dash_result_status">—</span></div>
+        </div>
       </div>
     </div>
     <!-- RESERVAS — PROGRESSO GERAL -->
     <div class="card" style="flex:1;min-width:220px;margin-top:12px">
-      <div style="font-weight:600;margin-bottom:6px">Reservas — total</div>
-      <div id="dash_reservas_total" style="font-size:20px;font-weight:700">R$ 0,00</div>
-      <div class="small">Quantidade de reservas: <span id="dash_reservas_count">0</span></div>
-
-      <div style="margin-top:10px;font-weight:600">Progresso das reservas</div>
-      <div class="progress" style="height:10px;margin-top:6px;background:#eee;border-radius:8px;overflow:hidden">
-        <div id="reservas_progress_bar" class="bar" style="width:0%;background:#00c853;transition:width 0.4s ease">
-        </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div style="font-weight:600">Reservas — total</div>
+        <button class="btn-ghost small-toggle" onclick="toggleDashSection('reservas')">👁️</button>
       </div>
-      <div id="reservas_progress_text" class="small">0%</div>
+      <div id="content_reservas">
+        <div id="dash_reservas_total" style="font-size:20px;font-weight:700">R$ 0,00</div>
+        <div class="small">Quantidade de reservas: <span id="dash_reservas_count">0</span></div>
+
+        <div style="margin-top:10px;font-weight:600">Progresso das reservas</div>
+        <div class="progress" style="height:10px;margin-top:6px;background:#eee;border-radius:8px;overflow:hidden">
+          <div id="reservas_progress_bar" class="bar" style="width:0%;background:#00c853;transition:width 0.4s ease">
+          </div>
+        </div>
+        <div id="reservas_progress_text" class="small">0%</div>
+      </div>
     </div>
 
     <!-- 1) CUSTO DE VIDA ATUAL -->
     <div class="card" id="dash_custo_card" style="margin-top:12px">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div class="small" style="font-weight:bold">Custo de Vida (mês)</div>
+        <button class="btn-ghost small-toggle" onclick="toggleDashSection('custo')">👁️</button>
+      </div>
+      <div id="content_custo"
+        style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
         <div>
-          <div class="small">Custo de Vida (mês)</div>
           <div id="dash_custo_total" style="font-weight:800;font-size:22px">R$ 0,00</div>
           <div class="small" id="dash_custo_month_label"></div>
         </div>
@@ -428,9 +443,13 @@
 
     <!-- 2) FLUXO DE CAIXA MENSAL -->
     <div class="card" id="dash_fluxo_card" style="margin-top:12px">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div class="small" style="font-weight:bold">Fluxo de Caixa — Mês</div>
+        <button class="btn-ghost small-toggle" onclick="toggleDashSection('fluxo')">👁️</button>
+      </div>
+      <div id="content_fluxo"
+        style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
         <div>
-          <div class="small">Fluxo de Caixa — Mês</div>
           <div style="display:flex;gap:12px;align-items:center;margin-top:6px;flex-wrap:wrap">
             <div class="kv">
               <div class="small">Entradas</div>
@@ -454,9 +473,13 @@
 
     <!-- 3) PLANEJAMENTO MENSAL -->
     <div class="card" id="dash_plan_card" style="margin-top:12px">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div class="small" style="font-weight:bold">Planejamento Mensal — Progresso</div>
+        <button class="btn-ghost small-toggle" onclick="toggleDashSection('plan')">👁️</button>
+      </div>
+      <div id="content_plan"
+        style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
         <div>
-          <div class="small">Planejamento Mensal — Progresso</div>
           <div id="dash_plan_meta" style="font-weight:800;font-size:18px">Meta: R$ 0,00</div>
           <div id="dash_plan_done" class="small">Concluído: R$ 0,00</div>
           <div style="margin-top:8px" class="progress">
@@ -473,10 +496,15 @@
     <!-- INVESTIMENTOS (Reservas removidas do resumo) -->
     <div style="display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px">
       <div class="card">
-        <div class="small">Investimentos — total</div>
-        <div id="dash_invest_total" style="font-weight:800;font-size:20px">R$ 0,00</div>
-        <div class="small">Quantidade de ativos: <span id="dash_inv_count">0</span></div>
-        <div style="margin-top:8px"><canvas id="chartInvCompSmall" height="140"></canvas></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <div class="small" style="font-weight:bold">Investimentos — total</div>
+          <button class="btn-ghost small-toggle" onclick="toggleDashSection('invest')">👁️</button>
+        </div>
+        <div id="content_invest">
+          <div id="dash_invest_total" style="font-weight:800;font-size:20px">R$ 0,00</div>
+          <div class="small">Quantidade de ativos: <span id="dash_inv_count">0</span></div>
+          <div style="margin-top:8px"><canvas id="chartInvCompSmall" height="140"></canvas></div>
+        </div>
       </div>
     </div>
 
@@ -487,9 +515,12 @@
           <h3 style="margin:0">Últimas transações / lançamentos</h3>
           <div class="small">Transações recentes</div>
         </div>
-        <div class="small">Atualizado: <span id="dash_updated">-</span></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div class="small">Atualizado: <span id="dash_updated">-</span></div>
+          <button class="btn-ghost small-toggle" onclick="toggleDashSection('recent')">👁️</button>
+        </div>
       </div>
-      <div style="margin-top:8px;overflow:auto">
+      <div id="content_recent" style="margin-top:8px;overflow:auto">
         <table class="table" id="dash_recent">
           <thead>
             <tr>
@@ -741,7 +772,9 @@
       <div style="margin-top:12px" class="card">
         <div style="display:flex;gap:8px;align-items:center">
           <input id="note_block_title" class="input" placeholder="Título do bloco (sub-aba)" />
-          <button class="btn" onclick="addBlock()">Adicionar bloco</button>
+          <button class="btn" onclick="addBlock()">Adicionar Checklist</button>
+          <button class="btn" onclick="addFreeTextBlock()" style="background:var(--secondary)">Adicionar Anotação
+            Livre</button>
         </div>
         <div id="noteBlocks" style="margin-top:12px"></div>
       </div>
@@ -761,10 +794,6 @@
       <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn" onclick="exportAll()">Exportar Tudo (.json)</button>
         <button class="btn" onclick="exportToClipboardAndModal()">Exportar Tudo (Bloco de Notas)</button>
-        <button class="btn" onclick="cleanOldFluxo()" style="background:var(--danger)">Limpar Fluxo Antigo (> 12
-          meses)</button>
-        <button class="btn" onclick="downloadLastHistoricalSnapshot()" style="background:var(--primary)">Baixar Última
-          Versão Salva</button>
 
         <input id="fileImport" type="file" accept=".json" style="background:transparent;color:var(--muted)" />
         <button class="btn-ghost" onclick="importAll()">Importar Backup</button>
@@ -828,6 +857,7 @@
     /* ===== Persistence ===== */
     const STATE_KEY = 'borges_panel_3_v1';
     function saveLocal() { localStorage.setItem(STATE_KEY, JSON.stringify(state)); renderAll(); }
+    function saveLocalSilent() { localStorage.setItem(STATE_KEY, JSON.stringify(state)); }
     window.saveLocal = saveLocal;
     function loadLocal() {
       try {
@@ -1510,12 +1540,60 @@
     function editNoteTab(tabId) { const t = state.caderno.find(x => x.id === tabId); if (!t) return; const newName = prompt('Renomear aba', t.name); if (newName === null) return; t.name = newName.trim() || t.name; saveLocal(); renderNoteTabs(); renderNoteBlocks(t.id); }
     function removeNoteTab(tabId) { if (!confirm('Remover aba e todos os blocos nela?')) return; state.caderno = state.caderno.filter(x => x.id !== tabId); saveLocal(); renderNoteTabs(); el('#noteBlocks').innerHTML = ''; }
     function reorderNoteTabs(draggedId, targetId) { const idxD = state.caderno.findIndex(x => x.id === draggedId); const idxT = state.caderno.findIndex(x => x.id === targetId); if (idxD == -1 || idxT == -1) return; const [item] = state.caderno.splice(idxD, 1); state.caderno.splice(idxT, 0, item); saveLocal(); renderNoteTabs(); }
-    function addBlock() { const title = el('#note_block_title').value.trim(); if (!title) return alert('Insira título do bloco'); const activeEl = document.querySelector('.note-tab.active'); if (!activeEl) return alert('Selecione uma aba primeiro'); const tab = state.caderno.find(t => t.id === activeEl.dataset.id); if (!tab) return; tab.blocks.push({ id: uid('b'), title, items: [] }); el('#note_block_title').value = ''; saveLocal(); renderNoteBlocks(tab.id); }
+    function addBlock(type = 'checklist') {
+      const title = el('#note_block_title').value.trim();
+      if (!title) return alert('Insira título do bloco');
+      const activeEl = document.querySelector('.note-tab.active');
+      if (!activeEl) return alert('Selecione uma aba primeiro');
+      const tab = state.caderno.find(t => t.id === activeEl.dataset.id);
+      if (!tab) return;
+
+      const newBlock = { id: uid('b'), title, type: type };
+      if (type === 'checklist') newBlock.items = [];
+      else if (type === 'free_text') newBlock.content = '';
+
+      tab.blocks.push(newBlock);
+      el('#note_block_title').value = '';
+      saveLocal();
+      renderNoteBlocks(tab.id);
+    }
+    function addFreeTextBlock() { addBlock('free_text'); }
+    function updateBlockContent(tabId, blockId, content) {
+      const tab = state.caderno.find(t => t.id === tabId); if (!tab) return;
+      const block = tab.blocks.find(b => b.id === blockId); if (!block) return;
+      block.content = content;
+      saveLocalSilent();
+    }
     function renderNoteBlocks(tabId) {
-      const tab = state.caderno.find(t => t.id === tabId); if (!tab) { el('#noteBlocks').innerHTML = ''; return; } const container = el('#noteBlocks'); container.innerHTML = ''; tab.blocks.forEach(block => {
-        const box = document.createElement('div'); box.className = 'card'; box.style.marginBottom = '10px'; box.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><strong>${block.title}</strong>
-      <div><button class="btn-ghost" onclick="addItemPrompt('${tab.id}','${block.id}')">+ Item</button> <button class="btn-ghost" onclick="removeBlock('${tab.id}','${block.id}')">Excluir bloco</button></div></div>
-      <div id="items_${block.id}" style="margin-top:8px"></div>`; box.setAttribute('draggable', 'true'); box.addEventListener('dragstart', (e) => e.dataTransfer.setData('text/plain', JSON.stringify({ tab: tab.id, block: block.id }))); box.addEventListener('dragover', (e) => e.preventDefault()); box.addEventListener('drop', (e) => { e.preventDefault(); const data = JSON.parse(e.dataTransfer.getData('text/plain')); reorderBlocks(data.tab, data.block, tab.id, block.id); }); container.appendChild(box); renderItems(tab.id, block.id);
+      const tab = state.caderno.find(t => t.id === tabId); if (!tab) { el('#noteBlocks').innerHTML = ''; return; }
+      const container = el('#noteBlocks'); container.innerHTML = '';
+      tab.blocks.forEach(block => {
+        const box = document.createElement('div'); box.className = 'card'; box.style.marginBottom = '10px';
+
+        let headerHtml = `<div style="display:flex;justify-content:space-between;align-items:center"><strong>${block.title}</strong><div>`;
+        if (!block.type || block.type === 'checklist') {
+          headerHtml += `<button class="btn-ghost" onclick="addItemPrompt('${tab.id}','${block.id}')">+ Item</button> `;
+        }
+        headerHtml += `<button class="btn-ghost" onclick="removeBlock('${tab.id}','${block.id}')">Excluir bloco</button></div></div>`;
+
+        let bodyHtml = '';
+        if (!block.type || block.type === 'checklist') {
+          bodyHtml = `<div id="items_${block.id}" style="margin-top:8px"></div>`;
+        } else if (block.type === 'free_text') {
+          bodyHtml = `<div style="margin-top:8px"><textarea class="input" style="min-height:100px;resize:vertical;width:100%;font-family:inherit" oninput="updateBlockContent('${tab.id}','${block.id}', this.value)">${block.content || ''}</textarea></div>`;
+        }
+
+        box.innerHTML = headerHtml + bodyHtml;
+
+        box.setAttribute('draggable', 'true');
+        box.addEventListener('dragstart', (e) => e.dataTransfer.setData('text/plain', JSON.stringify({ tab: tab.id, block: block.id })));
+        box.addEventListener('dragover', (e) => e.preventDefault());
+        box.addEventListener('drop', (e) => { e.preventDefault(); const data = JSON.parse(e.dataTransfer.getData('text/plain')); reorderBlocks(data.tab, data.block, tab.id, block.id); });
+        container.appendChild(box);
+
+        if (!block.type || block.type === 'checklist') {
+          renderItems(tab.id, block.id);
+        }
       });
     }
     function reorderBlocks(srcTabId, srcBlockId, tgtTabId, tgtBlockId) { const srcTab = state.caderno.find(t => t.id === srcTabId); const tgtTab = state.caderno.find(t => t.id === tgtTabId); if (!srcTab || !tgtTab) return; const bi = srcTab.blocks.findIndex(b => b.id === srcBlockId); const [block] = srcTab.blocks.splice(bi, 1); const ti = tgtTab.blocks.findIndex(b => b.id === tgtBlockId); tgtTab.blocks.splice(ti, 0, block); saveLocal(); renderNoteTabs(); renderNoteBlocks(tgtTab.id); }
@@ -1616,7 +1694,8 @@
 
     function computeFluxoMonthly(monthKey) {
       const entriesByDay = {}; const exitsByDay = {};
-      for (const f of state.fluxo) {
+      const list = Array.isArray(state.fluxo) ? state.fluxo : [];
+      for (const f of list) {
         if (!f.date) continue;
         if (f.date.slice(0, 7) !== monthKey) continue;
         const day = Number(f.date.slice(8, 10));
@@ -1638,7 +1717,8 @@
 
     function computeCustoByCategory(monthKey) {
       const cats = {};
-      for (const c of state.custo) {
+      const list = Array.isArray(state.custo) ? state.custo : [];
+      for (const c of list) {
         if (!c.date) continue;
         if (c.date.slice(0, 7) !== monthKey) continue;
         cats[c.cat] = (cats[c.cat] || 0) + Number(c.value || 0);
@@ -1679,8 +1759,33 @@
     }
 
     /* ====== Render Dashboard (Chart.js) ====== */
+    /* ====== Render Dashboard (Chart.js) ====== */
+    window.toggleDashSection = function (section) {
+      if (!state.settings.hideDashSections) state.settings.hideDashSections = {};
+      state.settings.hideDashSections[section] = !state.settings.hideDashSections[section];
+      saveLocal();
+      renderDashboard();
+    };
+
     function renderDashboard() {
       const monthKey = getSelectedMonthKey() || new Date().toISOString().slice(0, 7);
+
+      // Apply visibility settings
+      const sections = ['topstats', 'reservas', 'custo', 'fluxo', 'plan', 'invest', 'recent'];
+      if (!state.settings.hideDashSections) state.settings.hideDashSections = {};
+
+      sections.forEach(sec => {
+        const elContent = document.getElementById('content_' + sec);
+        if (elContent) {
+          elContent.style.display = state.settings.hideDashSections[sec] ? 'none' : (sec === 'topstats' || sec === 'custo' || sec === 'fluxo' || sec === 'plan' ? 'flex' : 'block');
+          // Restore specific display types if not hidden
+          if (!state.settings.hideDashSections[sec]) {
+            if (sec === 'topstats') elContent.style.display = 'flex';
+            else if (sec === 'custo' || sec === 'fluxo' || sec === 'plan') elContent.style.display = 'flex';
+            else elContent.style.display = 'block';
+          }
+        }
+      });
 
       // resumo financeiro
       const resumo = computeResumoFinanceiro(monthKey);
@@ -1854,20 +1959,7 @@
     function clearPlanejamento() { if (!confirm('Tem certeza que deseja apagar TODO o Planejamento?')) return; state.planejamento = {}; saveLocal(); getMonthOptions(); renderPlanForMonth(getSelectedMonthKey()); }
     function clearCaderno() { if (!confirm('Tem certeza que deseja apagar TODO o Caderno de Notas?')) return; state.caderno = []; saveLocal(); renderNoteTabs(); el('#noteBlocks').innerHTML = ''; }
 
-    function cleanOldFluxo() {
-      const now = new Date();
-      const cutoffDate = new Date(now.setFullYear(now.getFullYear() - 1)).toISOString().slice(0, 10);
 
-      if (!confirm('Deseja remover entradas de fluxo anteriores a ' + cutoffDate + ' (mais de 12 meses)?')) return;
-
-      const initialCount = state.fluxo.length;
-      state.fluxo = state.fluxo.filter(f => f.date >= cutoffDate);
-      const removedCount = initialCount - state.fluxo.length;
-
-      saveLocal();
-      renderFluxo();
-      alert(`Limpeza concluída! ${removedCount} registros antigos removidos.`);
-    }
 
     /* ===== Render all structural tables/cards ===== */
     function renderAll() {
@@ -1974,7 +2066,7 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     window.auth = auth; // Expose auth globally for security checks
-    window.db = getFirestore(app);
+    window.db = getFirestore(app); // Global database instance for access across functions
     const provider = new GoogleAuthProvider();
 
     const btnLogin = document.getElementById("btnLogin");
@@ -2021,51 +2113,7 @@
       }
     };
 
-    window.downloadLastHistoricalSnapshot = async function () {
-      // STRICT SECURITY CHECK
-      if (!window.auth || !window.auth.currentUser || !window.db) {
-        alert("⚠️ Você precisa estar logado e conectado para baixar versões.");
-        return;
-      }
 
-      const user = window.auth.currentUser;
-
-      try {
-        const q = query(
-          collection(window.db, "user_versions"),
-          where("_uid", "==", user.uid),
-          orderBy("_snapshotAt", "desc"),
-          limit(1)
-        );
-
-        const querySnapshot = await getDocs(q);
-
-        if (querySnapshot.empty) {
-          alert("⚠️ Nenhuma versão histórica encontrada.");
-          return;
-        }
-
-        const docSnap = querySnapshot.docs[0];
-        const data = docSnap.data();
-        const docId = docSnap.id;
-
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'borges_last_version_' + docId + '.json';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-
-        alert("✅ Download iniciado para a versão: " + docId);
-
-      } catch (e) {
-        console.error("Erro ao baixar última versão:", e);
-        alert("❌ Erro ao baixar versão: " + e.message);
-      }
-    };
 
 
 
