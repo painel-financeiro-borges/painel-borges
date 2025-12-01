@@ -765,12 +765,17 @@
           Histórica</button>
         <button class="btn" onclick="cleanOldFluxo()" style="background:var(--danger)">Limpar Fluxo Antigo (> 12
           meses)</button>
+        <button class="btn" onclick="renderVersionHistoryTable()" style="background:var(--primary)">Visualizar Histórico
+          de Versões</button>
 
         <input id="fileImport" type="file" accept=".json" style="background:transparent;color:var(--muted)" />
         <button class="btn-ghost" onclick="importAll()">Importar Backup</button>
         <div class="spacer"></div>
         <div class="small">Drive API: <span id="apiUrlDisplay"></span></div>
       </div>
+
+      <div id="versionHistoryContainer"
+        style="margin-top:20px;max-height:300px;overflow:auto;border:1px solid #ccc;padding:10px;display:none"></div>
 
       <!-- Botão adicional: Zerar Painel -->
       <div style="margin-top:20px;border-top:1px solid #ccc;padding-top:15px">
@@ -1958,7 +1963,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
       from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, collection, getDocs }
+    import { getFirestore, doc, setDoc, getDoc, collection, getDocs, query, where, orderBy }
       from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -2042,6 +2047,74 @@
       } catch (e) {
         console.error("Erro ao criar snapshot:", e);
         alert("❌ Erro ao criar versão: " + e.message);
+      }
+    };
+
+    window.renderVersionHistoryTable = async function () {
+      const user = auth.currentUser;
+      if (!user) { alert("Logue-se primeiro."); return; }
+
+      const container = document.getElementById('versionHistoryContainer');
+      if (!container) return;
+      container.style.display = 'block';
+      container.innerHTML = '<div class="small">Carregando histórico...</div>';
+
+      try {
+        const q = query(
+          collection(window.db, "user_versions"),
+          where("_uid", "==", user.uid),
+          orderBy("_snapshotAt", "desc")
+        );
+
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+          container.innerHTML = '<div class="small">Nenhuma versão histórica encontrada.</div>';
+          return;
+        }
+
+        let html = '<table class="table" style="width:100%"><thead><tr><th>Data/Hora</th><th>Ação</th></tr></thead><tbody>';
+
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          const dateStr = data._snapshotAt ? new Date(data._snapshotAt).toLocaleString() : 'Sem data';
+          html += `<tr>
+            <td>${dateStr}</td>
+            <td><button class="btn-ghost" onclick="downloadVersion('${doc.id}')">Baixar JSON</button></td>
+          </tr>`;
+        });
+
+        html += '</tbody></table>';
+        container.innerHTML = html;
+
+      } catch (e) {
+        console.error("Erro ao carregar histórico:", e);
+        container.innerHTML = '<div class="small" style="color:var(--danger)">Erro ao carregar histórico: ' + e.message + '</div>';
+      }
+    };
+
+    window.downloadVersion = async function (docId) {
+      try {
+        const docRef = doc(window.db, "user_versions", docId);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'borges_version_' + docId + '.json';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+        } else {
+          alert("Versão não encontrada.");
+        }
+      } catch (e) {
+        console.error("Erro ao baixar versão:", e);
+        alert("Erro: " + e.message);
       }
     };
 
