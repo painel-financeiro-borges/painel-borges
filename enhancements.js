@@ -217,131 +217,168 @@
     }
 
     // Ensure tab button exists
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${t.date}</td><td>${t.type}</td><td>${t.note || '(sem)'}</td><td>${safeFormatMoney(t.value)}</td>
+    let btn = document.querySelector('.tab[data-tab="lembretes"]');
+    if (!btn) {
+      const backupTab = document.querySelector('.tab[data-tab="backup"]');
+      if (backupTab) {
+        const tabListParent = backupTab.parentNode;
+        btn = document.createElement('div');
+        btn.className = 'tab';
+        btn.dataset.tab = 'lembretes';
+        btn.innerText = 'Lembretes';
+        tabListParent.insertBefore(btn, backupTab);
+
+        // Bind click event for the new tab
+        btn.onclick = function () {
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          btn.classList.add('active');
+          document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+          const pageEl = document.getElementById('lembretes');
+          if (pageEl) pageEl.style.display = 'block';
+          renderRemindersTab();
+        };
+      }
+    }
+
+    renderRemindersTab();
+  }
+
+  function showAssetTransactions(id) {
+    const a = state.assets.find(x => x.id === id);
+    const panel = document.getElementById('assetTxPanel');
+    if (!panel) return;
+    panel.innerHTML = `<div style="font-weight:700;margin-bottom:8px">${a.name} — Transações</div>`;
+    if (!a.transactions || !a.transactions.length) { panel.innerHTML += '<div class="small">Sem transações</div>'; return; }
+    const table = document.createElement('table');
+    table.className = 'table';
+    table.style.width = '100%';
+    table.innerHTML = `<thead><tr><th>Data</th><th>Tipo</th><th>Desc</th><th>Valor</th><th></th></tr></thead><tbody></tbody>`;
+    a.transactions.forEach(t => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${t.date}</td><td>${t.type}</td><td>${t.note || '(sem)'}</td><td>${safeFormatMoney(t.value)}</td>
         <td><button class="btn-ghost" data-deltx="${t.id}" data-asset="${a.id}">Excluir</button></td>`;
-    table.querySelector('tbody').appendChild(tr);
-  });
-  panel.appendChild(table);
-  // attach delete handlers
-  table.querySelectorAll('button[data-deltx]').forEach(b => {
-    b.addEventListener('click', (e) => {
-      const txId = b.getAttribute('data-deltx');
-      const assetId = b.getAttribute('data-asset');
-      removeAssetTx(assetId, txId);
+      table.querySelector('tbody').appendChild(tr);
     });
-  });
-}
+    panel.appendChild(table);
+    // attach delete handlers
+    table.querySelectorAll('button[data-deltx]').forEach(b => {
+      b.addEventListener('click', (e) => {
+        const txId = b.getAttribute('data-deltx');
+        const assetId = b.getAttribute('data-asset');
+        removeAssetTx(assetId, txId);
+      });
+    });
+  }
 
-      function removeAssetTx(assetId, txId) {
-  const a = state.assets.find(x => x.id === assetId);
-  if (!a) return;
-  if (!confirm('Excluir transação?')) return;
-  a.transactions = a.transactions.filter(t => t.id !== txId);
-  // recalc saldo from cost and transactions
-  a.saldo = a.transactions.reduce((s, t) => s + (t.type === 'entrada' ? Number(t.value) : -Number(t.value)), Number(a.cost || 0));
-  saveLocal();
-  renderAssets();
-  showAssetTransactions(assetId);
-}
+  function removeAssetTx(assetId, txId) {
+    const a = state.assets.find(x => x.id === assetId);
+    if (!a) return;
+    if (!confirm('Excluir transação?')) return;
+    a.transactions = a.transactions.filter(t => t.id !== txId);
+    // recalc saldo from cost and transactions
+    a.saldo = a.transactions.reduce((s, t) => s + (t.type === 'entrada' ? Number(t.value) : -Number(t.value)), Number(a.cost || 0));
+    saveLocal();
+    renderAssets();
+    showAssetTransactions(assetId);
+  }
 
-function openAssetEditor(id) {
-  const a = state.assets.find(x => x.id === id);
-  if (!a) return;
-  const html = `
+  function openAssetEditor(id) {
+    const a = state.assets.find(x => x.id === id);
+    if (!a) return;
+    const html = `
       <label>Nome</label><input id="modal_ap_name" class="input" value="${a.name}"/>
       <label>Tipo</label><select id="modal_ap_type" class="input"><option value="ativo">Ativo</option><option value="passivo">Passivo</option></select>
       <label>Custo inicial</label><input id="modal_ap_cost" class="input" type="number" value="${a.cost}"/>
     `;
-  safeShowModal('Editar Ativo/Passivo', html, function () {
-    a.name = document.getElementById('modal_ap_name').value.trim();
-    a.type = document.getElementById('modal_ap_type').value;
-    a.cost = Number(document.getElementById('modal_ap_cost').value) || 0;
-    saveLocal(); renderAssets();
-  });
-}
-
-function removeAsset(id) {
-  if (!confirm('Excluir ativo/passivo e transações?')) return;
-  state.assets = state.assets.filter(x => x.id !== id);
-  saveLocal();
-  renderAssets();
-}
-
-function clearAtivosPassivos() {
-  if (!confirm('Tem certeza que deseja apagar TODOS os dados de Ativos e Passivos?')) return;
-  state.assets = [];
-  saveLocal();
-  renderAssets();
-  const panel = document.getElementById('assetTxPanel');
-  if (panel) panel.innerHTML = '';
-}
-
-function renderAssetChartSmall(a) {
-  const container = document.getElementById('chart_' + a.id);
-  if (!container) return;
-  container.innerHTML = '';
-  if (typeof Chart === 'undefined') return;
-  const canvas = document.createElement('canvas');
-  canvas.height = 80;
-  container.appendChild(canvas);
-  const labels = (a.transactions || []).slice(0, 10).map(t => t.date).reverse();
-  const entradas = (a.transactions || []).slice(0, 10).map(t => t.type === 'entrada' ? Number(t.value) : 0).reverse();
-  const saidas = (a.transactions || []).slice(0, 10).map(t => t.type === 'saida' ? Number(t.value) : 0).reverse();
-  try {
-    new Chart(canvas.getContext('2d'), {
-      type: 'bar',
-      data: {
-        labels, datasets: [
-          { label: 'Entradas', data: entradas, backgroundColor: 'rgba(16,185,129,0.9)' },
-          { label: 'Saídas', data: saidas, backgroundColor: 'rgba(239,68,68,0.9)' }
-        ]
-      },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
+    safeShowModal('Editar Ativo/Passivo', html, function () {
+      a.name = document.getElementById('modal_ap_name').value.trim();
+      a.type = document.getElementById('modal_ap_type').value;
+      a.cost = Number(document.getElementById('modal_ap_cost').value) || 0;
+      saveLocal(); renderAssets();
     });
-  } catch (e) { console.warn('chart draw fail', e); }
-}
+  }
 
-// ---------- INIT: insert UI and bind ----------
-function initEnhancements() {
-  createRemindersTab(); // NEW - Moved to top
-  insertPrivacyControls();
-  createAssetsTab();
-  applyAreaHides();
-  applyTabHides();
-  renderAlertsDashboard(); // NEW
-
-  // expose small API for manual triggers
-  window.enhancements = {
-    renderAssets,
-    renderAlertsDashboard,
-    createRemindersTab,
-    toggleAreaHide,
-    toggleTabHide,
-    createAssetsTab
-  };
-
-  // Auto render assets if the tab visible
-  if (location.hash && location.hash.includes('ativos-passivos')) {
-    document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-    const p = document.getElementById('ativos-passivos');
-    if (p) p.style.display = 'block';
+  function removeAsset(id) {
+    if (!confirm('Excluir ativo/passivo e transações?')) return;
+    state.assets = state.assets.filter(x => x.id !== id);
+    saveLocal();
     renderAssets();
   }
-  // Auto render reminders if tab visible
-  if (location.hash && location.hash.includes('lembretes')) {
-    document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-    const p = document.getElementById('lembretes');
-    if (p) p.style.display = 'block';
-    renderRemindersTab();
+
+  function clearAtivosPassivos() {
+    if (!confirm('Tem certeza que deseja apagar TODOS os dados de Ativos e Passivos?')) return;
+    state.assets = [];
+    saveLocal();
+    renderAssets();
+    const panel = document.getElementById('assetTxPanel');
+    if (panel) panel.innerHTML = '';
   }
-}
 
-// run after DOM ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initEnhancements);
-} else {
-  setTimeout(initEnhancements, 50);
-}
+  function renderAssetChartSmall(a) {
+    const container = document.getElementById('chart_' + a.id);
+    if (!container) return;
+    container.innerHTML = '';
+    if (typeof Chart === 'undefined') return;
+    const canvas = document.createElement('canvas');
+    canvas.height = 80;
+    container.appendChild(canvas);
+    const labels = (a.transactions || []).slice(0, 10).map(t => t.date).reverse();
+    const entradas = (a.transactions || []).slice(0, 10).map(t => t.type === 'entrada' ? Number(t.value) : 0).reverse();
+    const saidas = (a.transactions || []).slice(0, 10).map(t => t.type === 'saida' ? Number(t.value) : 0).reverse();
+    try {
+      new Chart(canvas.getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels, datasets: [
+            { label: 'Entradas', data: entradas, backgroundColor: 'rgba(16,185,129,0.9)' },
+            { label: 'Saídas', data: saidas, backgroundColor: 'rgba(239,68,68,0.9)' }
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
+      });
+    } catch (e) { console.warn('chart draw fail', e); }
+  }
 
-}) ();
+  // ---------- INIT: insert UI and bind ----------
+  function initEnhancements() {
+    createRemindersTab(); // NEW - Moved to top
+    insertPrivacyControls();
+    createAssetsTab();
+    applyAreaHides();
+    applyTabHides();
+    renderAlertsDashboard(); // NEW
+
+    // expose small API for manual triggers
+    window.enhancements = {
+      renderAssets,
+      renderAlertsDashboard,
+      createRemindersTab,
+      toggleAreaHide,
+      toggleTabHide,
+      createAssetsTab
+    };
+
+    // Auto render assets if the tab visible
+    if (location.hash && location.hash.includes('ativos-passivos')) {
+      document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+      const p = document.getElementById('ativos-passivos');
+      if (p) p.style.display = 'block';
+      renderAssets();
+    }
+    // Auto render reminders if tab visible
+    if (location.hash && location.hash.includes('lembretes')) {
+      document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+      const p = document.getElementById('lembretes');
+      if (p) p.style.display = 'block';
+      renderRemindersTab();
+    }
+  }
+
+  // run after DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initEnhancements);
+  } else {
+    setTimeout(initEnhancements, 50);
+  }
+
+})();
