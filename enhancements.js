@@ -2,8 +2,8 @@
    Adiciona:
    - Aba "Ativos & Passivos" (criar/editar/transações/grafico pequeno)
    - Aba "Lembretes" (alertas e lembretes)
-   - Lógica: Classificação de Ativo/Passivo baseada no Fluxo Líquido (Entradas vs Saídas).
-   Design inalterado. Não destrutivo.
+   - Lógica: Classificação de Ativo/Passivo AUTOMÁTICA baseada no Fluxo Líquido (Entradas - Saídas).
+   - CORREÇÃO: Integridade do saldo ao editar o custo inicial.
 */
 
 (function () {
@@ -37,9 +37,10 @@
     };
   }
   
-  // ========== FUNÇÃO CENTRAL: CLASSIFICAÇÃO AUTOMÁTICA ==========
+  // ========== FUNÇÕES CENTRAIS DE CÁLCULO ==========
+  
   /**
-   * Calcula o Fluxo Líquido (Entradas - Saídas) de um ativo.
+   * Calcula o Fluxo Líquido (Entradas - Saídas) de um patrimônio.
    * Usado para classificar automaticamente como Ativo/Passivo.
    * @param {Object} a - O objeto asset.
    * @returns {number} Fluxo líquido.
@@ -53,7 +54,7 @@
   }
   
   /**
-   * Recalcula o saldo total (Custo Inicial + Fluxo Líquido).
+   * Calcula o saldo total (Custo Inicial/Dívida + Fluxo Líquido).
    * @param {Object} a - O objeto asset.
    * @returns {number} Saldo atualizado.
    */
@@ -78,7 +79,7 @@
         <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;align-items:flex-end">
           <div style="flex:1;min-width:200px">
             <label>Nome do Patrimônio</label>
-            <input id="new_asset_name" class="input" placeholder="Ex: Apartamento Centro (Ativo) ou Financiamento (Passivo)" />
+            <input id="new_asset_name" class="input" placeholder="Ex: Apartamento Centro ou Financiamento" />
           </div>
           <div style="width:140px">
             <label>Custo/Dívida Inicial (R$)</label>
@@ -121,7 +122,7 @@
     renderAssets();
   }
   
-  // ---------- RENDER / ACTIONS FOR ASSETS ----------
+  // ---------- RENDER / ACTIONS FOR ASSETS (ATUALIZADO) ----------
   function renderAssets() {
     const container = document.getElementById('assetsList');
     if (!container) return;
@@ -186,6 +187,7 @@
     });
   }
 
+
   function promptAssetTx(id, tipo) {
     const val = Number(prompt(`Valor R$ da ${tipo === 'entrada' ? 'Receita' : 'Despesa'}`, '0')) || 0;
     if (val <= 0) return;
@@ -199,13 +201,13 @@
     const tx = { id: uid('tx'), date: (new Date()).toLocaleDateString(), type: tipo, value: Number(valor), note: nota || '' };
     a.transactions.unshift(tx);
     
-    // O Saldo é atualizado automaticamente pelo novo cálculo
+    // ATUALIZADO: Saldo é recalculado pelo novo cálculo
     a.saldo = computeAssetBalance(a); 
     a.updated = nowISO();
     saveLocal();
     renderAssets();
     renderAlertsDashboard(); // Update summary
-    // showAssetTransactions(id); // Opcional: manter o painel de transações aberto
+    // showAssetTransactions(id); 
   }
 
   function showAssetTransactions(id) {
@@ -242,7 +244,7 @@
     if (!confirm('Excluir transação?')) return;
     a.transactions = a.transactions.filter(t => t.id !== txId);
     
-    // Recalcula o saldo após a remoção
+    // ATUALIZADO: Recalcula o saldo após a remoção
     a.saldo = computeAssetBalance(a); 
     
     saveLocal();
@@ -262,7 +264,7 @@
       a.name = document.getElementById('modal_ap_name').value.trim();
       a.cost = Number(document.getElementById('modal_ap_cost').value) || 0;
       
-      // CORREÇÃO: Recalcula o saldo quando o custo inicial é alterado
+      // CORREÇÃO DE INTEGRIDADE DE SALDO: Recalcula o saldo quando o custo inicial é alterado
       a.saldo = computeAssetBalance(a); 
       
       saveLocal(); 
@@ -364,10 +366,9 @@
       });
     }
 
-    // Garante que o botão da aba Lembretes seja criado/funcione se ainda não estiver lá
+    // Ensure tab button exists and binds click event (removed the redundant creation block)
     let btn = document.querySelector('.tab[data-tab="lembretes"]');
     if (btn) {
-        // Se a aba existe, apenas garante que o clique chama o render correto
         btn.onclick = function () {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             btn.classList.add('active');
@@ -467,18 +468,17 @@
   }
 
   function renderAlertsDashboard() {
-    // Try to find wrapper no dashboard
+    // Try to find wrapper
     const wrapper = document.getElementById('dash_reminders_wrapper');
     if (!wrapper) return;
 
     wrapper.innerHTML = '';
 
-    // --- ASSET SUMMARY (ATUALIZADO) ---
+    // --- ASSET SUMMARY (ATUALIZADO PARA FLUXO) ---
     if (state.assets && state.assets.length > 0) {
       let countAtivos = 0;
       let countPassivos = 0;
       state.assets.forEach(a => {
-        // Classifica com base no Fluxo Líquido (computeAssetNet)
         const net = computeAssetNet(a);
         if (net > 0) countAtivos++;
         if (net < 0) countPassivos++;
@@ -498,7 +498,6 @@
           divA.style.border = '1px solid var(--success)';
           divA.style.padding = '8px';
           divA.style.textAlign = 'center';
-          // Renderiza a quantidade de ativos
           divA.innerHTML = `<div style="font-weight:bold;color:var(--success)">Você tem ${countAtivos} Ativos</div>`;
           summaryDiv.appendChild(divA);
         }
@@ -511,7 +510,6 @@
           divP.style.border = '1px solid var(--danger)';
           divP.style.padding = '8px';
           divP.style.textAlign = 'center';
-          // Renderiza a quantidade de passivos
           divP.innerHTML = `<div style="font-weight:bold;color:var(--danger)">Você tem ${countPassivos} Passivos</div>`;
           summaryDiv.appendChild(divP);
         }
@@ -519,11 +517,10 @@
       }
     }
 
-    // --- REMINDERS ALERTS ---
     const ativos = state.alertas.filter(a => !a.concluido);
     if (!ativos.length) return;
     
-    // (O restante do código de renderização dos lembretes pendentes no dashboard)
+    // O restante do código de renderização dos lembretes pendentes no dashboard
     const container = document.createElement('div');
     container.style.background = 'rgba(239,68,68,0.15)';
     container.style.borderLeft = '4px solid #ef4444';
@@ -590,8 +587,7 @@
       renderAssets,
       renderAlertsDashboard,
       createRemindersTab,
-      createAssetsTab,
-      computeAssetNet // Expor utilitário
+      createAssetsTab
     };
 
     // Auto render assets if the tab visible
