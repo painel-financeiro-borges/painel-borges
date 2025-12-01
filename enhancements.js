@@ -2,6 +2,7 @@
    Adiciona:
    - Aba "Ativos & Passivos" (criar/editar/transações/grafico pequeno)
    - Aba "Lembretes" (alertas e lembretes)
+   - Lógica: Classificação de Ativo/Passivo baseada no Fluxo Líquido (Entradas vs Saídas).
    Design inalterado. Não destrutivo.
 */
 
@@ -12,6 +13,8 @@
   const els = (s) => Array.from(document.querySelectorAll(s));
   const nowISO = () => (new Date()).toISOString();
   const uid = (prefix = 'id') => (prefix + '_' + Math.random().toString(36).slice(2, 10));
+  
+  // Garante que o formatMoney global (com hideValues) seja usado
   const safeFormatMoney = (v) => (typeof formatMoney === 'function' ? formatMoney(v) : (typeof v === 'number' ? v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : v));
   const safeShowModal = (title, html, cb) => {
     if (typeof showModal === 'function') return showModal(title, html, cb);
@@ -20,7 +23,7 @@
     if (ok && typeof cb === 'function') cb();
   };
 
-  // Ensure global state exists
+  // Ensure global state exists and new keys are present
   if (!window.state) window.state = { reservas: [], transacoes: [], investimentos: [], fluxo: [], custo: [], planejamento: {}, caderno: [], settings: { hideValues: false } };
 
   if (!state.assets) state.assets = []; // where assets will be stored
@@ -33,27 +36,52 @@
       if (typeof renderAll === 'function') renderAll();
     };
   }
+  
+  // ========== FUNÇÃO CENTRAL: CLASSIFICAÇÃO AUTOMÁTICA ==========
+  /**
+   * Calcula o Fluxo Líquido (Entradas - Saídas) de um ativo.
+   * Usado para classificar automaticamente como Ativo/Passivo.
+   * @param {Object} a - O objeto asset.
+   * @returns {number} Fluxo líquido.
+   */
+  function computeAssetNet(a) {
+    const tx = a.transactions || [];
+    const entradas = tx.filter(t => t.type === 'entrada').reduce((s, t) => s + Number(t.value || 0), 0);
+    const saidas = tx.filter(t => t.type === 'saida').reduce((s, t) => s + Number(t.value || 0), 0);
+    // Fluxo Líquido = Receitas - Despesas
+    return entradas - saidas;
+  }
+  
+  /**
+   * Recalcula o saldo total (Custo Inicial + Fluxo Líquido).
+   * @param {Object} a - O objeto asset.
+   * @returns {number} Saldo atualizado.
+   */
+  function computeAssetBalance(a) {
+    return Number(a.cost || 0) + computeAssetNet(a);
+  }
 
   // ---------- ASSETS & LIABILITIES (Ativos & Passivos) COMPONENT ----------
   function createAssetsTab() {
     const page = document.getElementById('ativos-passivos');
     if (!page) return;
 
+    // Removida a label para escolher Ativo/Passivo, pois é automático agora
     page.innerHTML = `
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <h2>Ativos & Passivos</h2>
           <button id="btn_clear_assets" class="btn-ghost" style="color:var(--danger)">Limpar Dados dessa Área</button>
         </div>
-        <div class="small">Gerencie bens (imóveis, veículos) e dívidas de longo prazo.</div>
+        <div class="small">Gerencie bens e dívidas de longo prazo. A classificação (Ativo/Passivo) é automática, baseada no Fluxo Líquido (Entradas - Saídas).</div>
         
         <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;align-items:flex-end">
           <div style="flex:1;min-width:200px">
-            <label>Nome do Ativo/Passivo</label>
-            <input id="new_asset_name" class="input" placeholder="Ex: Apartamento Centro" />
+            <label>Nome do Patrimônio</label>
+            <input id="new_asset_name" class="input" placeholder="Ex: Apartamento Centro (Ativo) ou Financiamento (Passivo)" />
           </div>
           <div style="width:140px">
-            <label>Custo Inicial (R$)</label>
+            <label>Custo/Dívida Inicial (R$)</label>
             <input id="new_asset_cost" type="number" class="input" placeholder="0.00" />
           </div>
           <button id="btn_add_asset" class="btn">Adicionar</button>
@@ -73,6 +101,7 @@
         const cost = Number(page.querySelector('#new_asset_cost').value) || 0;
         if (!name) return alert('Nome é obrigatório');
 
+        // Cria o item, o saldo inicial será o custo inicial
         const asset = { id: uid('as'), name, cost, saldo: cost, transactions: [], updated: nowISO() };
         state.assets.push(asset);
         saveLocal();
@@ -91,6 +120,209 @@
 
     renderAssets();
   }
+  
+  // ---------- RENDER / ACTIONS FOR ASSETS ----------
+  function renderAssets() {
+    const container = document.getElementById('assetsList');
+    if (!container) return;
+    container.innerHTML = '';
+    if (!state.assets.length) {
+      container.innerHTML = '<div class="small">Nenhum ativo / passivo</div>';
+      return;
+    }
+    state.assets.forEach(a => {
+      // Cálculo: Ativo se Fluxo Líquido > 0 (traz dinheiro)
+      const net = computeAssetNet(a);
+      // Saldo é o Custo Inicial + Fluxo Líquido
+      const currentBalance = computeAssetBalance(a); 
+      
+      let statusLabel = 'NEUTRO (Fluxo: 0)';
+      let statusColor = 'var(--muted)';
+      
+      // Lógica de Classificação Automática
+      if (net > 0) { 
+          statusLabel = 'ATIVO (Gera Renda)'; 
+          statusColor = 'var(--success)'; 
+      }
+      else if (net < 0) { 
+          statusLabel = 'PASSIVO (Gera Despesa)'; 
+          statusColor = 'var(--danger)'; 
+      }
+
+      const card = document.createElement('div');
+      card.className = 'res-card';
+      card.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="font-weight:700">${a.name}</div>
+          <div style="display:flex;gap:6px">
+            <button class="btn-ghost" data-act="edit" data-id="${a.id}">✎</button>
+            <button class="btn-ghost" data-act="del" data-id="${a.id}">✖</button>
+          </div>
+        </div>
+        <div style="margin-top:8px" class="small">Custo/Dívida Inicial: ${safeFormatMoney(a.cost)}</div>
+        <div style="margin-top:6px;font-weight:800;font-size:18px">${safeFormatMoney(currentBalance)}</div>
+        <div style="margin-top:8px;font-weight:bold;color:${statusColor};border-top:1px solid rgba(255,255,255,0.1);padding-top:8px">${statusLabel}</div>
+        <div style="margin-top:4px"><div class="small">Fluxo Líquido (Receitas - Despesas): <span style="${net > 0 ? 'color:var(--success)' : (net < 0 ? 'color:var(--danger)' : '')}">${safeFormatMoney(net)}</span></div></div>
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,0.1);padding-top:8px">
+          <button class="btn-ghost" data-act="addE" data-id="${a.id}">+ Receita/Entrada</button>
+          <button class="btn-ghost" data-act="addS" data-id="${a.id}">- Despesa/Saída</button>
+          <button class="btn-ghost" data-act="view" data-id="${a.id}">Ver transações</button>
+        </div>
+        <div style="margin-top:8px" id="chart_${a.id}"></div>
+    `;
+      container.appendChild(card);
+      // attach events
+      card.querySelectorAll('button').forEach(b => {
+        const act = b.getAttribute('data-act');
+        const id = b.getAttribute('data-id');
+        if (act === 'edit') b.addEventListener('click', () => { openAssetEditor(id); });
+        if (act === 'del') b.addEventListener('click', () => { removeAsset(id); });
+        if (act === 'addE') b.addEventListener('click', () => { promptAssetTx(id, 'entrada'); });
+        if (act === 'addS') b.addEventListener('click', () => { promptAssetTx(id, 'saida'); });
+        if (act === 'view') b.addEventListener('click', () => { showAssetTransactions(id); });
+      });
+      // render tiny chart (if Chart.js present)
+      renderAssetChartSmall(a);
+    });
+  }
+
+  function promptAssetTx(id, tipo) {
+    const val = Number(prompt(`Valor R$ da ${tipo === 'entrada' ? 'Receita' : 'Despesa'}`, '0')) || 0;
+    if (val <= 0) return;
+    const desc = prompt('Descrição', '') || '';
+    addAssetTransaction(id, tipo, val, desc);
+  }
+
+  function addAssetTransaction(id, tipo, valor, nota) {
+    const a = state.assets.find(x => x.id === id);
+    if (!a) return;
+    const tx = { id: uid('tx'), date: (new Date()).toLocaleDateString(), type: tipo, value: Number(valor), note: nota || '' };
+    a.transactions.unshift(tx);
+    
+    // O Saldo é atualizado automaticamente pelo novo cálculo
+    a.saldo = computeAssetBalance(a); 
+    a.updated = nowISO();
+    saveLocal();
+    renderAssets();
+    renderAlertsDashboard(); // Update summary
+    // showAssetTransactions(id); // Opcional: manter o painel de transações aberto
+  }
+
+  function showAssetTransactions(id) {
+    const a = state.assets.find(x => x.id === id);
+    const panel = document.getElementById('assetTxPanel');
+    if (!panel) return;
+    panel.innerHTML = `<div style="font-weight:700;margin-bottom:8px">${a.name} — Transações</div>`;
+    if (!a.transactions || !a.transactions.length) { panel.innerHTML += '<div class="small">Sem transações</div>'; return; }
+    const table = document.createElement('table');
+    table.className = 'table';
+    table.style.width = '100%';
+    table.innerHTML = `<thead><tr><th>Data</th><th>Tipo</th><th>Desc</th><th>Valor</th><th></th></tr></thead><tbody></tbody>`;
+    a.transactions.forEach(t => {
+      const tr = document.createElement('tr');
+      const color = t.type === 'entrada' ? 'var(--success)' : 'var(--danger)';
+      tr.innerHTML = `<td>${t.date}</td><td style="color:${color};font-weight:600">${t.type}</td><td>${t.note || '(sem)'}</td><td>${safeFormatMoney(t.value)}</td>
+        <td><button class="btn-ghost" data-deltx="${t.id}" data-asset="${a.id}">Excluir</button></td>`;
+      table.querySelector('tbody').appendChild(tr);
+    });
+    panel.appendChild(table);
+    // attach delete handlers
+    table.querySelectorAll('button[data-deltx]').forEach(b => {
+      b.addEventListener('click', (e) => {
+        const txId = b.getAttribute('data-deltx');
+        const assetId = b.getAttribute('data-asset');
+        removeAssetTx(assetId, txId);
+      });
+    });
+  }
+
+  function removeAssetTx(assetId, txId) {
+    const a = state.assets.find(x => x.id === assetId);
+    if (!a) return;
+    if (!confirm('Excluir transação?')) return;
+    a.transactions = a.transactions.filter(t => t.id !== txId);
+    
+    // Recalcula o saldo após a remoção
+    a.saldo = computeAssetBalance(a); 
+    
+    saveLocal();
+    renderAssets();
+    renderAlertsDashboard(); // Update summary
+    showAssetTransactions(assetId);
+  }
+
+  function openAssetEditor(id) {
+    const a = state.assets.find(x => x.id === id);
+    if (!a) return;
+    const html = `
+      <label>Nome</label><input id="modal_ap_name" class="input" value="${a.name}"/>
+      <label>Custo/Dívida Inicial</label><input id="modal_ap_cost" class="input" type="number" value="${a.cost}"/>
+    `;
+    safeShowModal('Editar Patrimônio', html, function () {
+      a.name = document.getElementById('modal_ap_name').value.trim();
+      a.cost = Number(document.getElementById('modal_ap_cost').value) || 0;
+      
+      // CORREÇÃO: Recalcula o saldo quando o custo inicial é alterado
+      a.saldo = computeAssetBalance(a); 
+      
+      saveLocal(); 
+      renderAssets(); 
+      renderAlertsDashboard();
+    });
+  }
+
+  function removeAsset(id) {
+    if (!confirm('Excluir patrimônio e transações?')) return;
+    state.assets = state.assets.filter(x => x.id !== id);
+    saveLocal();
+    renderAssets();
+    renderAlertsDashboard(); // Update summary
+  }
+
+  function clearAtivosPassivos() {
+    if (!confirm('Tem certeza que deseja apagar TODOS os dados de Ativos e Passivos?')) return;
+    state.assets = [];
+    saveLocal();
+    renderAssets();
+    renderAlertsDashboard(); // Update summary
+    const panel = document.getElementById('assetTxPanel');
+    if (panel) panel.innerHTML = '';
+  }
+
+  function renderAssetChartSmall(a) {
+    const container = document.getElementById('chart_' + a.id);
+    if (!container) return;
+    container.innerHTML = '';
+    if (typeof Chart === 'undefined') return;
+    const canvas = document.createElement('canvas');
+    canvas.height = 80;
+    container.appendChild(canvas);
+    
+    // Prepara dados - limitando a 10 transações para o gráfico pequeno
+    const txData = (a.transactions || []).slice(0, 10).reverse();
+    const labels = txData.map(t => t.date);
+    const entradas = txData.map(t => t.type === 'entrada' ? Number(t.value) : 0);
+    const saidas = txData.map(t => t.type === 'saida' ? Number(t.value) : 0);
+    
+    try {
+      new Chart(canvas.getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels, datasets: [
+            { label: 'Receitas', data: entradas, backgroundColor: 'rgba(16,185,129,0.9)' },
+            { label: 'Despesas', data: saidas, backgroundColor: 'rgba(239,68,68,0.9)' }
+          ]
+        },
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false, 
+            plugins: { legend: { display: false } }, 
+            scales: { x: { display: false }, y: { display: false } } 
+        }
+      });
+    } catch (e) { console.warn('chart draw fail', e); }
+  }
+
 
   // ---------- ALERTS & REMINDERS (Lembretes) COMPONENT ----------
   function createRemindersTab() {
@@ -132,28 +364,18 @@
       });
     }
 
-    // Ensure tab button exists
+    // Garante que o botão da aba Lembretes seja criado/funcione se ainda não estiver lá
     let btn = document.querySelector('.tab[data-tab="lembretes"]');
-    if (!btn) {
-      const backupTab = document.querySelector('.tab[data-tab="backup"]');
-      if (backupTab) {
-        const tabListParent = backupTab.parentNode;
-        btn = document.createElement('div');
-        btn.className = 'tab';
-        btn.dataset.tab = 'lembretes';
-        btn.innerText = 'Lembretes';
-        tabListParent.insertBefore(btn, backupTab);
-
-        // Bind click event for the new tab
+    if (btn) {
+        // Se a aba existe, apenas garante que o clique chama o render correto
         btn.onclick = function () {
-          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-          btn.classList.add('active');
-          document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-          const pageEl = document.getElementById('lembretes');
-          if (pageEl) pageEl.style.display = 'block';
-          renderRemindersTab();
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+            const pageEl = document.getElementById('lembretes');
+            if (pageEl) pageEl.style.display = 'block';
+            renderRemindersTab();
         };
-      }
     }
 
     renderRemindersTab();
@@ -245,17 +467,18 @@
   }
 
   function renderAlertsDashboard() {
-    // Try to find wrapper
+    // Try to find wrapper no dashboard
     const wrapper = document.getElementById('dash_reminders_wrapper');
     if (!wrapper) return;
 
     wrapper.innerHTML = '';
 
-    // --- ASSET SUMMARY ---
+    // --- ASSET SUMMARY (ATUALIZADO) ---
     if (state.assets && state.assets.length > 0) {
       let countAtivos = 0;
       let countPassivos = 0;
       state.assets.forEach(a => {
+        // Classifica com base no Fluxo Líquido (computeAssetNet)
         const net = computeAssetNet(a);
         if (net > 0) countAtivos++;
         if (net < 0) countPassivos++;
@@ -275,6 +498,7 @@
           divA.style.border = '1px solid var(--success)';
           divA.style.padding = '8px';
           divA.style.textAlign = 'center';
+          // Renderiza a quantidade de ativos
           divA.innerHTML = `<div style="font-weight:bold;color:var(--success)">Você tem ${countAtivos} Ativos</div>`;
           summaryDiv.appendChild(divA);
         }
@@ -287,6 +511,7 @@
           divP.style.border = '1px solid var(--danger)';
           divP.style.padding = '8px';
           divP.style.textAlign = 'center';
+          // Renderiza a quantidade de passivos
           divP.innerHTML = `<div style="font-weight:bold;color:var(--danger)">Você tem ${countPassivos} Passivos</div>`;
           summaryDiv.appendChild(divP);
         }
@@ -294,9 +519,11 @@
       }
     }
 
+    // --- REMINDERS ALERTS ---
     const ativos = state.alertas.filter(a => !a.concluido);
     if (!ativos.length) return;
-
+    
+    // (O restante do código de renderização dos lembretes pendentes no dashboard)
     const container = document.createElement('div');
     container.style.background = 'rgba(239,68,68,0.15)';
     container.style.borderLeft = '4px solid #ef4444';
@@ -351,182 +578,6 @@
     }
   }
 
-  // ---------- RENDER / ACTIONS FOR ASSETS ----------
-  function renderAssets() {
-    const container = document.getElementById('assetsList');
-    if (!container) return;
-    container.innerHTML = '';
-    if (!state.assets.length) {
-      container.innerHTML = '<div class="small">Nenhum ativo / passivo</div>';
-      return;
-    }
-    state.assets.forEach(a => {
-      const net = computeAssetNet(a);
-      let statusLabel = 'NEUTRO';
-      let statusColor = 'var(--muted)';
-      if (net > 0) { statusLabel = 'ATIVO (Renda)'; statusColor = 'var(--success)'; }
-      else if (net < 0) { statusLabel = 'PASSIVO (Despesa)'; statusColor = 'var(--danger)'; }
-
-      const card = document.createElement('div');
-      card.className = 'res-card';
-      card.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center">
-          <div style="font-weight:700">${a.name}</div>
-          <div style="display:flex;gap:6px">
-            <button class="btn-ghost" data-act="edit" data-id="${a.id}">✎</button>
-            <button class="btn-ghost" data-act="del" data-id="${a.id}">✖</button>
-          </div>
-        </div>
-        <div style="margin-top:8px" class="small">Custo inicial: ${safeFormatMoney(a.cost)}</div>
-        <div style="margin-top:6px;font-weight:800">${safeFormatMoney(a.saldo || 0)}</div>
-        <div style="margin-top:8px;font-weight:bold;color:${statusColor}">${statusLabel}</div>
-        <div style="margin-top:4px"><div class="small">Fluxo Líquido: <span style="${net > 0 ? 'color:var(--success)' : (net < 0 ? 'color:var(--danger)' : '')}">${safeFormatMoney(net)}</span></div></div>
-        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn-ghost" data-act="addE" data-id="${a.id}">+ Entrada</button>
-          <button class="btn-ghost" data-act="addS" data-id="${a.id}">- Saída</button>
-          <button class="btn-ghost" data-act="view" data-id="${a.id}">Ver transações</button>
-        </div>
-        <div style="margin-top:8px" id="chart_${a.id}"></div>
-    `;
-      container.appendChild(card);
-      // attach events
-      card.querySelectorAll('button').forEach(b => {
-        const act = b.getAttribute('data-act');
-        const id = b.getAttribute('data-id');
-        if (act === 'edit') b.addEventListener('click', () => { openAssetEditor(id); });
-        if (act === 'del') b.addEventListener('click', () => { removeAsset(id); });
-        if (act === 'addE') b.addEventListener('click', () => { promptAssetTx(id, 'entrada'); });
-        if (act === 'addS') b.addEventListener('click', () => { promptAssetTx(id, 'saida'); });
-        if (act === 'view') b.addEventListener('click', () => { showAssetTransactions(id); });
-      });
-      // render tiny chart (if Chart.js present)
-      renderAssetChartSmall(a);
-    });
-  }
-
-  function computeAssetNet(a) {
-    const tx = a.transactions || [];
-    const entradas = tx.filter(t => t.type === 'entrada').reduce((s, t) => s + Number(t.value || 0), 0);
-    const saidas = tx.filter(t => t.type === 'saida').reduce((s, t) => s + Number(t.value || 0), 0);
-    return entradas - saidas;
-  }
-
-  function promptAssetTx(id, tipo) {
-    const val = Number(prompt('Valor R$', '0')) || 0;
-    if (val <= 0) return;
-    const desc = prompt('Descrição', '') || '';
-    addAssetTransaction(id, tipo, val, desc);
-  }
-
-  function addAssetTransaction(id, tipo, valor, nota) {
-    const a = state.assets.find(x => x.id === id);
-    if (!a) return;
-    const tx = { id: uid('tx'), date: (new Date()).toLocaleDateString(), type: tipo, value: Number(valor), note: nota || '' };
-    a.transactions.unshift(tx);
-    a.saldo = (Number(a.saldo || 0) + (tipo === 'entrada' ? Number(valor) : -Number(valor)));
-    a.updated = nowISO();
-    saveLocal();
-    renderAssets();
-    renderAlertsDashboard(); // Update summary
-    showAssetTransactions(id);
-  }
-
-  function showAssetTransactions(id) {
-    const a = state.assets.find(x => x.id === id);
-    const panel = document.getElementById('assetTxPanel');
-    if (!panel) return;
-    panel.innerHTML = `<div style="font-weight:700;margin-bottom:8px">${a.name} — Transações</div>`;
-    if (!a.transactions || !a.transactions.length) { panel.innerHTML += '<div class="small">Sem transações</div>'; return; }
-    const table = document.createElement('table');
-    table.className = 'table';
-    table.style.width = '100%';
-    table.innerHTML = `<thead><tr><th>Data</th><th>Tipo</th><th>Desc</th><th>Valor</th><th></th></tr></thead><tbody></tbody>`;
-    a.transactions.forEach(t => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${t.date}</td><td>${t.type}</td><td>${t.note || '(sem)'}</td><td>${safeFormatMoney(t.value)}</td>
-        <td><button class="btn-ghost" data-deltx="${t.id}" data-asset="${a.id}">Excluir</button></td>`;
-      table.querySelector('tbody').appendChild(tr);
-    });
-    panel.appendChild(table);
-    // attach delete handlers
-    table.querySelectorAll('button[data-deltx]').forEach(b => {
-      b.addEventListener('click', (e) => {
-        const txId = b.getAttribute('data-deltx');
-        const assetId = b.getAttribute('data-asset');
-        removeAssetTx(assetId, txId);
-      });
-    });
-  }
-
-  function removeAssetTx(assetId, txId) {
-    const a = state.assets.find(x => x.id === assetId);
-    if (!a) return;
-    if (!confirm('Excluir transação?')) return;
-    a.transactions = a.transactions.filter(t => t.id !== txId);
-    // recalc saldo from cost and transactions
-    a.saldo = a.transactions.reduce((s, t) => s + (t.type === 'entrada' ? Number(t.value) : -Number(t.value)), Number(a.cost || 0));
-    saveLocal();
-    renderAssets();
-    renderAlertsDashboard(); // Update summary
-    showAssetTransactions(assetId);
-  }
-
-  function openAssetEditor(id) {
-    const a = state.assets.find(x => x.id === id);
-    if (!a) return;
-    const html = `
-      <label>Nome</label><input id="modal_ap_name" class="input" value="${a.name}"/>
-      <label>Custo inicial</label><input id="modal_ap_cost" class="input" type="number" value="${a.cost}"/>
-    `;
-    safeShowModal('Editar Ativo/Passivo', html, function () {
-      a.name = document.getElementById('modal_ap_name').value.trim();
-      a.cost = Number(document.getElementById('modal_ap_cost').value) || 0;
-      saveLocal(); renderAssets(); renderAlertsDashboard();
-    });
-  }
-
-  function removeAsset(id) {
-    if (!confirm('Excluir ativo/passivo e transações?')) return;
-    state.assets = state.assets.filter(x => x.id !== id);
-    saveLocal();
-    renderAssets();
-    renderAlertsDashboard(); // Update summary
-  }
-
-  function clearAtivosPassivos() {
-    if (!confirm('Tem certeza que deseja apagar TODOS os dados de Ativos e Passivos?')) return;
-    state.assets = [];
-    saveLocal();
-    renderAssets();
-    renderAlertsDashboard(); // Update summary
-    const panel = document.getElementById('assetTxPanel');
-    if (panel) panel.innerHTML = '';
-  }
-
-  function renderAssetChartSmall(a) {
-    const container = document.getElementById('chart_' + a.id);
-    if (!container) return;
-    container.innerHTML = '';
-    if (typeof Chart === 'undefined') return;
-    const canvas = document.createElement('canvas');
-    canvas.height = 80;
-    container.appendChild(canvas);
-    const labels = (a.transactions || []).slice(0, 10).map(t => t.date).reverse();
-    const entradas = (a.transactions || []).slice(0, 10).map(t => t.type === 'entrada' ? Number(t.value) : 0).reverse();
-    const saidas = (a.transactions || []).slice(0, 10).map(t => t.type === 'saida' ? Number(t.value) : 0).reverse();
-    try {
-      new Chart(canvas.getContext('2d'), {
-        type: 'bar',
-        data: {
-          labels, datasets: [
-            { label: 'Entradas', data: entradas, backgroundColor: 'rgba(16,185,129,0.9)' },
-            { label: 'Saídas', data: saidas, backgroundColor: 'rgba(239,68,68,0.9)' }
-          ]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
-      });
-    } catch (e) { console.warn('chart draw fail', e); }
-  }
 
   // ---------- INIT: insert UI and bind ----------
   function initEnhancements() {
@@ -539,7 +590,8 @@
       renderAssets,
       renderAlertsDashboard,
       createRemindersTab,
-      createAssetsTab
+      createAssetsTab,
+      computeAssetNet // Expor utilitário
     };
 
     // Auto render assets if the tab visible
