@@ -1973,6 +1973,7 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    window.auth = auth; // Expose auth globally for security checks
     window.db = getFirestore(app);
     const provider = new GoogleAuthProvider();
 
@@ -1993,11 +1994,14 @@
     // --- FIRESTORE SYNC LOGIC ---
 
     window.saveStateToFirestore = async function () {
-      const user = auth.currentUser;
-      if (!user) {
-        alert("⚠️ Você precisa estar logado para salvar na nuvem.");
+      // STRICT SECURITY CHECK
+      if (!window.auth || !window.auth.currentUser || !window.db) {
+        alert("⚠️ Você precisa estar logado e conectado para salvar na nuvem.");
         return;
       }
+
+      const user = window.auth.currentUser;
+
       try {
         const btn = document.getElementById('btnSyncAll');
         if (btn) btn.innerText = 'Salvando...';
@@ -2018,11 +2022,13 @@
     };
 
     window.downloadLastHistoricalSnapshot = async function () {
-      const user = auth.currentUser;
-      if (!user) {
-        alert("⚠️ Você precisa estar logado para baixar versões.");
+      // STRICT SECURITY CHECK
+      if (!window.auth || !window.auth.currentUser || !window.db) {
+        alert("⚠️ Você precisa estar logado e conectado para baixar versões.");
         return;
       }
+
+      const user = window.auth.currentUser;
 
       try {
         const q = query(
@@ -2064,8 +2070,9 @@
 
 
     async function loadStateFromFirestore(user) {
-      if (!user || !user.uid) {
-        console.error("Erro: Usuário não identificado para carregar dados.");
+      // STRICT SECURITY CHECK
+      if (!user || !user.uid || !window.db) {
+        console.error("Erro: Usuário não identificado ou banco de dados não inicializado.");
         return;
       }
       console.log("Carregando dados da nuvem para UID:", user.uid);
