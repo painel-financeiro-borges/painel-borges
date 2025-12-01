@@ -187,32 +187,44 @@
   // ---------- ALERTS & REMINDERS (Lembretes) COMPONENT ----------
   function createRemindersTab() {
     const page = document.getElementById('lembretes');
-              <h3>Lembretes Ativos</h3>
-              <div id="alertsListActive" style="margin-top:8px"></div>
-            </div >
+    if (!page) return;
 
-      <div style="margin-top:16px">
-        <h3>Concluídos</h3>
-        <div id="alertsListDone" style="margin-top:8px;opacity:0.7"></div>
+    page.innerHTML = `
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h2>Lembretes & Alertas</h2>
+          <button class="btn-ghost" onclick="clearAlertas()" style="color:var(--danger)">Limpar Tudo</button>
+        </div>
+        <div class="small">Defina lembretes, tarefas ou alertas de vencimento.</div>
+
+        <div style="margin-top:16px;display:flex;gap:8px">
+          <input id="alert_text" class="input" placeholder="Novo lembrete..." />
+          <button id="alert_create_btn" class="btn">Adicionar</button>
+        </div>
+
+        <div style="margin-top:24px">
+          <h3>Lembretes Ativos</h3>
+          <div id="alertsListActive" style="margin-top:8px"></div>
+        </div>
+
+        <div style="margin-top:16px">
+          <h3>Concluídos</h3>
+          <div id="alertsListDone" style="margin-top:8px;opacity:0.7"></div>
+        </div>
       </div>
-          </div >
-      `;
+    `;
 
-        const createBtn = page.querySelector('#alert_create_btn');
-        if (createBtn) {
-          createBtn.addEventListener('click', () => {
-            const text = (page.querySelector('#alert_text').value || '').trim();
-            if (!text) return;
-            addAlerta(text);
-            page.querySelector('#alert_text').value = '';
-          });
-        }
-        renderRemindersTab();
-      }, 100);
-    } else {
-      renderRemindersTab();
+    const createBtn = page.querySelector('#alert_create_btn');
+    if (createBtn) {
+      createBtn.addEventListener('click', () => {
+        const text = (page.querySelector('#alert_text').value || '').trim();
+        if (!text) return;
+        addAlerta(text);
+        page.querySelector('#alert_text').value = '';
+      });
     }
 
+    // Ensure tab button exists
     let btn = document.querySelector('.tab[data-tab="lembretes"]');
     if (!btn) {
       const backupTab = document.querySelector('.tab[data-tab="backup"]');
@@ -223,19 +235,20 @@
         btn.dataset.tab = 'lembretes';
         btn.innerText = 'Lembretes';
         tabListParent.insertBefore(btn, backupTab);
+
+        // Bind click event for the new tab
+        btn.onclick = function () {
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          btn.classList.add('active');
+          document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+          const pageEl = document.getElementById('lembretes');
+          if (pageEl) pageEl.style.display = 'block';
+          renderRemindersTab();
+        };
       }
     }
 
-    if (btn) {
-      btn.onclick = function () {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        btn.classList.add('active');
-        document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-        const pageEl = document.getElementById('lembretes');
-        if (pageEl) pageEl.style.display = 'block';
-        renderRemindersTab();
-      };
-    }
+    renderRemindersTab();
   }
 
   function addAlerta(texto) {
@@ -263,7 +276,7 @@
     renderAlertsDashboard();
   }
 
-  window.clearAlertas = function() {
+  window.clearAlertas = function () {
     if (!confirm('Deseja realmente apagar TODOS os lembretes e alertas?')) return;
     state.alertas = [];
     saveLocal();
@@ -289,13 +302,13 @@
       row.className = 'res-card';
       row.style.marginBottom = '8px';
       row.innerHTML = `
-      < div style = "display:flex;justify-content:space-between;align-items:center" >
+      <div style="display:flex;justify-content:space-between;align-items:center">
           <div style="font-weight:600">${a.text}</div>
           <div style="display:flex;gap:8px">
             <button class="btn-ghost" data-act="done" data-id="${a.id}">✔ Concluir</button>
             <button class="btn-ghost" data-act="del" data-id="${a.id}">✖</button>
           </div>
-        </div >
+        </div>
       <div class="small" style="margin-top:4px">${new Date(a.created).toLocaleDateString()}</div>
     `;
       activeDiv.appendChild(row);
@@ -309,13 +322,13 @@
       row.style.padding = '8px';
       row.style.borderBottom = '1px solid rgba(255,255,255,0.1)';
       row.innerHTML = `
-      < div style = "display:flex;justify-content:space-between;align-items:center" >
+      <div style="display:flex;justify-content:space-between;align-items:center">
           <div style="text-decoration:line-through;color:var(--muted)">${a.text}</div>
           <div style="display:flex;gap:8px">
             <button class="btn-ghost" data-act="undo" data-id="${a.id}">Desfazer</button>
             <button class="btn-ghost" data-act="del" data-id="${a.id}">✖</button>
           </div>
-        </div >
+        </div>
       `;
       doneDiv.appendChild(row);
       row.querySelector('[data-act="undo"]').addEventListener('click', () => toggleAlerta(a.id));
@@ -344,36 +357,36 @@
     if (ativos.length === 1) {
       const a = ativos[0];
       container.innerHTML = `
-      < div style = "display:flex;justify-content:space-between;align-items:center" >
+      <div style="display:flex;justify-content:space-between;align-items:center">
           <div style="font-weight:600">🔔 ${a.text}</div>
           <button class="btn-ghost" id="dash_solve_${a.id}" style="font-size:12px;padding:4px 8px">Resolvido</button>
-        </div >
+        </div>
       `;
       wrapper.appendChild(container);
-      document.getElementById(`dash_solve_${ a.id } `).addEventListener('click', () => toggleAlerta(a.id));
+      document.getElementById(`dash_solve_${a.id}`).addEventListener('click', () => toggleAlerta(a.id));
     } else {
       // Multiple alerts
-      let html = `< div style = "display:flex;justify-content:space-between;align-items:center;margin-bottom:8px" >
+      let html = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <div style="font-weight:700">🔔 ${ativos.length} Lembretes Pendentes</div>
         <button class="btn-ghost" id="dash_toggle_alerts" style="font-size:12px">Expandir</button>
-      </div > `;
+      </div>`;
 
       const listId = 'dash_alerts_list';
-      html += `< div id = "${listId}" style = "display:none;flex-direction:column;gap:6px" > `;
+      html += `<div id="${listId}" style="display:none;flex-direction:column;gap:6px">`;
       ativos.forEach(a => {
         html += `
-      < div style = "display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,0.2);padding:6px;border-radius:4px" >
+      <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,0.2);padding:6px;border-radius:4px">
             <span>${a.text}</span>
             <button class="btn-ghost" data-act="solve" data-id="${a.id}" style="font-size:11px">Resolvido</button>
-          </div >
+          </div>
       `;
       });
-      html += `</div > `;
+      html += `</div>`;
       container.innerHTML = html;
       wrapper.appendChild(container);
 
       const toggleBtn = container.querySelector('#dash_toggle_alerts');
-      const listDiv = container.querySelector(`#${ listId } `);
+      const listDiv = container.querySelector(`#${listId}`);
 
       toggleBtn.addEventListener('click', () => {
         const isHidden = listDiv.style.display === 'none';
@@ -402,13 +415,13 @@
       const card = document.createElement('div');
       card.className = 'res-card';
       card.innerHTML = `
-      < div style = "display:flex;justify-content:space-between;align-items:center" >
+      <div style="display:flex;justify-content:space-between;align-items:center">
           <div style="font-weight:700">${a.name} <span class="small">(${a.type})</span></div>
           <div style="display:flex;gap:6px">
             <button class="btn-ghost" data-act="edit" data-id="${a.id}">✎</button>
             <button class="btn-ghost" data-act="del" data-id="${a.id}">✖</button>
           </div>
-        </div >
+        </div>
         <div style="margin-top:8px" class="small">Custo inicial: ${safeFormatMoney(a.cost)}</div>
         <div style="margin-top:6px;font-weight:800">${safeFormatMoney(a.saldo || 0)}</div>
         <div style="margin-top:8px"><div class="small">Resultado: <span style="${netColor}">${safeFormatMoney(net)}</span></div></div>
@@ -465,15 +478,15 @@
     const a = state.assets.find(x => x.id === id);
     const panel = document.getElementById('assetTxPanel');
     if (!panel) return;
-    panel.innerHTML = `< div style = "font-weight:700;margin-bottom:8px" > ${ a.name } — Transações</div > `;
+    panel.innerHTML = `<div style="font-weight:700;margin-bottom:8px">${a.name} — Transações</div>`;
     if (!a.transactions || !a.transactions.length) { panel.innerHTML += '<div class="small">Sem transações</div>'; return; }
     const table = document.createElement('table');
     table.className = 'table';
     table.style.width = '100%';
-    table.innerHTML = `< thead > <tr><th>Data</th><th>Tipo</th><th>Desc</th><th>Valor</th><th></th></tr></thead > <tbody></tbody>`;
+    table.innerHTML = `<thead><tr><th>Data</th><th>Tipo</th><th>Desc</th><th>Valor</th><th></th></tr></thead><tbody></tbody>`;
     a.transactions.forEach(t => {
       const tr = document.createElement('tr');
-      tr.innerHTML = `< td > ${ t.date }</td ><td>${t.type}</td><td>${t.note || '(sem)'}</td><td>${safeFormatMoney(t.value)}</td>
+      tr.innerHTML = `<td>${t.date}</td><td>${t.type}</td><td>${t.note || '(sem)'}</td><td>${safeFormatMoney(t.value)}</td>
         <td><button class="btn-ghost" data-deltx="${t.id}" data-asset="${a.id}">Excluir</button></td>`;
       table.querySelector('tbody').appendChild(tr);
     });
@@ -504,7 +517,7 @@
     const a = state.assets.find(x => x.id === id);
     if (!a) return;
     const html = `
-      < label > Nome</label ><input id="modal_ap_name" class="input" value="${a.name}"/>
+      <label>Nome</label><input id="modal_ap_name" class="input" value="${a.name}"/>
       <label>Tipo</label><select id="modal_ap_type" class="input"><option value="ativo">Ativo</option><option value="passivo">Passivo</option></select>
       <label>Custo inicial</label><input id="modal_ap_cost" class="input" type="number" value="${a.cost}"/>
     `;
