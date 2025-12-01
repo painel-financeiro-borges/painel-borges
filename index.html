@@ -214,7 +214,9 @@
     .bar {
       height: 100%;
       background: linear-gradient(90deg, var(--accent), var(--accent-2));
-      width: 0%
+      width: 0%;
+      /* ADICIONE ISTO PARA FORÇAR A TRANSIÇÃO DE LARGURA */
+      transition: width 0.4s ease;
     }
 
     .badge {
@@ -419,7 +421,7 @@
 
         <div style="margin-top:10px;font-weight:600">Progresso das reservas</div>
         <div class="progress" style="height:10px;margin-top:6px;background:#eee;border-radius:8px;overflow:hidden">
-          <div id="reservas_progress_bar" class="bar" style="width:0%;background:#00c853;transition:width 0.4s ease">
+          <div id="reservas_progress_bar" class="bar" style="width:0%;background:#00c853">
           </div>
         </div>
         <div id="reservas_progress_text" class="small">0%</div>
@@ -1313,10 +1315,9 @@
     }
 
     /* ====== Progresso das Reservas ====== */
+    /* ====== Progresso das Reservas ====== */
     function renderReservasProgress() {
-      // Only show progress for normal reserves for now, or both? 
-      // User request implies isolated are "isolated", so maybe only normal reserves count towards global progress?
-      // Let's stick to normal reserves for the global progress bar unless asked otherwise.
+      // A lista de reservas normais
       const reservas = state.reservas || [];
       const bar = el('#reservas_progress_bar');
       const text = el('#reservas_progress_text');
@@ -1329,11 +1330,19 @@
 
       const totalSaldo = reservas.reduce((s, r) => s + Number(r.saldo || 0), 0);
       const totalMeta = reservas.reduce((s, r) => s + Number(r.meta || 0), 0);
+      // Garante que o percentual não exceda 100%
       const pct = totalMeta > 0 ? Math.min(100, Math.round((totalSaldo / totalMeta) * 100)) : 0;
 
       if (bar) {
         bar.style.width = pct + '%';
+        // Mantenha a cor de fundo aqui
         bar.style.background = pct >= 100 ? '#00c853' : pct >= 50 ? '#ffd600' : '#d50000';
+
+        // *** VERIFICAÇÃO CHAVE ***
+        // Se a transição CSS não estiver no seu CSS, adicione-a diretamente aqui.
+        // O seu HTML já tem 'transition:width 0.4s ease' INLINE no elemento, mas o JS pode sobrescrever.
+        // Vamos reforçar a transição aqui no JS, APENAS NA LARGURA, se necessário, ou garantir que o CSS aplique.
+        // bar.style.transition = 'width 0.4s ease'; // Descomente esta linha se o CSS ou HTML não funcionar.
       }
       if (text) text.innerText = pct + '%';
     }
