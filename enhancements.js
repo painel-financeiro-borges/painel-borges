@@ -572,7 +572,8 @@
       renderAlertsDashboard,
       createRemindersTab,
       toggleAreaHide,
-      toggleTabHide
+      toggleTabHide,
+      createAssetsTab
     };
 
     // Auto render assets if the tab visible
