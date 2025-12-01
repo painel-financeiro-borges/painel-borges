@@ -2169,8 +2169,8 @@
         if (btnLogout) btnLogout.style.display = "inline-block";
         window.userEmail = user.email;
 
-        // Attempt to load data
-        if (user) loadStateFromFirestore(user);
+        // Attempt to load data ONLY if user exists
+        loadStateFromFirestore(user);
 
       } else {
         console.log("Deslogado");
