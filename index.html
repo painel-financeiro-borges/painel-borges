@@ -763,7 +763,6 @@
         <input id="note_tab_name" class="input" placeholder="Nome da aba (ex: Financeiro)" />
         <button class="btn" onclick="createNoteTab()">Criar Aba</button>
         <div class="spacer"></div>
-        <button class="btn-ghost" onclick="exportCaderno()">Exportar Caderno</button>
         <button class="btn-ghost" onclick="clearCaderno()">Limpar Dados desta Aba</button>
       </div>
 
@@ -1564,6 +1563,22 @@
       block.content = content;
       saveLocalSilent();
     }
+    function saveFreeNote(tabId, blockId) {
+      const tab = state.caderno.find(t => t.id === tabId); if (!tab) return;
+      const block = tab.blocks.find(b => b.id === blockId); if (!block) return;
+
+      const elText = document.getElementById(`note_text_${blockId}`);
+      if (elText) {
+        block.content = elText.value;
+      }
+
+      saveLocal();
+      if (window.saveStateToFirestore) {
+        window.saveStateToFirestore().then(() => alert('Anotação salva e sincronizada!'));
+      } else {
+        alert('Anotação salva localmente!');
+      }
+    }
     function renderNoteBlocks(tabId) {
       const tab = state.caderno.find(t => t.id === tabId); if (!tab) { el('#noteBlocks').innerHTML = ''; return; }
       const container = el('#noteBlocks'); container.innerHTML = '';
@@ -1580,7 +1595,12 @@
         if (!block.type || block.type === 'checklist') {
           bodyHtml = `<div id="items_${block.id}" style="margin-top:8px"></div>`;
         } else if (block.type === 'free_text') {
-          bodyHtml = `<div style="margin-top:8px"><textarea class="input" style="min-height:100px;resize:vertical;width:100%;font-family:inherit" oninput="updateBlockContent('${tab.id}','${block.id}', this.value)">${block.content || ''}</textarea></div>`;
+          bodyHtml = `<div style="margin-top:8px">
+            <textarea id="note_text_${block.id}" class="input" style="min-height:100px;resize:vertical;width:100%;font-family:inherit" oninput="updateBlockContent('${tab.id}','${block.id}', this.value)">${block.content || ''}</textarea>
+            <div style="margin-top:8px;text-align:right">
+              <button class="btn" onclick="saveFreeNote('${tab.id}','${block.id}')" style="background:var(--success);color:#fff">Salvar Anotação</button>
+            </div>
+          </div>`;
         }
 
         box.innerHTML = headerHtml + bodyHtml;
