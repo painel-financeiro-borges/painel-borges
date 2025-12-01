@@ -763,6 +763,8 @@
         <button class="btn" onclick="exportToClipboardAndModal()">Exportar Tudo (Bloco de Notas)</button>
         <button class="btn" onclick="createHistoricalSnapshot()" style="background:var(--primary-dark)">Criar Versão
           Histórica</button>
+        <button class="btn" onclick="cleanOldFluxo()" style="background:var(--danger)">Limpar Fluxo Antigo (> 12
+          meses)</button>
 
         <input id="fileImport" type="file" accept=".json" style="background:transparent;color:var(--muted)" />
         <button class="btn-ghost" onclick="importAll()">Importar Backup</button>
@@ -1851,6 +1853,21 @@
     function clearInvestimentos() { if (!confirm('Tem certeza que deseja apagar TODOS os Investimentos?')) return; state.investimentos = []; saveLocal(); renderInvestments(); }
     function clearPlanejamento() { if (!confirm('Tem certeza que deseja apagar TODO o Planejamento?')) return; state.planejamento = {}; saveLocal(); getMonthOptions(); renderPlanForMonth(getSelectedMonthKey()); }
     function clearCaderno() { if (!confirm('Tem certeza que deseja apagar TODO o Caderno de Notas?')) return; state.caderno = []; saveLocal(); renderNoteTabs(); el('#noteBlocks').innerHTML = ''; }
+
+    function cleanOldFluxo() {
+      const now = new Date();
+      const cutoffDate = new Date(now.setFullYear(now.getFullYear() - 1)).toISOString().slice(0, 10);
+
+      if (!confirm('Deseja remover entradas de fluxo anteriores a ' + cutoffDate + ' (mais de 12 meses)?')) return;
+
+      const initialCount = state.fluxo.length;
+      state.fluxo = state.fluxo.filter(f => f.date >= cutoffDate);
+      const removedCount = initialCount - state.fluxo.length;
+
+      saveLocal();
+      renderFluxo();
+      alert(`Limpeza concluída! ${removedCount} registros antigos removidos.`);
+    }
 
     /* ===== Render all structural tables/cards ===== */
     function renderAll() {
