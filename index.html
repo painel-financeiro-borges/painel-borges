@@ -1,5 +1,4 @@
 <!doctype html>
-<!-- Fixed Syntax Error - Version 2 -->
 <html lang="pt-BR">
 
 <head>
@@ -358,7 +357,6 @@
 
   <div class="container">
     <div class="card topbar">
-      <!-- TABS -->
       <div class="tab active" data-tab="dashboard">Dashboard</div>
       <div class="tab" data-tab="custo">Custo de Vida</div>
       <div class="tab" data-tab="planejamento">Planejamento Mensal</div>
@@ -375,7 +373,6 @@
     </div>
   </div>
 
-  <!-- ============== DASHBOARD ============== -->
   <div id="dashboard" class="page card" style="margin-top:12px">
     <div style="display:flex;justify-content:space-between;align-items:center">
       <h2>Dashboard</h2>
@@ -385,7 +382,6 @@
     <div id="dash_reminders_wrapper"></div>
     <div id="dash_alert" class="alert-banner" style="display:none"></div>
 
-    <!-- TOP STATS -->
     <div class="card" style="margin-top:8px;padding:10px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <h3 style="margin:0;font-size:16px">Resumo Geral</h3>
@@ -409,7 +405,6 @@
         </div>
       </div>
     </div>
-    <!-- RESERVAS — PROGRESSO GERAL -->
     <div class="card" style="flex:1;min-width:220px;margin-top:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
         <div style="font-weight:600">Reservas — total</div>
@@ -428,7 +423,6 @@
       </div>
     </div>
 
-    <!-- 1) CUSTO DE VIDA ATUAL -->
     <div class="card" id="dash_custo_card" style="margin-top:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <div class="small" style="font-weight:bold">Custo de Vida (mês)</div>
@@ -446,7 +440,6 @@
       </div>
     </div>
 
-    <!-- 2) FLUXO DE CAIXA MENSAL -->
     <div class="card" id="dash_fluxo_card" style="margin-top:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <div class="small" style="font-weight:bold">Fluxo de Caixa — Mês</div>
@@ -476,7 +469,6 @@
       </div>
     </div>
 
-    <!-- 3) PLANEJAMENTO MENSAL -->
     <div class="card" id="dash_plan_card" style="margin-top:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <div class="small" style="font-weight:bold">Planejamento Mensal — Progresso</div>
@@ -498,7 +490,6 @@
       </div>
     </div>
 
-    <!-- INVESTIMENTOS (Reservas removidas do resumo) -->
     <div style="display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px">
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
@@ -513,7 +504,6 @@
       </div>
     </div>
 
-    <!-- últimas transações -->
     <div class="card" style="margin-top:12px">
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div>
@@ -546,9 +536,6 @@
 
   </div>
 
-  <!-- ============== CUSTO / PLANEJAMENTO / FLUXO / RESERVAS / INVESTIMENTOS / CADERNO / BACKUP ============== -->
-  <!-- (preserve existing markup for these pages) -->
-  <!-- CUSTO -->
   <div id="custo" class="page" style="display:none">
     <div class="card">
       <h2>Custo de Vida — lançamentos mensais</h2>
@@ -598,7 +585,6 @@
     </div>
   </div>
 
-  <!-- PLANEJAMENTO -->
   <div id="planejamento" class="page" style="display:none">
     <div class="card">
       <h2>Planejamento Mensal — 3 períodos</h2>
@@ -616,7 +602,6 @@
     </div>
   </div>
 
-  <!-- FLUXO -->
   <div id="fluxo" class="page" style="display:none">
     <div class="card">
       <h2>Fluxo de Caixa Diário</h2>
@@ -667,19 +652,7 @@
     </div>
   </div>
 
-  <!-- RESERVAS -->
   <div id="reservas" class="page" style="display:none">
-    <!-- Progresso das Reservas (removido visualmente) -->
-    <!-- <div style="margin-top:20px">
-  <h3>Progresso das Reservas</h3>
-  <div style="background:#eee;border-radius:10px;height:16px;overflow:hidden;">
-    <div id="reservas_progress_bar" style="background:#00c853;width:0%;height:100%;transition:width 0.5s;"></div>
-  </div>
-  <div style="margin-top:6px;text-align:right;font-weight:bold;color:#333;">
-    <span id="reservas_progress_text">0%</span>
-  </div>
-</div> -->
-
     <div class="card">
       <h2>Reservas — arraste para reorganizar</h2>
       <div class="small">Ordem recomendada nas abas Reservas</div>
@@ -704,7 +677,6 @@
     </div>
   </div>
 
-  <!-- INVESTIMENTOS -->
   <div id="investimentos" class="page" style="display:none">
     <div class="card">
       <h2>Investimentos — composição e lançamentos</h2>
@@ -755,10 +727,8 @@
     </div>
   </div>
 
-  <!-- ATIVOS & PASSIVOS -->
   <div id="ativos-passivos" class="page" style="display:none"></div>
 
-  <!-- CADERNO -->
   <div id="caderno" class="page" style="display:none">
     <div class="card">
       <h2>Bloco de Notas — abas temáticas, blocos e itens</h2>
@@ -786,10 +756,8 @@
     </div>
   </div>
 
-  <!-- LEMBRETES -->
   <div id="lembretes" class="page" style="display:none"></div>
 
-  <!-- BACKUP -->
   <div id="backup" class="page" style="display:none">
     <div class="card">
       <h2>Backup / Import / Export</h2>
@@ -805,7 +773,6 @@
         <div class="small">Drive API: <span id="apiUrlDisplay"></span></div>
       </div>
 
-      <!-- Botão adicional: Zerar Painel -->
       <div style="margin-top:20px;border-top:1px solid #ccc;padding-top:15px">
         <h3 style="margin-bottom:8px;color:#d50000">Restauração Total</h3>
         <p class="small" style="margin-bottom:8px;color:#555">
@@ -819,7 +786,6 @@
     </div>
   </div>
 
-  <!-- MODAL -->
   <div id="modalEdit" style="display:none" class="modal">
     <div class="modal-card">
       <h3 id="modalTitle">Editar</h3>
@@ -831,7 +797,6 @@
     </div>
   </div>
 
-  <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <script>
@@ -2019,13 +1984,70 @@
 
 
 
-  <!-- ===================== INIT ===================== -->
   <script>
     (function init() {
       const apiDisplay = el('#apiUrlDisplay');
       if (apiDisplay) apiDisplay.innerText = '(Drive API Direct)';
 
       loadLocal();
+
+      // --- INÍCIO DA ATUALIZAÇÃO AUTOMÁTICA (Fluxograma & Regras) ---
+      
+      // 1. Verifica e cria o Módulo de Transição (Fluxograma) se não existir
+      const flowTabId = 'nt_fire_vision_auto';
+      // Verifica se o caderno existe (segurança extra para não duplicar)
+      const hasFlowTab = state.caderno && state.caderno.find(t => t.name === 'MÓDULO DE TRANSIÇÃO (F.I.R.E. VISION)');
+      
+      if (!hasFlowTab) {
+        if (!state.caderno) state.caderno = [];
+        state.caderno.unshift({ // Coloca em primeiro lugar
+          id: flowTabId,
+          name: 'MÓDULO DE TRANSIÇÃO (F.I.R.E. VISION)',
+          blocks: [
+            {
+              id: 'b_fluxograma_meta',
+              title: '🔷 1. SISTEMA R$ 1 MILHÃO (A META)',
+              type: 'free_text',
+              content: "CAPITAL PRINCIPAL: R$ 1.000.000\n      │\n      ▼\nTESOURO SELIC (100%): Capital Blindado / Fonte de Renda\n      │\n      ├─ Rendimento Mensal: ~R$ 5.500 Líquidos\n      │\n      ▼\nVENDA PARCIAL PROGRAMADA (1x/mês, Regra Escrita)\n      │\n      ▼\nCAIXA OPERACIONAL (INTER): (Conta-mãe / Conta de uso)\n      │\n      ├─ Custo de Vida (Aluguel, Comida, etc.)\n      ├─ Contas Fixas (Consórcio, Escola, etc.)\n      └─ Sobra Eventual → Reforço de Reserva ou Reinvestimento\n\n🔑 REGRAS-CHAVE:\n* O milhão nunca passa pelo caixa. Só os rendimentos entram.\n* O capital sustenta a vida. Trabalho vira opcional."
+            },
+            {
+              id: 'b_fluxograma_atual',
+              title: '🔷 2. SISTEMA ATUAL (PRÉ-MILHÃO)',
+              type: 'free_text',
+              content: "FONTES DE RENDA ATUAIS: (Aplicativo | Proteção Veicular | Eventos | Extras)\n      │\n      ▼\nPORQUINHO DIA-A-DIA (Filtro / Clearing)\n      │\n      ▼\nCAIXA OPERACIONAL (INTER): (Conta-mãe)\n      │\n      ├─ PAGAMENTOS DO DIA A DIA (Combustível, Alimentação)\n      ├─ PORQUINHOS DE RESERVA (Segurança, Factor, etc.)\n      ├─ INVESTIMENTOS (XP / Rico / Inter Int.)\n      └─ RESERVA ISOLADA ATIVO FAN (C6)\n\n🔑 REGRAS-CHAVE:\n* Tudo entra primeiro no Filtro (Porquinho Dia-a-Dia).\n* Você depende do trabalho físico.\n* Moto = sobrevivência."
+            },
+            {
+              id: 'b_comparacao_direta',
+              title: '🔄 3. O SALTO DE NÍVEL (Metas)',
+              type: 'free_text',
+              content: "HOJE: Trabalho sustenta vida  ➡️  META: Capital sustenta vida\nHOJE: Caixa depende de esforço ➡️  META: Caixa depende de renda\nHOJE: Moto = sobrevivência    ➡️  META: Moto = opção\nHOJE: Renda instável          ➡️  META: Renda previsível\nHOJE: Energia física          ➡️  META: Energia financeira"
+            }
+          ]
+        });
+        console.log('Fluxograma F.I.R.E. criado automaticamente.');
+      }
+
+      // 2. Verifica e cria o Lembrete da Rotina Semanal se não existir
+      if (!state.alertas) state.alertas = [];
+      const hasRoutineAlert = state.alertas.find(a => a.text.includes('ROTINA DE 15 MIN'));
+      
+      if (!hasRoutineAlert) {
+        state.alertas.unshift({
+          id: 'al_rotina_auto_' + Date.now(),
+          text: "DOMINGO, 20:00h: ROTINA DE 15 MIN. (Limpar CADERNO DE APOIO e Executar Hierarquia de Aporte)",
+          created: new Date().toISOString(),
+          concluido: false,
+          data_recorrencia: "semanal"
+        });
+        console.log('Lembrete de Rotina criado automaticamente.');
+      }
+
+      // Salva para garantir que fique registrado
+      if (!hasFlowTab || !hasRoutineAlert) {
+        saveLocal();
+      }
+      
+      // --- FIM DA ATUALIZAÇÃO AUTOMÁTICA ---
 
       if (!state.reservas || !state.reservas.length)
         createDefaultReservas();
@@ -2079,11 +2101,6 @@
 
 
 
-  <!-- GOOGLE DRIVE SYNC REMOVED -->
-
-  <!-- Google Scripts Removed -->
-
-  <!-- ===================== FIREBASE LOGIN ===================== -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
@@ -2219,10 +2236,8 @@
     });
   </script>
 
-  <!-- ===================== ENHANCEMENTS ===================== -->
   <script src="enhancements.js"></script>
 
-  <!-- ===================== DEBUG HELPERS (FINAL) ===================== -->
   <script>
     window._borges_state = state;
     window.saveLocal = saveLocal;
