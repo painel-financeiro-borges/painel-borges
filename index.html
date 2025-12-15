@@ -1,82 +1,345 @@
 <!doctype html>
+<!-- Fixed Syntax Error - Version 2 -->
 <html lang="pt-BR">
 
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Painel Borges Participações • F.I.R.E. Strategy</title>
+  <title>Painel Borges Participações e Holding • Reservas • Investimentos</title>
   <style>
-    /* ================= STYLES (ORIGINAIS + NOVOS) ================= */
+    /* ================= STYLES (mantive sua paleta de cores) ================= */
     :root {
-      --bg: #041022; --panel: #061021; --card: #071427; --muted: #9aa4b2;
-      --accent: #1e88e5; --accent-2: #60a5fa; --success: #16a34a; --danger: #ef4444;
-      --gold: #ffd700; --gold-dim: rgba(255, 215, 0, 0.15);
-      --glass: rgba(255, 255, 255, 0.03); --radius: 12px;
+      --bg: #041022;
+      --panel: #061021;
+      --card: #071427;
+      --muted: #9aa4b2;
+      --accent: #1e88e5;
+      --accent-2: #60a5fa;
+      --success: #16a34a;
+      --danger: #ef4444;
+      --glass: rgba(255, 255, 255, 0.03);
+      --radius: 12px;
       --shadow: 0 8px 24px rgba(2, 6, 23, 0.55);
       --font: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       --btn-ghost-border: rgba(255, 255, 255, 0.10);
       --btn-ghost-bg: rgba(255, 255, 255, 0.02);
       --btn-text: #e6eef8;
     }
-    * { box-sizing: border-box }
-    html, body { height: 100%; margin: 0; font-family: var(--font); background: linear-gradient(180deg, #041022 0%, #071827 100%); color: var(--btn-text); }
-    header { display: flex; gap: 12px; align-items: center; padding: 12px 18px; background: linear-gradient(90deg, rgba(255, 255, 255, 0.02), transparent); border-bottom: 1px solid rgba(255, 255, 255, 0.02); position: sticky; top: 0; z-index: 30; }
-    .brand { font-weight: 900; color: var(--accent); font-size: 18px; }
-    .subtitle { color: var(--muted); font-size: 13px; margin-left: 6px; }
-    .container { max-width: 1200px; margin: 14px auto; padding: 0 12px; }
-    .topbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-    .tab { background: transparent; border: 1px solid rgba(255, 255, 255, 0.04); padding: 8px 12px; border-radius: 8px; cursor: pointer; color: var(--btn-text); }
-    .tab.active { background: linear-gradient(90deg, rgba(30, 136, 229, 0.12), rgba(96, 165, 250, 0.04)); border-color: rgba(30, 136, 229, 0.2); font-weight: 700; }
-    
-    /* ESTILO DOURADO PARA ABA FIRE */
-    .tab.fire-tab { color: var(--gold); border-color: rgba(255, 215, 0, 0.2); margin-left: auto; }
-    .tab.fire-tab.active { background: linear-gradient(90deg, rgba(255, 215, 0, 0.1), transparent); }
 
-    .card { background: var(--panel); padding: 14px; border-radius: var(--radius); box-shadow: var(--shadow); margin-top: 12px; border: 1px solid rgba(255, 255, 255, 0.03); }
-    .row { display: flex; gap: 12px; align-items: center; }
-    .spacer { flex: 1; }
-    .small { font-size: 13px; color: var(--muted); }
-    .grid { display: grid; gap: 12px; }
-    .cols-3 { grid-template-columns: repeat(3, 1fr); }
-    .cols-2 { grid-template-columns: repeat(2, 1fr); }
-    .table { width: 100%; border-collapse: collapse; }
-    .table th, .table td { padding: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.02); text-align: left; font-size: 14px; }
-    .input, textarea, select { background: transparent; border: 1px solid rgba(255, 255, 255, 0.04); padding: 8px; border-radius: 8px; color: var(--btn-text); width: 100%; }
-    .btn { background: linear-gradient(90deg, var(--accent), var(--accent-2)); color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: 700; box-shadow: 0 6px 18px rgba(30, 136, 229, 0.12); }
-    .btn:hover { filter: brightness(1.03); }
-    .btn-ghost { background: var(--btn-ghost-bg); border: 1px solid var(--btn-ghost-border); color: var(--btn-text); padding: 7px 10px; border-radius: 8px; cursor: pointer; font-weight: 600; }
-    .btn-ghost:hover { background: rgba(255, 255, 255, 0.04); border-color: rgba(255, 255, 255, 0.18); }
-    .btn-pro { background: transparent; border: 1px solid rgba(255, 255, 255, 0.06); color: var(--btn-text); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: 700; }
-    .progress { height: 12px; background: rgba(255, 255, 255, 0.03); border-radius: 8px; overflow: hidden; }
-    .bar { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); width: 0%; transition: width 0.4s ease; }
-    .badge { background: rgba(255, 255, 255, 0.03); padding: 6px; border-radius: 6px; color: var(--muted); font-size: 13px; }
-    .kv { display: inline-block; padding: 6px 8px; border-radius: 6px; background: rgba(255, 255, 255, 0.02); margin-right: 8px; }
-    .checkbox-tri { width: 22px; height: 22px; border-radius: 5px; border: 1px solid rgba(255, 255, 255, 0.08); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; background: var(--btn-ghost-bg); color: var(--btn-text); font-weight: 700; }
-    .modal { position: fixed; left: 0; right: 0; top: 0; bottom: 0; background: rgba(2, 6, 23, 0.6); display: flex; align-items: center; justify-content: center; z-index: 10000; pointer-events: auto; }
-    .modal-card { background: #061021; padding: 16px; border-radius: 12px; width: 92%; max-width: 720px; border: 1px solid rgba(255, 255, 255, 0.03); pointer-events: auto; }
-    .note-tab { display: inline-block; padding: 8px 10px; border-radius: 8px; background: rgba(255, 255, 255, 0.02); margin-right: 6px; cursor: pointer; color: var(--btn-text); }
-    .note-tab.active { background: linear-gradient(90deg, rgba(30, 136, 229, 0.12), rgba(96, 165, 250, 0.04)); font-weight: 700; }
-    .res-card { background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), rgba(255, 255, 255, 0.00)); padding: 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.03); cursor: grab; }
-    .res-card.dragging { opacity: 0.5; transform: scale(0.98); }
-    .icon { font-weight: 900; margin-right: 6px; }
-    .alert-banner { background: rgba(255, 255, 255, 0.03); padding: 8px; border-radius: 8px; border-left: 4px solid rgba(255, 255, 255, 0.06); margin-top: 10px; color: var(--muted); }
-    
-    /* === ESTILOS FLUXOGRAMA FIRE === */
-    .fire-container { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
-    .fire-col { flex: 1; min-width: 300px; background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; align-items: center; }
-    .fire-col.target { border-color: var(--gold-dim); background: linear-gradient(180deg, rgba(255,215,0,0.02), transparent); }
-    .flow-box { width: 100%; padding: 12px; margin-bottom: 24px; background: var(--card); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; text-align: center; position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-    .flow-box.highlight { border-color: var(--accent); }
-    .flow-box.gold { border-color: var(--gold); color: var(--gold); }
-    .flow-box::after { content: '▼'; position: absolute; bottom: -22px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.2); font-size: 14px; }
-    .flow-box:last-child::after { content: none; }
-    .flow-title { font-weight: 800; font-size: 14px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .flow-val { font-size: 13px; color: var(--muted); }
-    .vs-badge { background: var(--gold); color: #000; font-weight: 900; padding: 4px 10px; border-radius: 20px; font-size: 12px; margin-bottom: 12px; display: inline-block; }
-    .fire-progress-container { margin-bottom: 24px; padding: 20px; background: linear-gradient(90deg, rgba(0,0,0,0.4), rgba(0,0,0,0.2)); border-radius: 12px; border: 1px solid var(--gold-dim); text-align: center; }
+    * {
+      box-sizing: border-box
+    }
 
-    @media(max-width:900px) { .cols-3 { grid-template-columns: 1fr; } .cols-2 { grid-template-columns: 1fr; } header { flex-direction: column; align-items: flex-start; } .topbar { gap: 6px; } }
-    canvas { width: 100%; height: 150px; background: transparent; border-radius: 8px; }
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      font-family: var(--font);
+      background: linear-gradient(180deg, #041022 0%, #071827 100%);
+      color: var(--btn-text)
+    }
+
+    header {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 18px;
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0.02), transparent);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+      position: sticky;
+      top: 0;
+      z-index: 30
+    }
+
+    .brand {
+      font-weight: 900;
+      color: var(--accent);
+      font-size: 18px
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 13px;
+      margin-left: 6px
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 14px auto;
+      padding: 0 12px
+    }
+
+    .topbar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap
+    }
+
+    .tab {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--btn-text)
+    }
+
+    .tab.active {
+      background: linear-gradient(90deg, rgba(30, 136, 229, 0.12), rgba(96, 165, 250, 0.04));
+      border-color: rgba(30, 136, 229, 0.2);
+      font-weight: 700
+    }
+
+    .card {
+      background: var(--panel);
+      padding: 14px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-top: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.03)
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      align-items: center
+    }
+
+    .spacer {
+      flex: 1
+    }
+
+    .small {
+      font-size: 13px;
+      color: var(--muted)
+    }
+
+    .grid {
+      display: grid;
+      gap: 12px
+    }
+
+    .cols-3 {
+      grid-template-columns: repeat(3, 1fr)
+    }
+
+    .cols-2 {
+      grid-template-columns: repeat(2, 1fr)
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse
+    }
+
+    .table th,
+    .table td {
+      padding: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+      text-align: left;
+      font-size: 14px
+    }
+
+    .input,
+    textarea,
+    select {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      padding: 8px;
+      border-radius: 8px;
+      color: var(--btn-text);
+      width: 100%
+    }
+
+    .btn {
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 700;
+      box-shadow: 0 6px 18px rgba(30, 136, 229, 0.12);
+    }
+
+    .btn:hover {
+      filter: brightness(1.03)
+    }
+
+    .btn-ghost {
+      background: var(--btn-ghost-bg);
+      border: 1px solid var(--btn-ghost-border);
+      color: var(--btn-text);
+      padding: 7px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .btn-ghost:hover {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.18)
+    }
+
+    /* Botão profissional para ocultar valores */
+    .btn-pro {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      color: var(--btn-text);
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    /* Export btn refined */
+    .btn-export {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      color: var(--btn-text);
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .progress {
+      height: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      overflow: hidden
+    }
+
+    .bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      width: 0%;
+      /* ADICIONE ISTO PARA FORÇAR A TRANSIÇÃO DE LARGURA */
+      transition: width 0.4s ease;
+    }
+
+    .badge {
+      background: rgba(255, 255, 255, 0.03);
+      padding: 6px;
+      border-radius: 6px;
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    .kv {
+      display: inline-block;
+      padding: 6px 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.02);
+      margin-right: 8px
+    }
+
+    .checkbox-tri {
+      width: 22px;
+      height: 22px;
+      border-radius: 5px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      background: var(--btn-ghost-bg);
+      color: var(--btn-text);
+      font-weight: 700
+    }
+
+    .modal {
+      position: fixed;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      background: rgba(2, 6, 23, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      pointer-events: auto
+    }
+
+    .modal-card {
+      background: #061021;
+      padding: 16px;
+      border-radius: 12px;
+      width: 92%;
+      max-width: 720px;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      pointer-events: auto
+    }
+
+    .note-tab {
+      display: inline-block;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.02);
+      margin-right: 6px;
+      cursor: pointer;
+      color: var(--btn-text)
+    }
+
+    .note-tab.active {
+      background: linear-gradient(90deg, rgba(30, 136, 229, 0.12), rgba(96, 165, 250, 0.04));
+      font-weight: 700
+    }
+
+    .res-card {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), rgba(255, 255, 255, 0.00));
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      cursor: grab
+    }
+
+    .res-card.dragging {
+      opacity: 0.5;
+      transform: scale(0.98)
+    }
+
+    .icon {
+      font-weight: 900;
+      margin-right: 6px
+    }
+
+    .alert-banner {
+      background: rgba(255, 255, 255, 0.03);
+      padding: 8px;
+      border-radius: 8px;
+      border-left: 4px solid rgba(255, 255, 255, 0.06);
+      margin-top: 10px;
+      color: var(--muted)
+    }
+
+    @media(max-width:900px) {
+      .cols-3 {
+        grid-template-columns: 1fr
+      }
+
+      .cols-2 {
+        grid-template-columns: 1fr
+      }
+
+      header {
+        flex-direction: column;
+        align-items: flex-start
+      }
+
+      .topbar {
+        gap: 6px
+      }
+    }
+
+    canvas {
+      width: 100%;
+      height: 150px;
+      background: transparent;
+      border-radius: 8px
+    }
   </style>
 </head>
 
@@ -95,9 +358,10 @@
 
   <div class="container">
     <div class="card topbar">
+      <!-- TABS -->
       <div class="tab active" data-tab="dashboard">Dashboard</div>
       <div class="tab" data-tab="custo">Custo de Vida</div>
-      <div class="tab" data-tab="planejamento">Planejamento</div>
+      <div class="tab" data-tab="planejamento">Planejamento Mensal</div>
       <div class="tab" data-tab="fluxo">Fluxo Diário</div>
       <div class="tab" data-tab="reservas">Reservas</div>
       <div class="tab" data-tab="investimentos">Investimentos</div>
@@ -105,14 +369,13 @@
       <div class="tab" data-tab="caderno">Bloco de Notas</div>
       <div class="tab" data-tab="lembretes">Lembretes</div>
       <div class="tab" data-tab="backup">Backup</div>
-      
-      <div class="tab fire-tab" data-tab="fire-vision">🚀 F.I.R.E. Vision</div>
 
       <div class="spacer"></div>
       <button id="btnSyncAll" class="btn">Salvar no Cloud</button>
     </div>
   </div>
 
+  <!-- ============== DASHBOARD ============== -->
   <div id="dashboard" class="page card" style="margin-top:12px">
     <div style="display:flex;justify-content:space-between;align-items:center">
       <h2>Dashboard</h2>
@@ -122,6 +385,7 @@
     <div id="dash_reminders_wrapper"></div>
     <div id="dash_alert" class="alert-banner" style="display:none"></div>
 
+    <!-- TOP STATS -->
     <div class="card" style="margin-top:8px;padding:10px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <h3 style="margin:0;font-size:16px">Resumo Geral</h3>
@@ -145,7 +409,7 @@
         </div>
       </div>
     </div>
-    
+    <!-- RESERVAS — PROGRESSO GERAL -->
     <div class="card" style="flex:1;min-width:220px;margin-top:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
         <div style="font-weight:600">Reservas — total</div>
@@ -154,6 +418,7 @@
       <div id="content_reservas">
         <div id="dash_reservas_total" style="font-size:20px;font-weight:700">R$ 0,00</div>
         <div class="small">Quantidade de reservas: <span id="dash_reservas_count">0</span></div>
+
         <div style="margin-top:10px;font-weight:600">Progresso das reservas</div>
         <div class="progress" style="height:10px;margin-top:6px;background:#eee;border-radius:8px;overflow:hidden">
           <div id="reservas_progress_bar" class="bar" style="width:0%;background:#00c853">
@@ -163,12 +428,14 @@
       </div>
     </div>
 
+    <!-- 1) CUSTO DE VIDA ATUAL -->
     <div class="card" id="dash_custo_card" style="margin-top:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <div class="small" style="font-weight:bold">Custo de Vida (mês)</div>
         <button class="btn-ghost small-toggle" onclick="toggleDashSection('custo')">👁️</button>
       </div>
-      <div id="content_custo" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <div id="content_custo"
+        style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
         <div>
           <div id="dash_custo_total" style="font-weight:800;font-size:22px">R$ 0,00</div>
           <div class="small" id="dash_custo_month_label"></div>
@@ -179,12 +446,14 @@
       </div>
     </div>
 
+    <!-- 2) FLUXO DE CAIXA MENSAL -->
     <div class="card" id="dash_fluxo_card" style="margin-top:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <div class="small" style="font-weight:bold">Fluxo de Caixa — Mês</div>
         <button class="btn-ghost small-toggle" onclick="toggleDashSection('fluxo')">👁️</button>
       </div>
-      <div id="content_fluxo" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <div id="content_fluxo"
+        style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
         <div>
           <div style="display:flex;gap:12px;align-items:center;margin-top:6px;flex-wrap:wrap">
             <div class="kv">
@@ -207,12 +476,14 @@
       </div>
     </div>
 
+    <!-- 3) PLANEJAMENTO MENSAL -->
     <div class="card" id="dash_plan_card" style="margin-top:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <div class="small" style="font-weight:bold">Planejamento Mensal — Progresso</div>
         <button class="btn-ghost small-toggle" onclick="toggleDashSection('plan')">👁️</button>
       </div>
-      <div id="content_plan" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <div id="content_plan"
+        style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
         <div>
           <div id="dash_plan_meta" style="font-weight:800;font-size:18px">Meta: R$ 0,00</div>
           <div id="dash_plan_done" class="small">Concluído: R$ 0,00</div>
@@ -227,6 +498,7 @@
       </div>
     </div>
 
+    <!-- INVESTIMENTOS (Reservas removidas do resumo) -->
     <div style="display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px">
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
@@ -241,6 +513,7 @@
       </div>
     </div>
 
+    <!-- últimas transações -->
     <div class="card" style="margin-top:12px">
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div>
@@ -256,40 +529,65 @@
         <table class="table" id="dash_recent">
           <thead>
             <tr>
-              <th>Data</th><th>Tipo</th><th>Descrição</th><th>Valor</th>
+              <th>Data</th>
+              <th>Tipo</th>
+              <th>Descrição</th>
+              <th>Valor</th>
             </tr>
           </thead>
           <tbody>
-            <tr><td colspan="4" class="small">Sem registros</td></tr>
+            <tr>
+              <td colspan="4" class="small">Sem registros</td>
+            </tr>
           </tbody>
         </table>
       </div>
     </div>
+
   </div>
 
+  <!-- ============== CUSTO / PLANEJAMENTO / FLUXO / RESERVAS / INVESTIMENTOS / CADERNO / BACKUP ============== -->
+  <!-- (preserve existing markup for these pages) -->
+  <!-- CUSTO -->
   <div id="custo" class="page" style="display:none">
     <div class="card">
       <h2>Custo de Vida — lançamentos mensais</h2>
-      <div class="small">Adicione seus custos mensais, por data e categoria.</div>
+      <div class="small">Adicione seus custos mensais, por data e categoria. O gráfico mostra as categorias mais
+        gastas.</div>
       <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
         <input id="cv_date" class="input" type="date" />
         <input id="cv_desc" class="input" placeholder="Descrição do custo" />
         <select id="cv_cat" class="input">
-          <option>Moradia</option><option>Alimentação</option><option>Transporte</option>
-          <option>Educação</option><option>Lazer</option><option>Outros</option>
+          <option>Moradia</option>
+          <option>Alimentação</option>
+          <option>Transporte</option>
+          <option>Educação</option>
+          <option>Lazer</option>
+          <option>Outros</option>
         </select>
         <input id="cv_valor" class="input" type="number" placeholder="Valor (R$)" />
         <button class="btn" onclick="addCusto()">Adicionar</button>
         <button class="btn-ghost" onclick="clearCustoMonth()">Limpar mês</button>
         <button class="btn-ghost" onclick="clearCusto()">Limpar Dados desta Aba</button>
       </div>
+
       <div style="margin-top:12px;display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">
         <div style="flex:1">
           <table class="table" id="custoTable">
             <thead>
-              <tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th>Ações</th></tr>
+              <tr>
+                <th>Data</th>
+                <th>Descrição</th>
+                <th>Categoria</th>
+                <th>Valor</th>
+                <th>Ações</th>
+              </tr>
             </thead>
-            <tbody><tr><td colspan="5" class="small">Sem lançamentos</td></tr></tbody>
+            <tbody>
+              <tr>
+                <td colspan="5" class="small">Sem lançamentos</td>
+              </tr>
+            </tbody>
           </table>
         </div>
         <div style="width:320px">
@@ -300,6 +598,7 @@
     </div>
   </div>
 
+  <!-- PLANEJAMENTO -->
   <div id="planejamento" class="page" style="display:none">
     <div class="card">
       <h2>Planejamento Mensal — 3 períodos</h2>
@@ -317,6 +616,7 @@
     </div>
   </div>
 
+  <!-- FLUXO -->
   <div id="fluxo" class="page" style="display:none">
     <div class="card">
       <h2>Fluxo de Caixa Diário</h2>
@@ -324,19 +624,39 @@
       <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
         <input id="fx_date" class="input" type="date" />
         <input id="fx_desc" class="input" placeholder="Descrição" />
-        <select id="fx_type" class="input"><option value="entrada">Entrada</option><option value="saida">Saída</option></select>
-        <select id="fx_payment" class="input"><option>Dinheiro</option><option>Pix</option><option>Saldo conta</option><option>Híbrido</option></select>
+        <select id="fx_type" class="input">
+          <option value="entrada">Entrada</option>
+          <option value="saida">Saída</option>
+        </select>
+        <select id="fx_payment" class="input">
+          <option>Dinheiro</option>
+          <option>Pix</option>
+          <option>Saldo conta</option>
+          <option>Híbrido</option>
+        </select>
         <input id="fx_valor" class="input" type="number" placeholder="Valor (R$)" />
         <button class="btn" onclick="addFluxo()">Registrar</button>
         <button class="btn-ghost" onclick="clearFluxo()">Limpar Dados desta Aba</button>
       </div>
+
       <div style="margin-top:12px;display:flex;gap:12px;align-items:flex-start">
         <div style="flex:1">
           <table class="table" id="fluxoTable">
             <thead>
-              <tr><th>Data</th><th>Desc</th><th>Tipo</th><th>Pagamento</th><th>Valor</th><th>Ações</th></tr>
+              <tr>
+                <th>Data</th>
+                <th>Desc</th>
+                <th>Tipo</th>
+                <th>Pagamento</th>
+                <th>Valor</th>
+                <th>Ações</th>
+              </tr>
             </thead>
-            <tbody><tr><td colspan="6" class="small">Sem lançamentos</td></tr></tbody>
+            <tbody>
+              <tr>
+                <td colspan="6" class="small">Sem lançamentos</td>
+              </tr>
+            </tbody>
           </table>
         </div>
         <div style="width:340px">
@@ -347,15 +667,29 @@
     </div>
   </div>
 
+  <!-- RESERVAS -->
   <div id="reservas" class="page" style="display:none">
+    <!-- Progresso das Reservas (removido visualmente) -->
+    <!-- <div style="margin-top:20px">
+  <h3>Progresso das Reservas</h3>
+  <div style="background:#eee;border-radius:10px;height:16px;overflow:hidden;">
+    <div id="reservas_progress_bar" style="background:#00c853;width:0%;height:100%;transition:width 0.5s;"></div>
+  </div>
+  <div style="margin-top:6px;text-align:right;font-weight:bold;color:#333;">
+    <span id="reservas_progress_text">0%</span>
+  </div>
+</div> -->
+
     <div class="card">
       <h2>Reservas — arraste para reorganizar</h2>
       <div class="small">Ordem recomendada nas abas Reservas</div>
+
       <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         <select id="reserva_type_selector" class="input" style="width:auto" onchange="renderReservations()">
-          <option value="normal">Reservas Normais</option><option value="isolated">Reservas Isoladas</option>
+          <option value="normal">Reservas Normais</option>
+          <option value="isolated">Reservas Isoladas</option>
         </select>
-        <input id="r_name" class="input" placeholder="Nome da reserva" />
+        <input id="r_name" class="input" placeholder="Nome da reserva (ex: Segurança)" />
         <input id="r_meta" class="input" type="number" placeholder="Meta (R$)" />
         <input id="r_init" class="input" type="number" placeholder="Valor Inicial (R$)" />
         <button class="btn" onclick="handleAddReservation()">Criar</button>
@@ -363,32 +697,54 @@
         <button class="btn-ghost" onclick="openEditDefaultReservas()">Editar Padrões</button>
         <button class="btn-ghost" onclick="clearReservas()">Limpar Dados desta Aba</button>
       </div>
-      <div id="resCards" style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px"></div>
+
+      <div id="resCards"
+        style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px"></div>
+
     </div>
   </div>
 
+  <!-- INVESTIMENTOS -->
   <div id="investimentos" class="page" style="display:none">
     <div class="card">
       <h2>Investimentos — composição e lançamentos</h2>
       <div class="small">Adicione ativos, categorias e faça aportes/retiradas.</div>
+
       <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
         <input id="inv_ativo" class="input" placeholder="Ativo (ex: Tesouro IPCA+ 2035)" />
         <select id="inv_categoria" class="input">
-          <option>Renda Fixa</option><option>Ações</option><option>FIIs</option>
-          <option>Dólar</option><option>Renda Fixa USA</option><option>Penny Stocks</option><option>Cripto</option>
+          <option>Renda Fixa</option>
+          <option>Ações</option>
+          <option>FIIs</option>
+          <option>Dólar</option>
+          <option>Renda Fixa USA</option>
+          <option>Penny Stocks</option>
+          <option>Cripto</option>
         </select>
         <input id="inv_qtd" class="input" type="number" placeholder="Quantidade" />
         <input id="inv_preco" class="input" type="number" placeholder="Preço unitário" />
         <button class="btn" onclick="addInvestment()">Adicionar</button>
         <button class="btn-ghost" onclick="clearInvestimentos()">Limpar Dados desta Aba</button>
       </div>
+
       <div style="margin-top:12px;display:flex;gap:12px">
         <div style="flex:1">
           <table class="table" id="invTable">
             <thead>
-              <tr><th>Ativo</th><th>Categoria</th><th>Qtd</th><th>Preço</th><th>Valor</th><th>Ações</th></tr>
+              <tr>
+                <th>Ativo</th>
+                <th>Categoria</th>
+                <th>Qtd</th>
+                <th>Preço</th>
+                <th>Valor</th>
+                <th>Ações</th>
+              </tr>
             </thead>
-            <tbody><tr><td colspan="6" class="small">Nenhum investimento</td></tr></tbody>
+            <tbody>
+              <tr>
+                <td colspan="6" class="small">Nenhum investimento</td>
+              </tr>
+            </tbody>
           </table>
         </div>
         <div style="width:320px">
@@ -399,151 +755,71 @@
     </div>
   </div>
 
+  <!-- ATIVOS & PASSIVOS -->
   <div id="ativos-passivos" class="page" style="display:none"></div>
-  <div id="lembretes" class="page" style="display:none"></div>
 
+  <!-- CADERNO -->
   <div id="caderno" class="page" style="display:none">
     <div class="card">
-      <h2>Bloco de Notas</h2>
+      <h2>Bloco de Notas — abas temáticas, blocos e itens</h2>
       <div class="small">Crie abas (temas), dentro crie blocos (sub-abas).</div>
+
       <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
-        <input id="note_tab_name" class="input" placeholder="Nome da aba" />
+        <input id="note_tab_name" class="input" placeholder="Nome da aba (ex: Financeiro)" />
         <button class="btn" onclick="createNoteTab()">Criar Aba</button>
         <div class="spacer"></div>
         <button class="btn-ghost" onclick="clearCaderno()">Limpar Dados desta Aba</button>
       </div>
+
       <div id="noteTabs" style="margin-top:12px"></div>
+
       <div style="margin-top:12px" class="card">
         <div style="display:flex;gap:8px;align-items:center">
-          <input id="note_block_title" class="input" placeholder="Título do bloco" />
+          <input id="note_block_title" class="input" placeholder="Título do bloco (sub-aba)" />
           <button class="btn" onclick="addBlock()">Adicionar Checklist</button>
-          <button class="btn" onclick="addFreeTextBlock()" style="background:var(--secondary)">Adicionar Anotação Livre</button>
+          <button class="btn" onclick="addFreeTextBlock()" style="background:var(--secondary)">Adicionar Anotação
+            Livre</button>
         </div>
         <div id="noteBlocks" style="margin-top:12px"></div>
       </div>
+
     </div>
   </div>
 
+  <!-- LEMBRETES -->
+  <div id="lembretes" class="page" style="display:none"></div>
+
+  <!-- BACKUP -->
   <div id="backup" class="page" style="display:none">
     <div class="card">
       <h2>Backup / Import / Export</h2>
       <div class="small">Exporta todo o painel (JSON) ou importa backup.</div>
+
       <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn" onclick="exportAll()">Exportar Tudo (.json)</button>
         <button class="btn" onclick="exportToClipboardAndModal()">Exportar Tudo (Bloco de Notas)</button>
+
         <input id="fileImport" type="file" accept=".json" style="background:transparent;color:var(--muted)" />
         <button class="btn-ghost" onclick="importAll()">Importar Backup</button>
         <div class="spacer"></div>
         <div class="small">Drive API: <span id="apiUrlDisplay"></span></div>
       </div>
+
+      <!-- Botão adicional: Zerar Painel -->
       <div style="margin-top:20px;border-top:1px solid #ccc;padding-top:15px">
         <h3 style="margin-bottom:8px;color:#d50000">Restauração Total</h3>
-        <button class="btn" style="background:#d50000;color:#fff;font-weight:600" onclick="resetPainel()">🧹 Zerar Todos os Dados</button>
+        <p class="small" style="margin-bottom:8px;color:#555">
+          ⚠️ Este botão apaga todos os dados do painel (fluxo, reservas, investimentos, notas, etc.).
+          A ação é irreversível e exigirá digitar <strong>ZERAR</strong> para confirmar.
+        </p>
+        <button class="btn" style="background:#d50000;color:#fff;font-weight:600" onclick="resetPainel()">🧹 Zerar
+          Todos os Dados</button>
       </div>
+
     </div>
   </div>
 
-  <div id="fire-vision" class="page" style="display:none">
-    <div class="fire-progress-container">
-        <h2 style="color:var(--gold); margin:0 0 10px 0;">🎯 PROGRESSO RUMO AO R$ 1 MILHÃO</h2>
-        <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:6px;">
-            <div style="font-size:14px; color:var(--muted)">Patrimônio Líquido Atual</div>
-            <div id="fire_current_wealth" style="font-size:24px; font-weight:900; color:var(--btn-text)">R$ 0,00</div>
-        </div>
-        <div class="progress" style="height:24px; background:rgba(255,255,255,0.1);">
-            <div id="fire_progress_bar" class="bar" style="width:0%; background:linear-gradient(90deg, #eab308, #ffd700);"></div>
-        </div>
-        <div style="display:flex; justify-content:space-between; margin-top:6px;">
-            <div class="small">0%</div>
-            <div class="small" style="color:var(--gold)">Meta: R$ 1.000.000</div>
-        </div>
-    </div>
-
-    <div class="fire-container">
-        <div class="fire-col">
-            <div style="margin-bottom:16px; text-align:center;">
-                <span style="background:rgba(255,255,255,0.1); padding:4px 8px; border-radius:4px; font-size:12px;">SISTEMA ATUAL</span>
-                <h3 style="margin:4px 0 0 0;">🛠️ PRÉ-MILHÃO</h3>
-            </div>
-            <div class="flow-box highlight">
-                <div class="flow-title">FONTES DE RENDA (ATIVAS)</div>
-                <div class="flow-val">Corridas • Proteção • Extras</div>
-            </div>
-            <div class="flow-box">
-                <div class="flow-title">CAIXA OPERACIONAL</div>
-                <div class="flow-val">Conta Corrente Inter</div>
-                <div class="small" style="margin-top:4px;">Recebe Tudo • Paga Contas</div>
-            </div>
-            <div class="flow-box">
-                <div class="flow-title">FILTRO (CLEARING)</div>
-                <div class="flow-val">Porquinho "Dia-a-Dia"</div>
-                <div class="small" style="margin-top:4px; color:var(--accent-2);">Giro & Reconciliação</div>
-            </div>
-            <div style="display:flex; gap:10px; width:100%;">
-                <div class="flow-box" style="flex:1; margin-bottom:0;">
-                    <div class="flow-title">RESERVAS</div>
-                    <div id="fire_res_val" class="flow-val" style="font-weight:bold;">R$ 0,00</div>
-                </div>
-                <div class="flow-box" style="flex:1; margin-bottom:0;">
-                    <div class="flow-title">INVESTIMENTOS</div>
-                    <div id="fire_inv_val" class="flow-val" style="font-weight:bold;">R$ 0,00</div>
-                </div>
-            </div>
-            <div style="margin-top:20px; font-size:13px; color:var(--muted); text-align:center;">
-                <i>"Hoje o trabalho sustenta a vida."</i>
-            </div>
-        </div>
-
-        <div class="fire-col" style="flex:0.6; min-width:250px; background:transparent; border:none; justify-content:center;">
-            <div style="text-align:center;">
-                <div class="vs-badge">O SALTO</div>
-                <div style="margin-bottom:20px;">
-                    <div class="small">FONTE DE VIDA</div>
-                    <div>Trabalho ➔ <strong style="color:var(--gold)">Capital</strong></div>
-                </div>
-                <div style="margin-bottom:20px;">
-                    <div class="small">SEGURANÇA</div>
-                    <div>Esforço ➔ <strong style="color:var(--gold)">Renda</strong></div>
-                </div>
-                <div style="margin-bottom:20px;">
-                    <div class="small">MOTO/ATIVO</div>
-                    <div>Sobrevivência ➔ <strong style="color:var(--gold)">Opção</strong></div>
-                </div>
-                <div style="padding:10px; border:1px dashed var(--muted); border-radius:8px; margin-top:20px;">
-                    <div class="small">SUA DISCIPLINA SEMANAL</div>
-                    <div style="font-size:12px;">Reduz a dependência da esquerda e constrói a direita.</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="fire-col target">
-            <div style="margin-bottom:16px; text-align:center;">
-                <span style="background:var(--gold); color:black; padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">A META</span>
-                <h3 style="margin:4px 0 0 0; color:var(--gold);">👑 SISTEMA R$ 1 MILHÃO</h3>
-            </div>
-            <div class="flow-box gold">
-                <div class="flow-title">CAPITAL PRINCIPAL</div>
-                <div class="flow-val" style="font-size:18px; font-weight:900;">R$ 1.000.000</div>
-            </div>
-            <div class="flow-box">
-                <div class="flow-title">TESOURO SELIC (100%)</div>
-                <div class="flow-val">Capital Blindado</div>
-            </div>
-            <div class="flow-box">
-                <div class="flow-title">RENDIMENTO MENSAL</div>
-                <div class="flow-val" style="color:var(--success); font-weight:bold;">~ R$ 5.500 (Líquido)</div>
-            </div>
-            <div class="flow-box">
-                <div class="flow-title">CAIXA DE VIDA</div>
-                <div class="flow-val">Cobre custos sem esforço físico</div>
-            </div>
-            <div style="margin-top:20px; font-size:13px; color:var(--gold); text-align:center;">
-                <i>"O capital trabalha. Você vive."</i>
-            </div>
-        </div>
-    </div>
-  </div>
-
+  <!-- MODAL -->
   <div id="modalEdit" style="display:none" class="modal">
     <div class="modal-card">
       <h3 id="modalTitle">Editar</h3>
@@ -555,297 +831,1404 @@
     </div>
   </div>
 
+  <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <script>
     /* ================= CONFIG ================= */
-    var state = { reservas: [], isolatedReservas: [], transacoes: [], investimentos: [], fluxo: [], custo: [], planejamento: {}, caderno: [], settings: { hideValues: false }, assets: [], alertas: [] };
 
-    function uid(p='id'){return p+'_'+Date.now()+'_'+Math.floor(Math.random()*999);}
-    function moneyBRRaw(v){return Number(v||0);}
-    function moneyBRFormatted(v){return 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
-    function formatMoney(v){ if(state.settings.hideValues) return 'R$ ••••'; return moneyBRFormatted(v); }
-    function el(q){return document.querySelector(q);}
-    function els(q){return Array.from(document.querySelectorAll(q));}
-    function nowISO(){return new Date().toISOString();}
+    /* ===== Estado Global ===== */
+    var state = {
+      reservas: [],
+      isolatedReservas: [], // New isolated reserves array
+      transacoes: [],
+      investimentos: [],
+      fluxo: [],
+      custo: [],
+      planejamento: {},
+      caderno: [],
+      settings: { hideValues: false }
+    };
 
+    /* ===== Utils ===== */
+    function uid(prefix = 'id') { return prefix + '_' + Date.now() + '_' + Math.floor(Math.random() * 9999); }
+    function moneyBRRaw(v) { return Number(v || 0); }
+    function moneyBRFormatted(v) { return 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    function el(q) { return document.querySelector(q); }
+    function els(q) { return Array.from(document.querySelectorAll(q)); }
+    function nowISO() { return new Date().toISOString(); }
+
+    /* ===== Persistence ===== */
     const STATE_KEY = 'borges_panel_3_v1';
-    function saveLocal(){ localStorage.setItem(STATE_KEY, JSON.stringify(state)); renderAll(); }
-    function saveLocalSilent(){ localStorage.setItem(STATE_KEY, JSON.stringify(state)); }
-    function loadLocal(){
-      try{
-        const raw=localStorage.getItem(STATE_KEY);
-        if(raw){
-          const p=JSON.parse(raw);
-          state=Object.assign(state,p);
-          if(!state.settings) state.settings={hideValues:false};
-          if(!state.isolatedReservas) state.isolatedReservas=[];
+    function saveLocal() { localStorage.setItem(STATE_KEY, JSON.stringify(state)); renderAll(); }
+    function saveLocalSilent() { localStorage.setItem(STATE_KEY, JSON.stringify(state)); }
+    window.saveLocal = saveLocal;
+    function loadLocal() {
+      try {
+        const raw = localStorage.getItem(STATE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          // merge with default keys
+          state = Object.assign(state, parsed);
+          if (!state.settings) state.settings = { hideValues: false };
+          if (!state.isolatedReservas) state.isolatedReservas = []; // Ensure isolatedReservas exists
         }
-      }catch(e){console.error(e);}
+      } catch (e) { console.error('Erro parse local', e); }
     }
 
-    /* TABS */
-    els('.tab').forEach(t=>{
-      t.addEventListener('click',()=>{
-        els('.tab').forEach(x=>x.classList.remove('active'));
-        t.classList.add('active');
-        els('.page').forEach(p=>p.style.display='none');
-        const id=t.dataset.tab;
-        const p=document.getElementById(id);
-        if(p) p.style.display='block';
-        if(id==='lembretes' && window.enhancements) window.enhancements.createRemindersTab();
-        if(id==='ativos-passivos' && window.enhancements) window.enhancements.createAssetsTab();
-        if(id==='fire-vision') renderFireVision();
-        renderAll();
-      });
-    });
-
-    /* ================= LOGICA FIRE VISION ================= */
-    function renderFireVision() {
-      const totalReservas = (state.reservas||[]).reduce((a,b)=>a+Number(b.saldo||0),0);
-      const totalInvest = (state.investimentos||[]).reduce((a,b)=>a+(Number(b.quantidade||0)*Number(b.preco||0)),0);
-      const totalLiquido = totalReservas + totalInvest; 
-      const meta = 1000000;
-      const pct = Math.min(100, (totalLiquido / meta) * 100);
-
-      const elWealth = document.getElementById('fire_current_wealth');
-      const elBar = document.getElementById('fire_progress_bar');
-      const elResVal = document.getElementById('fire_res_val');
-      const elInvVal = document.getElementById('fire_inv_val');
-
-      if(elWealth) elWealth.innerText = formatMoney(totalLiquido);
-      if(elBar) elBar.style.width = pct + '%';
-      if(elResVal) elResVal.innerText = formatMoney(totalReservas);
-      if(elInvVal) elInvVal.innerText = formatMoney(totalInvest);
+    /* ===== Format depending on hide values ===== */
+    function formatMoney(v) {
+      if (state && state.settings && state.settings.hideValues) return 'R$ ••••';
+      return moneyBRFormatted(v);
     }
 
-    /* ================= TODAS AS FUNÇÕES ORIGINAIS RESTAURADAS ================= */
-    
-    // RESERVAS
-    function getDefaultReservasConfig(){
-      if(state.settings && state.settings.defaultReservas) return state.settings.defaultReservas;
-      return [{name:'Reserva de Segurança',pct:0.20},{name:'Veículos',pct:0.15},{name:'Roupas / Lazer / Levy',pct:0.10},{name:'Gatona',pct:0.05},{name:'Reserva Levy 18 anos',pct:0.05},{name:'Oportunidades',pct:0.07},{name:'Terreno/Lexus Eventos',pct:0.07},{name:'Apartamento',pct:0.05},{name:'Dividas',pct:0.0975},{name:'Fundo Imobiliário',pct:0.13},{name:'Ações/Cripto',pct:0.0325}];
+    /* ===== UI: tabs wiring (safe) ===== */
+    els('.tab').forEach(t => t.addEventListener('click', (e) => {
+      els('.tab').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      els('.page').forEach(p => p.style.display = 'none');
+      const id = t.dataset.tab;
+      const page = document.getElementById(id);
+      if (page) page.style.display = 'block';
+      if (id === 'lembretes') window.enhancements.createRemindersTab();
+      renderAll();
+    }));
+
+    /* ===== Defaults & Helpers for Reservations ===== */
+    /* ===== Defaults & Helpers for Reservations ===== */
+    function getDefaultReservasConfig() {
+      if (state.settings && state.settings.defaultReservas) return state.settings.defaultReservas;
+      return [
+        { name: 'Reserva de Segurança', pct: 0.20 },
+        { name: 'Veículos', pct: 0.15 },
+        { name: 'Roupas / Lazer / Levy', pct: 0.10 },
+        { name: 'Gatona', pct: 0.05 },
+        { name: 'Reserva Levy 18 anos', pct: 0.05 },
+        { name: 'Oportunidades', pct: 0.07 },
+        { name: 'Terreno/Lexus Eventos', pct: 0.07 },
+        { name: 'Apartamento', pct: 0.05 },
+        { name: 'Dividas', pct: 0.0975 },
+        { name: 'Fundo Imobiliário', pct: 0.13 },
+        { name: 'Ações/Cripto', pct: 0.0325 }
+      ];
     }
-    function createDefaultReservas(){
+
+    function createDefaultReservas() {
+      // New list with percentages
       const defaults = getDefaultReservasConfig();
-      defaults.forEach((d,i)=>{
-        if(!state.reservas.find(r=>r.name===d.name)) state.reservas.push({id:uid('r'), name:d.name, meta:0, saldo:0, order:i, obs:`Alocação sugerida: ${(d.pct*100).toFixed(2)}%`, updated:nowISO()});
+
+      // 1. Ensure reserves exist
+      defaults.forEach((d, i) => {
+        if (!state.reservas.find(r => r.name === d.name)) {
+          state.reservas.push({ id: uid('r'), name: d.name, meta: 0, saldo: 0, order: i, obs: `Alocação sugerida: ${(d.pct * 100).toFixed(2)}%`, updated: nowISO() });
+        }
       });
-      reorderReservationsByDefault(); saveLocal(); renderReservations();
-      alert("Reservas padrão criadas (se não existiam).");
+      reorderReservationsByDefault();
+      saveLocal();
+      renderReservations();
+
+      // 2. Prompt for allocation simulation
+      const html = `
+        <div class="small" style="margin-bottom:12px">Digite o valor total disponível para distribuir entre as reservas padrão.</div>
+        <input id="modal_alloc_value" type="number" class="input" placeholder="Valor (R$)" />
+        <div id="modal_alloc_result" style="margin-top:16px;max-height:300px;overflow:auto;border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:8px;display:none"></div>
+      `;
+
+      showModal('Simular Alocação de Reservas', html, function () {
+        // This callback is for the "Confirmar" button of the modal, which usually closes it.
+        // We want to calculate BEFORE closing, or use a custom button inside.
+        // Since showModal is simple, let's inject a calculation button logic into the modal body after render.
+      });
+
+      // Inject logic into the opened modal (a bit hacky but fits the current simple modal system)
+      setTimeout(() => {
+        const input = document.getElementById('modal_alloc_value');
+        const resultDiv = document.getElementById('modal_alloc_result');
+        if (input && resultDiv) {
+          input.addEventListener('input', () => {
+            const val = Number(input.value);
+            if (!val) { resultDiv.style.display = 'none'; return; }
+
+            let resHtml = '<table class="table" style="width:100%"><thead><tr><th>Reserva</th><th>%</th><th>Valor</th></tr></thead><tbody>';
+            let totalCalc = 0;
+            defaults.forEach(d => {
+              const amount = val * d.pct;
+              totalCalc += amount;
+              resHtml += `<tr>
+                <td>${d.name}</td>
+                <td>${(d.pct * 100).toFixed(2)}%</td>
+                <td style="font-weight:bold">${formatMoney(amount)}</td>
+              </tr>`;
+            });
+            resHtml += `</tbody></table>
+            <div style="margin-top:8px;text-align:right;font-weight:bold;border-top:1px solid #333;padding-top:4px">Total: ${formatMoney(totalCalc)}</div>`;
+
+            resultDiv.innerHTML = resHtml;
+            resultDiv.style.display = 'block';
+          });
+          input.focus();
+        }
+      }, 200);
     }
-    function reorderReservationsByDefault(){
-      const priority=['Reserva de Segurança','Veículos','Roupas / Lazer / Levy','Gatona','Reserva Levy 18 anos','Oportunidades','Terreno/Lexus Eventos','Apartamento','Dividas','Fundo Imobiliário','Ações/Cripto'];
-      state.reservas.forEach(r=>{ if(r.order==undefined){ const idx=priority.indexOf(r.name); r.order=idx!==-1?idx:999; }});
-      state.reservas.sort((a,b)=>(a.order||999)-(b.order||999));
+
+    function reorderReservationsByDefault() {
+      const priority = [
+        'Reserva de Segurança',
+        'Veículos',
+        'Roupas / Lazer / Levy',
+        'Gatona',
+        'Reserva Levy 18 anos',
+        'Oportunidades',
+        'Terreno/Lexus Eventos',
+        'Apartamento',
+        'Dividas',
+        'Fundo Imobiliário',
+        'Ações/Cripto'
+      ];
+      state.reservas.forEach(r => {
+        if (r.order === undefined || r.order === null) {
+          const idx = priority.indexOf(r.name);
+          r.order = idx !== -1 ? idx : 999;
+        }
+      });
+      state.reservas.sort((a, b) => (a.order || 999) - (b.order || 999));
     }
-    function renderReservations(){
-      const container=el('#resCards'); if(!container)return; container.innerHTML='';
-      const type=el('#reserva_type_selector')?el('#reserva_type_selector').value:'normal';
-      const list=type==='isolated'?state.isolatedReservas:state.reservas;
-      if(type==='normal') list.sort((a,b)=>(a.order||0)-(b.order||0));
-      if(!list.length){container.innerHTML=`<div class="small">Nenhuma reserva</div>`; renderReservasProgress(); return;}
-      list.forEach(r=>{
-        const pct=r.meta?Math.round((r.saldo/r.meta)*100):0;
-        const card=document.createElement('div'); card.className='res-card'; card.dataset.id=r.id;
-        if(type==='normal') card.setAttribute('draggable','true');
-        const actionsHtml = type==='normal' ? 
-          `<button class="btn-ghost" onclick="promptAporte(event,'${r.id}')">+</button><button class="btn-ghost" onclick="promptRetirar(event,'${r.id}')">-</button><button class="btn-ghost" onclick="openEditReservation('${r.id}')">✎</button><button class="btn-ghost" onclick="removeReserva('${r.id}')">✖</button>` :
-          `<button class="btn-ghost" onclick="promptAporteIsolated(event,'${r.id}')">+</button><button class="btn-ghost" onclick="promptRetirarIsolated(event,'${r.id}')">-</button><button class="btn-ghost" onclick="openEditReservation('${r.id}',true)">✎</button><button class="btn-ghost" onclick="removeIsolatedReserva('${r.id}')">✖</button>`;
-        card.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:700">${r.name}</div><div style="display:flex;gap:6px;">${actionsHtml}</div></div><div style="margin-top:8px" class="small">Meta: ${formatMoney(r.meta)}</div><div style="margin-top:6px;font-weight:800">${formatMoney(r.saldo)}</div><div style="margin-top:8px"><div class="progress"><div class="bar" style="width:${Math.min(100,pct)}%;background:${pct>=100?'#00c853':pct>=50?'#ffd600':'#d50000'};"></div></div><div class="small">${pct}%</div></div>`;
-        if(type==='normal'){
-          card.addEventListener('dragstart',(ev)=>{card.classList.add('dragging');ev.dataTransfer.setData('text/plain',r.id);});
-          card.addEventListener('dragend',()=>{card.classList.remove('dragging');});
-          card.addEventListener('dragover',(ev)=>{ev.preventDefault();});
-          card.addEventListener('drop',(ev)=>{ev.preventDefault();handleReservaDrop(ev.dataTransfer.getData('text/plain'),r.id);});
+
+    function openEditDefaultReservas() {
+      // Clone defaults to avoid direct mutation until save
+      let currentDefaults = JSON.parse(JSON.stringify(getDefaultReservasConfig()));
+
+      const renderModalContent = () => {
+        let html = '<div class="small" style="margin-bottom:12px">Edite nomes e porcentagens. O total deve ser 100%.</div>';
+        html += '<div id="def_res_list" style="display:flex;flex-direction:column;gap:8px;max-height:400px;overflow:auto;padding-right:4px">';
+
+        currentDefaults.forEach((d, i) => {
+          html += `
+            <div class="def-res-row" style="display:flex;gap:8px;align-items:center">
+              <input type="text" class="input def-res-name" data-idx="${i}" value="${d.name}" placeholder="Nome da Reserva" style="flex:1" />
+              <input type="number" step="0.01" class="input def-res-pct" data-idx="${i}" value="${(d.pct * 100).toFixed(2)}" style="width:80px" />
+              <span style="font-size:12px">%</span>
+              <button class="btn-ghost" style="color:var(--danger);padding:4px 8px" onclick="removeDefaultResItem(${i})">✖</button>
+            </div>
+          `;
+        });
+        html += '</div>';
+        html += `
+          <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
+            <button class="btn-ghost" onclick="addDefaultResItem()">+ Adicionar Nova Reserva</button>
+            <div id="def_res_total" style="font-weight:bold">Total: 0%</div>
+          </div>
+        `;
+        return html;
+      };
+
+      // Helper to attach events after render
+      const attachEvents = () => {
+        const inputsPct = document.querySelectorAll('.def-res-pct');
+        const inputsName = document.querySelectorAll('.def-res-name');
+        const totalDiv = document.getElementById('def_res_total');
+
+        const calcTotal = () => {
+          let sum = 0;
+          inputsPct.forEach(inp => sum += Number(inp.value) || 0);
+          if (totalDiv) {
+            totalDiv.innerText = `Total: ${sum.toFixed(2)}%`;
+            totalDiv.style.color = Math.abs(sum - 100) < 0.01 ? 'var(--success)' : 'var(--danger)';
+          }
+        };
+
+        inputsPct.forEach(inp => inp.addEventListener('input', (e) => {
+          const idx = Number(e.target.dataset.idx);
+          currentDefaults[idx].pct = (Number(e.target.value) || 0) / 100;
+          calcTotal();
+        }));
+
+        inputsName.forEach(inp => inp.addEventListener('input', (e) => {
+          const idx = Number(e.target.dataset.idx);
+          currentDefaults[idx].name = e.target.value;
+        }));
+
+        calcTotal();
+      };
+
+      // Expose helpers globally so onclick works (temporary hack for this modal system)
+      window.removeDefaultResItem = (idx) => {
+        currentDefaults.splice(idx, 1);
+        refreshModal();
+      };
+      window.addDefaultResItem = () => {
+        currentDefaults.push({ name: '', pct: 0 });
+        refreshModal();
+      };
+
+      const refreshModal = () => {
+        // Re-render content inside the existing modal body if possible, or close/reopen
+        // Since our showModal is simple, we might need to re-inject content.
+        // Let's try finding the modal content container.
+        const modalBody = document.querySelector('.modal-content-body'); // Assuming class or we find by structure
+        // If we can't find a stable container, we just re-call showModal which replaces the content.
+        // But showModal usually creates a new overlay. Let's close and reopen or update innerHTML of a known container.
+        // For simplicity with current infra: update a container we created.
+        const container = document.getElementById('def_res_container');
+        if (container) {
+          container.innerHTML = renderModalContent();
+          attachEvents();
+        }
+      };
+
+      // Initial Show
+      showModal('Editar Padrões de Reserva', `<div id="def_res_container">${renderModalContent()}</div>`, function () {
+        // Save logic
+        if (!state.settings) state.settings = {};
+
+        // Validate total just to warn
+        const total = currentDefaults.reduce((s, d) => s + d.pct, 0) * 100;
+        if (Math.abs(total - 100) > 0.01) {
+          if (!confirm(`O total das porcentagens é ${total.toFixed(2)}%. Deseja salvar mesmo assim?`)) return false;
+        }
+
+        state.settings.defaultReservas = currentDefaults;
+        saveLocal();
+        alert('Padrões atualizados com sucesso!');
+
+        // Cleanup global helpers
+        delete window.removeDefaultResItem;
+        delete window.addDefaultResItem;
+      });
+
+      // Initial attach
+      setTimeout(attachEvents, 100);
+    }
+
+    /* ======= RESERVAS CRUD (mantive suas funções) ======= */
+    /* ====== RESERVAS LOGIC (Normal & Isolated) ====== */
+    function getActiveReservesList() {
+      const type = document.getElementById('reserva_type_selector') ? document.getElementById('reserva_type_selector').value : 'normal';
+      return type === 'isolated' ? state.isolatedReservas : state.reservas;
+    }
+
+    function handleAddReservation() {
+      const type = document.getElementById('reserva_type_selector').value;
+      if (type === 'isolated') addIsolatedReservation();
+      else addReservation();
+    }
+
+    function addReservation() {
+      const name = el('#r_name').value.trim();
+      const meta = Number(el('#r_meta').value) || 0;
+      const init = Number(el('#r_init').value) || 0;
+      if (!name) { alert('Nome da reserva é obrigatório'); return; }
+      const id = uid('r');
+      const maxOrder = state.reservas.reduce((m, x) => Math.max(m, x.order || 0), 0);
+      const r = { id, name, meta, saldo: init, order: maxOrder + 1, obs: '', updated: nowISO() };
+      state.reservas.push(r);
+      if (init > 0) {
+        state.transacoes.unshift({ id: uid('t'), date: nowISO(), reserva: name, tipo: 'aporte', valor: init, nota: 'Inicial' });
+      }
+      el('#r_name').value = ''; el('#r_meta').value = ''; el('#r_init').value = '';
+      saveLocal();
+      renderReservations();
+    }
+
+    function addIsolatedReservation() {
+      const name = el('#r_name').value.trim();
+      const meta = Number(el('#r_meta').value) || 0;
+      const init = Number(el('#r_init').value) || 0;
+      if (!name) { alert('Nome da reserva isolada é obrigatório'); return; }
+      const id = uid('ir');
+      // Isolated reserves don't strictly need ordering but we can add if needed
+      const r = { id, name, meta, saldo: init, obs: '', updated: nowISO() };
+      if (!state.isolatedReservas) state.isolatedReservas = [];
+      state.isolatedReservas.push(r);
+      // NOTE: Isolated reserves transactions do NOT go to main state.transacoes to avoid affecting dashboard
+      el('#r_name').value = ''; el('#r_meta').value = ''; el('#r_init').value = '';
+      saveLocal();
+      renderReservations();
+    }
+
+    function renderReservations() {
+      const container = el('#resCards'); if (!container) return;
+      container.innerHTML = '';
+
+      const type = document.getElementById('reserva_type_selector') ? document.getElementById('reserva_type_selector').value : 'normal';
+      const list = type === 'isolated' ? (state.isolatedReservas || []) : state.reservas;
+
+      // Sort normal reserves
+      if (type === 'normal') list.sort((a, b) => (a.order || 0) - (b.order || 0));
+
+      if (!list.length) {
+        container.innerHTML = `<div class="small">Nenhuma reserva ${type === 'isolated' ? 'isolada' : ''}</div>`;
+        renderReservasProgress();
+        return;
+      }
+
+      list.forEach(r => {
+        const pct = r.meta ? Math.round((r.saldo / r.meta) * 100) : 0;
+        const card = document.createElement('div');
+        card.className = 'res-card';
+        if (type === 'normal') card.setAttribute('draggable', 'true');
+        card.dataset.id = r.id;
+
+        // Different actions for isolated
+        const actionsHtml = type === 'normal'
+          ? `
+            <button class="btn-ghost" onclick="promptAporte(event,'${r.id}')">+ Aportar</button>
+            <button class="btn-ghost" onclick="promptRetirar(event,'${r.id}')">- Retirar</button>
+            <button class="btn-ghost" onclick="openEditReservation('${r.id}')">✎ Editar</button>
+            <button class="btn-ghost" onclick="removeReserva('${r.id}')">✖ Excluir</button>
+          `
+          : `
+            <button class="btn-ghost" onclick="promptAporteIsolated(event,'${r.id}')">+ Aportar</button>
+            <button class="btn-ghost" onclick="promptRetirarIsolated(event,'${r.id}')">- Retirar</button>
+            <button class="btn-ghost" onclick="openEditReservation('${r.id}', true)">✎ Editar</button>
+            <button class="btn-ghost" onclick="removeIsolatedReserva('${r.id}')">✖ Excluir</button>
+          `;
+
+        card.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-weight:700">${r.name} ${type === 'isolated' ? '<span class="small">(Isolada)</span>' : ''}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${actionsHtml}
+        </div>
+      </div>
+      <div style="margin-top:8px" class="small">Meta: ${formatMoney(r.meta)}</div>
+      <div style="margin-top:6px;font-weight:800">${formatMoney(r.saldo)}</div>
+      <div style="margin-top:8px">
+        <div class="progress"><div class="bar" style="width:${Math.min(100, pct)}%;transition:width 0.5s;background:${pct >= 100 ? '#00c853' : pct >= 50 ? '#ffd600' : '#d50000'};"></div></div>
+        <div class="small">${pct}%</div>
+      </div>
+    `;
+        if (type === 'normal') {
+          card.addEventListener('dragstart', (ev) => { card.classList.add('dragging'); ev.dataTransfer.setData('text/plain', r.id); });
+          card.addEventListener('dragend', () => { card.classList.remove('dragging'); });
+          card.addEventListener('dragover', (ev) => { ev.preventDefault(); });
+          card.addEventListener('drop', (ev) => { ev.preventDefault(); const draggedId = ev.dataTransfer.getData('text/plain'); handleReservaDrop(draggedId, r.id); });
         }
         container.appendChild(card);
       });
-      renderReservasProgress();
+
+      renderReservasProgress(); // Updates progress bar (logic handles type inside)
     }
-    function handleReservaDrop(did, tid){ const d=state.reservas.find(r=>r.id===did); const t=state.reservas.find(r=>r.id===tid); if(!d||!t)return; d.order=(t.order||0)-0.5; state.reservas.sort((a,b)=>a.order-b.order); state.reservas.forEach((r,i)=>r.order=i); saveLocal(); renderReservations(); }
-    function renderReservasProgress(){ const r=state.reservas||[]; const bar=el('#reservas_progress_bar'); const txt=el('#reservas_progress_text'); if(!r.length){if(bar)bar.style.width='0%';if(txt)txt.innerText='0%';return;} const ts=r.reduce((s,i)=>s+Number(i.saldo||0),0); const tm=r.reduce((s,i)=>s+Number(i.meta||0),0); const p=tm>0?Math.min(100,Math.round((ts/tm)*100)):0; if(bar){bar.style.width=p+'%';bar.style.background=p>=100?'#00c853':p>=50?'#ffd600':'#d50000';} if(txt)txt.innerText=p+'%'; }
-    
-    // CRUD AUX
-    function promptAporte(ev,id){ev.stopPropagation(); const v=Number(prompt('Valor?'))||0; if(v<=0)return; aporteReserva(id,v,'Aporte');}
-    function promptRetirar(ev,id){ev.stopPropagation(); const v=Number(prompt('Valor?'))||0; if(v<=0)return; retirarReserva(id,v,'Retirada');}
-    function promptAporteIsolated(ev,id){ev.stopPropagation(); const v=Number(prompt('Valor?'))||0; if(v<=0)return; const r=state.isolatedReservas.find(x=>x.id===id); if(r){r.saldo=Number(r.saldo)+v; r.updated=nowISO(); saveLocal(); renderReservations();}}
-    function promptRetirarIsolated(ev,id){ev.stopPropagation(); const v=Number(prompt('Valor?'))||0; if(v<=0)return; const r=state.isolatedReservas.find(x=>x.id===id); if(r){r.saldo=Number(r.saldo)-v; r.updated=nowISO(); saveLocal(); renderReservations();}}
-    function aporteReserva(id,v,n){const r=state.reservas.find(x=>x.id===id); if(r){r.saldo=Number(r.saldo)+v; state.transacoes.unshift({id:uid('t'), date:nowISO(), reserva:r.name, tipo:'aporte', valor:v, nota:n}); saveLocal(); renderReservations();}}
-    function retirarReserva(id,v,n){const r=state.reservas.find(x=>x.id===id); if(r){r.saldo=Number(r.saldo)-v; state.transacoes.unshift({id:uid('t'), date:nowISO(), reserva:r.name, tipo:'retirada', valor:v, nota:n}); saveLocal(); renderReservations();}}
-    function handleAddReservation(){const name=el('#r_name').value; const meta=el('#r_meta').value; const t=el('#reserva_type_selector').value; const obj={id:uid('ir'),name,meta:Number(meta),saldo:Number(el('#r_init').value)||0,updated:nowISO()}; if(t==='isolated') state.isolatedReservas.push(obj); else {obj.id=uid('r'); obj.order=999; state.reservas.push(obj);} saveLocal(); renderReservations();}
-    function removeReserva(id){if(confirm('Excluir?')){state.reservas=state.reservas.filter(x=>x.id!==id); saveLocal(); renderReservations();}}
-    function removeIsolatedReserva(id){if(confirm('Excluir?')){state.isolatedReservas=state.isolatedReservas.filter(x=>x.id!==id); saveLocal(); renderReservations();}}
-    function openEditReservation(id,iso=false){ const list=iso?state.isolatedReservas:state.reservas; const r=list.find(x=>x.id===id); if(!r)return; showModal('Editar', `<label>Nome</label><input id="mr_n" class="input" value="${r.name}"/><label>Meta</label><input id="mr_m" type="number" class="input" value="${r.meta}"/><label>Saldo</label><input id="mr_s" type="number" class="input" value="${r.saldo}"/>`, ()=>{r.name=el('#mr_n').value;r.meta=Number(el('#mr_m').value);r.saldo=Number(el('#mr_s').value);saveLocal();renderReservations();}); }
-    function openEditDefaultReservas(){alert("Funcionalidade simplificada: Edite manualmente cada reserva.");}
-    function clearReservas(){if(confirm("Limpar reservas?")){state.reservas=[];saveLocal();renderReservations();}}
 
-    // INVESTIMENTOS
-    function addInvestment(){const a=el('#inv_ativo').value; const c=el('#inv_categoria').value; const q=el('#inv_qtd').value; const p=el('#inv_preco').value; state.investimentos.push({id:uid('i'),ativo:a,categoria:c,quantidade:q,preco:p}); saveLocal(); renderInvestments();}
-    function renderInvestments(){const t=el('#invTable tbody');if(!t)return;t.innerHTML='';state.investimentos.forEach(i=>{t.innerHTML+=`<tr><td>${i.ativo}</td><td>${i.categoria}</td><td>${i.quantidade}</td><td>${formatMoney(i.preco)}</td><td>${formatMoney(i.quantidade*i.preco)}</td><td><button class="btn-ghost" onclick="removeInvestment('${i.id}')">X</button></td></tr>`;});}
-    function removeInvestment(id){if(confirm('Excluir?')){state.investimentos=state.investimentos.filter(x=>x.id!==id);saveLocal();renderInvestments();}}
-    function clearInvestimentos(){state.investimentos=[];saveLocal();renderInvestments();}
+    function handleReservaDrop(draggedId, targetId) {
+      const dragged = state.reservas.find(r => r.id === draggedId);
+      const target = state.reservas.find(r => r.id === targetId);
+      if (!dragged || !target) return;
+      dragged.order = (target.order || 0) - 0.5;
+      state.reservas.sort((a, b) => (a.order || 0) - (b.order || 0));
+      state.reservas.forEach((r, i) => r.order = i);
+      saveLocal();
+      renderReservations();
+    }
 
-    // FLUXO
-    function addFluxo(){const d=el('#fx_desc').value; const v=el('#fx_valor').value; state.fluxo.unshift({id:uid('f'),date:el('#fx_date').value||nowISO(),desc:d,value:v,type:el('#fx_type').value,payment:el('#fx_payment').value});saveLocal();renderFluxo();}
-    function renderFluxo(){const t=el('#fluxoTable tbody');if(!t)return;t.innerHTML='';state.fluxo.slice(0,50).forEach(f=>{t.innerHTML+=`<tr><td>${f.date.slice(0,10)}</td><td>${f.desc}</td><td>${f.type}</td><td>${f.payment}</td><td>${formatMoney(f.value)}</td><td><button class="btn-ghost" onclick="removeFlux('${f.id}')">X</button></td></tr>`;});}
-    function removeFlux(id){if(confirm('Excluir?')){state.fluxo=state.fluxo.filter(x=>x.id!==id);saveLocal();renderFluxo();}}
-    function clearFluxo(){state.fluxo=[];saveLocal();renderFluxo();}
-    // Edição Fluxo simplificada
-    function editFlux(id){const f=state.fluxo.find(x=>x.id===id); if(f) showModal('Edit',`<input id="ef_v" type="number" value="${f.value}" class="input">`,()=>{f.value=el('#ef_v').value;saveLocal();renderFluxo();});}
+    function promptAporte(ev, id) {
+      ev.stopPropagation();
+      const v = Number(prompt('Valor do aporte R$', '0')) || 0;
+      if (v <= 0) return;
+      aporteReserva(id, v, 'Aporte manual');
+    }
 
-    // CUSTO
-    function addCusto(){state.custo.unshift({id:uid('c'),date:el('#cv_date').value||nowISO(),desc:el('#cv_desc').value,cat:el('#cv_cat').value,value:el('#cv_valor').value});saveLocal();renderCusto();}
-    function renderCusto(){const t=el('#custoTable tbody');if(!t)return;t.innerHTML='';state.custo.slice(0,50).forEach(c=>{t.innerHTML+=`<tr><td>${c.date.slice(0,10)}</td><td>${c.desc}</td><td>${c.cat}</td><td>${formatMoney(c.value)}</td><td><button class="btn-ghost" onclick="removeCusto('${c.id}')">X</button></td></tr>`;});}
-    function removeCusto(id){if(confirm('Excluir?')){state.custo=state.custo.filter(x=>x.id!==id);saveLocal();renderCusto();}}
-    function clearCusto(){state.custo=[];saveLocal();renderCusto();}
-    function clearCustoMonth(){alert("Limpar mês: Implementação futura.");}
+    function promptAporteIsolated(ev, id) {
+      ev.stopPropagation();
+      const v = Number(prompt('Valor do aporte (Isolado) R$', '0')) || 0;
+      if (v <= 0) return;
+      const r = state.isolatedReservas.find(x => x.id === id);
+      if (r) {
+        r.saldo = Number(r.saldo || 0) + v;
+        r.updated = nowISO();
+        saveLocal();
+        renderReservations();
+      }
+    }
 
-    // PLANEJAMENTO
-    function getMonthOptions(){const s=el('#plan_mes');if(s){s.innerHTML='';for(let i=0;i<12;i++){const d=new Date();d.setMonth(d.getMonth()-i);const k=d.toISOString().slice(0,7);s.innerHTML+=`<option value="${k}">${k}</option>`;}}}
-    function createPlanForMonth(){const k=getSelectedMonthKey();if(!state.planejamento[k])state.planejamento[k]={periods:{p1:{meta:0,items:[]},p2:{meta:0,items:[]},p3:{meta:0,items:[]}}};renderPlanForMonth(k);}
-    function getSelectedMonthKey(){return el('#plan_mes')?el('#plan_mes').value:nowISO().slice(0,7);}
-    function renderPlanForMonth(k){
-      const c=el('#planPeriods');if(!c)return;c.innerHTML='';
-      const p=state.planejamento[k].periods;
-      ['p1','p2','p3'].forEach(pid=>{
-        c.innerHTML+=`<div class="card"><b>${pid.toUpperCase()}</b><br>Meta: <input id="mt_${pid}" value="${p[pid].meta}" style="width:80px;background:transparent;color:#fff;border:none" onchange="updPlanMeta('${k}','${pid}',this.value)"><div id="l_${pid}"></div><button class="btn-ghost" onclick="addPItem('${k}','${pid}')">+</button></div>`;
-        const l=el('#l_'+pid); // Hacky render inside loop - better separate but works for restore
-        p[pid].items.forEach(i=>{l.innerHTML+=`<div>${i.desc} - ${i.value} <button onclick="delPItem('${k}','${pid}','${i.id}')">x</button></div>`;});
+    function promptRetirar(ev, id) {
+      ev.stopPropagation();
+      const v = Number(prompt('Valor da retirada R$', '0')) || 0;
+      if (v <= 0) return;
+      retirarReserva(id, v, 'Retirada manual');
+    }
+
+    function promptRetirarIsolated(ev, id) {
+      ev.stopPropagation();
+      const v = Number(prompt('Valor da retirada (Isolada) R$', '0')) || 0;
+      if (v <= 0) return;
+      const r = state.isolatedReservas.find(x => x.id === id);
+      if (r) {
+        r.saldo = Number(r.saldo || 0) - v;
+        r.updated = nowISO();
+        saveLocal();
+        renderReservations();
+      }
+    }
+
+    function aporteReserva(id, valor, nota) {
+      const r = state.reservas.find(x => x.id === id); if (!r) return;
+      r.saldo = Number(r.saldo || 0) + Number(valor || 0);
+      r.updated = nowISO();
+      state.transacoes.unshift({ id: uid('t'), date: nowISO(), reserva: r.name, tipo: 'aporte', valor: Number(valor), nota: nota || '' });
+      saveLocal();
+      renderReservations();
+    }
+
+    function retirarReserva(id, valor, nota) {
+      const r = state.reservas.find(x => x.id === id); if (!r) return;
+      r.saldo = Number(r.saldo || 0) - Number(valor || 0);
+      r.updated = nowISO();
+      state.transacoes.unshift({ id: uid('t'), date: nowISO(), reserva: r.name, tipo: 'retirada', valor: Number(valor), nota: nota || '' });
+      saveLocal();
+      renderReservations();
+    }
+
+    function removeReserva(id) {
+      if (!confirm('Excluir reserva e histórico?')) return;
+      const r = state.reservas.find(x => x.id === id);
+      state.reservas = state.reservas.filter(x => x.id !== id);
+      state.transacoes = state.transacoes.filter(t => t.reserva !== (r ? r.name : ''));
+      saveLocal();
+      renderReservations();
+    }
+
+    function removeIsolatedReserva(id) {
+      if (!confirm('Excluir reserva isolada?')) return;
+      state.isolatedReservas = state.isolatedReservas.filter(x => x.id !== id);
+      saveLocal();
+      renderReservations();
+    }
+
+    function openEditReservation(id, isIsolated = false) {
+      const list = isIsolated ? state.isolatedReservas : state.reservas;
+      const r = list.find(x => x.id === id); if (!r) return;
+      showModal('Editar Reserva' + (isIsolated ? ' (Isolada)' : ''), `
+    <label>Nome</label><input id="modal_r_name" class="input" value="${r.name}"/>
+    <label>Meta (R$)</label><input id="modal_r_meta" type="number" class="input" value="${r.meta}"/>
+    <label>Saldo Atual (R$)</label><input id="modal_r_saldo" type="number" class="input" value="${r.saldo}"/>
+    <label>Observações</label><textarea id="modal_r_obs" class="input">${r.obs || ''}</textarea>
+  `, function () {
+        r.name = document.getElementById('modal_r_name').value.trim();
+        r.meta = Number(document.getElementById('modal_r_meta').value) || 0;
+        r.saldo = Number(document.getElementById('modal_r_saldo').value) || 0;
+        r.obs = document.getElementById('modal_r_obs').value || '';
+        r.updated = nowISO();
+        saveLocal();
+        renderReservations();
       });
     }
-    function updPlanMeta(k,pid,v){state.planejamento[k].periods[pid].meta=v;saveLocal();}
-    function addPItem(k,pid){const d=prompt('Desc');const v=prompt('Val');state.planejamento[k].periods[pid].items.push({id:uid('p'),desc:d,value:Number(v),state:0});saveLocal();renderPlanForMonth(k);}
-    function delPItem(k,pid,id){state.planejamento[k].periods[pid].items=state.planejamento[k].periods[pid].items.filter(x=>x.id!==id);saveLocal();renderPlanForMonth(k);}
-    function clearPlanejamento(){state.planejamento={};saveLocal();renderPlanForMonth(getSelectedMonthKey());}
 
-    // CADERNO
-    function createNoteTab(){state.caderno.push({id:uid('nt'),name:el('#note_tab_name').value,blocks:[]});saveLocal();renderNoteTabs();}
-    function renderNoteTabs(){const c=el('#noteTabs');if(c){c.innerHTML='';state.caderno.forEach(n=>{c.innerHTML+=`<span class="note-tab" onclick="renderNoteBlocks('${n.id}')">${n.name}</span>`;});}}
-    function renderNoteBlocks(tid){const t=state.caderno.find(x=>x.id===tid);if(t){const c=el('#noteBlocks');c.innerHTML='';t.blocks.forEach(b=>{c.innerHTML+=`<div class="card"><b>${b.title}</b><br><pre style="white-space:pre-wrap">${b.content||'Lista...'}</pre><button onclick="delBlock('${tid}','${b.id}')">Del</button></div>`;});}}
-    function addBlock(){alert('Selecione aba primeiro e use funções completas se necessário.');}
-    function addFreeTextBlock(){const t=state.caderno[0]; if(t){t.blocks.push({id:uid('b'),title:el('#note_block_title').value,type:'free_text',content:''});saveLocal();renderNoteBlocks(t.id);}}
-    function delBlock(tid,bid){const t=state.caderno.find(x=>x.id===tid);t.blocks=t.blocks.filter(b=>b.id!==bid);saveLocal();renderNoteBlocks(tid);}
-    function clearCaderno(){state.caderno=[];saveLocal();renderNoteTabs();}
+    /* ====== Progresso das Reservas ====== */
+    /* ====== Progresso das Reservas ====== */
+    function renderReservasProgress() {
+      // A lista de reservas normais
+      const reservas = state.reservas || [];
+      const bar = el('#reservas_progress_bar');
+      const text = el('#reservas_progress_text');
 
-    // DASHBOARD & CHARTS
-    function computeResumoFinanceiro(k){
-      const ent = state.fluxo.filter(f=>f.type=='entrada').reduce((a,b)=>a+Number(b.value),0);
-      const sai = state.fluxo.filter(f=>f.type=='saida').reduce((a,b)=>a+Number(b.value),0);
-      const cst = state.custo.reduce((a,b)=>a+Number(b.value),0);
-      return {totalEntradas:ent, totalSaidas:sai+cst, resultado:ent-(sai+cst), reservasTotal:0, investimentosTotal:0};
-    }
-    function computeCustoByCategory(k){
-        const cats={}; state.custo.forEach(c=>{cats[c.cat]=(cats[c.cat]||0)+Number(c.value)});
-        return {labels:Object.keys(cats),values:Object.values(cats),total:0};
-    }
-    function computeFluxoMonthly(k){
-        return {labels:['Ent','Sai'],entriesArr:[100],exitsArr:[50],net:50}; 
-    }
-    function computePlanProgress(k){return {meta:0,done:0};}
+      if (!reservas.length) {
+        if (bar) bar.style.width = '0%';
+        if (text) text.innerText = '0%';
+        return;
+      }
 
-    function renderDashboard(){
-        const res = computeResumoFinanceiro(getSelectedMonthKey());
-        if(el('#dash_entradas')) el('#dash_entradas').innerText = formatMoney(res.totalEntradas);
-        if(el('#dash_saidas')) el('#dash_saidas').innerText = formatMoney(res.totalSaidas);
-        if(el('#dash_resultado')) el('#dash_resultado').innerText = formatMoney(res.resultado);
-        
-        const t=el('#dash_recent');
-        if(t) t.innerHTML = state.fluxo.slice(0,5).map(f=>`<tr><td>${f.date.slice(0,10)}</td><td>${f.type}</td><td>${f.desc}</td><td>${formatMoney(f.value)}</td></tr>`).join('');
+      const totalSaldo = reservas.reduce((s, r) => s + Number(r.saldo || 0), 0);
+      const totalMeta = reservas.reduce((s, r) => s + Number(r.meta || 0), 0);
+      // Garante que o percentual não exceda 100%
+      const pct = totalMeta > 0 ? Math.min(100, Math.round((totalSaldo / totalMeta) * 100)) : 0;
+
+      if (bar) {
+        bar.style.width = pct + '%';
+        // Mantenha a cor de fundo aqui
+        bar.style.background = pct >= 100 ? '#00c853' : pct >= 50 ? '#ffd600' : '#d50000';
+
+        // *** VERIFICAÇÃO CHAVE ***
+        // Se a transição CSS não estiver no seu CSS, adicione-a diretamente aqui.
+        // O seu HTML já tem 'transition:width 0.4s ease' INLINE no elemento, mas o JS pode sobrescrever.
+        // Vamos reforçar a transição aqui no JS, APENAS NA LARGURA, se necessário, ou garantir que o CSS aplique.
+        // bar.style.transition = 'width 0.4s ease'; // Descomente esta linha se o CSS ou HTML não funcionar.
+      }
+      if (text) text.innerText = pct + '%';
     }
 
-    function toggleDashSection(s){const d=document.getElementById('content_'+s);if(d)d.style.display=d.style.display==='none'?'block':'none';}
-
-    function renderAll(){
-        renderReservations(); renderInvestments(); renderFluxo(); renderCusto(); renderNoteTabs(); renderDashboard();
-        if(document.getElementById('fire-vision').style.display==='block') renderFireVision();
+    /* ====== INVESTIMENTOS ====== */
+    function addInvestment() {
+      const name = el('#inv_ativo').value.trim();
+      const cat = el('#inv_categoria').value;
+      const qtd = Number(el('#inv_qtd').value) || 0;
+      const preco = Number(el('#inv_preco').value) || 0;
+      if (!name) { alert('Nome do ativo é obrigatório'); return; }
+      const inv = { id: uid('i'), ativo: name, categoria: cat, quantidade: qtd, preco: preco, updated: nowISO() };
+      state.investimentos.push(inv);
+      el('#inv_ativo').value = ''; el('#inv_qtd').value = ''; el('#inv_preco').value = '';
+      saveLocal();
     }
+    function renderInvestments() {
+      const tbody = el('#invTable tbody'); if (!tbody) return;
+      tbody.innerHTML = '';
+      if (!state.investimentos.length) { tbody.innerHTML = '<tr><td colspan="6" class="small">Nenhum investimento</td></tr>'; return; }
+      state.investimentos.forEach(it => {
+        const valor = (Number(it.quantidade || 0) * Number(it.preco || 0));
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${it.ativo}</td><td>${it.categoria}</td><td>${it.quantidade}</td><td>${formatMoney(it.preco)}</td><td>${formatMoney(valor)}</td>
+      <td><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn-ghost" onclick="openEditInvestment('${it.id}')">Editar</button><button class="btn-ghost" onclick="removeInvestment('${it.id}')">Remover</button></div></td>`;
+        tbody.appendChild(tr);
+      });
+    }
+    function openEditInvestment(id) {
+      const it = state.investimentos.find(x => x.id === id); if (!it) return; showModal('Editar Investimento', `
+    <label>Ativo</label><input id="modal_i_name" class="input" value="${it.ativo}"/>
+    <label>Categoria</label><input id="modal_i_cat" class="input" value="${it.categoria}"/>
+    <label>Quantidade</label><input id="modal_i_qtd" type="number" class="input" value="${it.quantidade}"/>
+    <label>Preço Unitário</label><input id="modal_i_preco" type="number" class="input" value="${it.preco}"/>
+  `, function () {
+        it.ativo = document.getElementById('modal_i_name').value;
+        it.categoria = document.getElementById('modal_i_cat').value;
+        it.quantidade = Number(document.getElementById('modal_i_qtd').value) || 0;
+        it.preco = Number(document.getElementById('modal_i_preco').value) || 0;
+        it.updated = nowISO();
+        saveLocal();
+      });
+    }
+    function removeInvestment(id) { if (!confirm('Remover investimento?')) return; state.investimentos = state.investimentos.filter(x => x.id !== id); saveLocal(); }
 
-    /* ================= INIT ================= */
-    (function init(){
-        const apiDisplay = el('#apiUrlDisplay');
-        if (apiDisplay) apiDisplay.innerText = '(Drive API Direct)';
-        
-        loadLocal();
-        
-        if (!state.reservas || !state.reservas.length) createDefaultReservas();
-        
-        getMonthOptions();
-        renderAll();
-        
-        // Verifica Lembrete de Rotina
-        if (!state.alertas) state.alertas = [];
-        const hasRoutine = state.alertas.find(a => a.text.includes('ROTINA DE 15 MIN'));
-        if (!hasRoutine) {
-            state.alertas.unshift({
-                id: 'al_rotina_' + Date.now(),
-                text: "DOMINGO, 20:00h: ROTINA DE 15 MIN. (Limpar CADERNO DE APOIO e Executar Prioridade)",
-                created: nowISO(),
-                concluido: false,
-                data_recorrencia: "semanal"
-            });
-            saveLocal();
+    /* ====== FLUXO DIÁRIO ====== */
+    function addFluxo() {
+      const date = el('#fx_date').value || (new Date()).toISOString().slice(0, 10);
+      const desc = el('#fx_desc').value || '(sem descrição)';
+      const type = el('#fx_type').value; if (type !== 'entrada' && type !== 'saida') return alert('Selecione o tipo de lançamento (entrada ou saída)');
+      const payment = el('#fx_payment').value;
+      const val = Number(el('#fx_valor').value) || 0;
+      if (val <= 0) return alert('Valor deve ser maior que zero');
+      const entry = { id: uid('f'), date: date, desc, type, payment, value: val };
+      state.fluxo.unshift(entry);
+      el('#fx_desc').value = ''; el('#fx_valor').value = ''; el('#fx_date').value = '';
+      saveLocal();
+    }
+    function renderFluxo() {
+      const tbody = el('#fluxoTable tbody'); if (!tbody) return;
+      tbody.innerHTML = '';
+      if (!state.fluxo.length) { tbody.innerHTML = '<tr><td colspan="6" class="small">Sem lançamentos</td></tr>'; return; }
+      state.fluxo.slice(0, 200).forEach(f => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${new Date(f.date + 'T00:00:00').toLocaleDateString()}</td><td>${f.desc}</td><td>${f.type}</td><td>${f.payment}</td><td>${formatMoney(f.value)}</td>
+      <td><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-ghost" onclick="editFlux('${f.id}')">Editar</button><button class="btn-ghost" onclick="removeFlux('${f.id}')">Excluir</button></div></td>`;
+        tbody.appendChild(tr);
+      });
+    }
+    function editFlux(id) {
+      const f = state.fluxo.find(x => x.id === id); if (!f) return;
+      showModal('Editar Fluxo', `
+    <label>Data</label><input id="modal_fx_date" class="input" type="date" value="${f.date}"/>
+    <label>Descrição</label><input id="modal_fx_desc" class="input" value="${f.desc}"/>
+    <label>Tipo</label><select id="modal_fx_type" class="input"><option value="entrada">Entrada</option><option value="saida">Saída</option></select>
+    <label>Pagamento</label><input id="modal_fx_payment" class="input" value="${f.payment}"/>
+    <label>Valor</label><input id="modal_fx_valor" class="input" type="number" value="${f.value}"/>
+  `, function () {
+        f.date = document.getElementById('modal_fx_date').value || f.date;
+        f.desc = document.getElementById('modal_fx_desc').value;
+        f.type = document.getElementById('modal_fx_type').value;
+        f.payment = document.getElementById('modal_fx_payment').value;
+        f.value = Number(document.getElementById('modal_fx_valor').value) || 0;
+        saveLocal();
+      });
+    }
+    function removeFlux(id) { if (!confirm('Excluir lançamento?')) return; state.fluxo = state.fluxo.filter(f => f.id !== id); saveLocal(); }
+
+    /* ====== CUSTO DE VIDA ====== */
+    function addCusto() {
+      const date = el('#cv_date').value || (new Date()).toISOString().slice(0, 10);
+      const desc = el('#cv_desc').value || '(sem descrição)';
+      const cat = el('#cv_cat').value;
+      const val = Number(el('#cv_valor').value) || 0;
+      if (val <= 0) return alert('Valor deve ser maior que zero');
+      state.custo.unshift({ id: uid('c'), date: date, desc, cat, value: val });
+      state.transacoes.unshift({ id: uid('t'), date: nowISO(), reserva: 'Custo de Vida', tipo: 'saida', valor: val, nota: desc });
+      el('#cv_desc').value = ''; el('#cv_valor').value = ''; el('#cv_date').value = '';
+      saveLocal();
+    }
+    function renderCusto() {
+      const tbody = el('#custoTable tbody'); if (!tbody) return;
+      tbody.innerHTML = '';
+      if (!state.custo.length) { tbody.innerHTML = '<tr><td colspan="5" class="small">Sem lançamentos</td></tr>'; return; }
+      const month = getSelectedMonthKey();
+      const rows = state.custo.filter(c => { if (!month) return true; const y = c.date.slice(0, 7); return y === month; });
+      rows.forEach(c => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${new Date(c.date + 'T00:00:00').toLocaleDateString()}</td><td>${c.desc}</td><td>${c.cat}</td><td>${formatMoney(c.value)}</td>
+      <td><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-ghost" onclick="editCusto('${c.id}')">Editar</button><button class="btn-ghost" onclick="removeCusto('${c.id}')">Excluir</button></div></td>`;
+        tbody.appendChild(tr);
+      });
+    }
+    function editCusto(id) {
+      const c = state.custo.find(x => x.id === id); if (!c) return;
+      showModal('Editar Custo', `
+    <label>Data</label><input id="modal_c_date" class="input" type="date" value="${c.date}"/>
+    <label>Descrição</label><input id="modal_c_desc" class="input" value="${c.desc}"/>
+    <label>Categoria</label><input id="modal_c_cat" class="input" value="${c.cat}"/>
+    <label>Valor</label><input id="modal_c_valor" class="input" type="number" value="${c.value}"/>
+  `, function () {
+        c.date = document.getElementById('modal_c_date').value || c.date;
+        c.desc = document.getElementById('modal_c_desc').value;
+        c.cat = document.getElementById('modal_c_cat').value;
+        c.value = Number(document.getElementById('modal_c_valor').value) || 0;
+        saveLocal();
+      });
+    }
+    function removeCusto(id) { if (!confirm('Excluir custo?')) return; state.custo = state.custo.filter(x => x.id !== id); saveLocal(); }
+    function clearCustoMonth() { const month = getSelectedMonthKey(); if (!month) return alert('Selecione um mês no planejamento para aplicar a filtragem mensal.'); if (!confirm('Remover todos os custos do mês ' + month + '?')) return; state.custo = state.custo.filter(c => c.date.slice(0, 7) !== month); saveLocal(); }
+
+    /* ====== PLANEJAMENTO (mantive) ====== */
+    function getMonthOptions() {
+      const sel = el('#plan_mes'); if (!sel) return;
+      sel.innerHTML = '';
+      const today = new Date();
+      for (let i = 0; i < 12; i++) {
+        const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+        const key = d.toISOString().slice(0, 7);
+        const opt = document.createElement('option'); opt.value = key; opt.innerText = key;
+        sel.appendChild(opt);
+      }
+    }
+    function createPlanForMonth() { const key = getSelectedMonthKey(); if (!key) return alert('Selecione um mês'); if (!state.planejamento[key]) { state.planejamento[key] = { periods: { p1: { meta: 0, items: [] }, p2: { meta: 0, items: [] }, p3: { meta: 0, items: [] } } }; } renderPlanForMonth(key); }
+    function getSelectedMonthKey() { return el('#plan_mes') ? el('#plan_mes').value || null : null; }
+    function renderPlanForMonth(key) {
+      const container = el('#planPeriods'); if (!container) return;
+      container.innerHTML = '';
+      const p = state.planejamento[key].periods;
+      const labels = ['Dia 01 - 10', 'Dia 11 - 20', 'Dia 21 - 30'];
+      ['p1', 'p2', 'p3'].forEach((pid, idx) => {
+        const box = document.createElement('div'); box.className = 'card';
+        box.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><strong>${labels[idx]}</strong>
+      <div><input id="meta_${pid}" class="input" type="number" placeholder="Meta faturamento" value="${p[pid].meta || 0}" style="width:180px"/></div></div>
+      <div style="margin-top:8px"><button class="btn" onclick="addPlanItem('${key}','${pid}')">+ Conta</button> <button class="btn-ghost" onclick="clearPlanPeriod('${key}','${pid}')">Limpar</button></div>
+      <div id="items_${pid}" style="margin-top:8px"></div>`;
+        container.appendChild(box);
+        renderPlanItems(key, pid);
+        setTimeout(() => { const elMeta = document.getElementById('meta_' + pid); if (elMeta) elMeta.addEventListener('change', (e) => { p[pid].meta = Number(e.target.value) || 0; saveLocal(); renderPlanSummary(key); }); }, 100);
+      });
+      renderPlanSummary(key);
+    }
+    function addPlanItem(monthKey, pid) {
+      const desc = prompt('Descrição da conta (ex: Consórcio)'); if (!desc) return; let input = prompt('Valor (R$)', '0');
+      if (!input) return;
+
+      input = input.replace(/[\.\s]/g, '').replace(',', '.');
+      // remove pontos e espaços (milhar) e troca vírgula por ponto (decimal)
+
+      const val = parseFloat(input) || 0; const item = { id: uid('pl'), desc, value: val, state: 0 }; state.planejamento[monthKey].periods[pid].items.push(item); saveLocal(); renderPlanItems(monthKey, pid); renderPlanSummary(monthKey);
+    }
+    function renderPlanItems(monthKey, pid) {
+      const itemsDiv = el('#items_' + pid); if (!itemsDiv) return; itemsDiv.innerHTML = ''; const items = state.planejamento[monthKey].periods[pid].items || []; items.forEach(it => {
+        const row = document.createElement('div'); row.style.display = 'flex'; row.style.alignItems = 'center'; row.style.justifyContent = 'space-between'; row.style.padding = '6px 0'; row.innerHTML = `<div style="display:flex;gap:8px;align-items:center"><div class="checkbox-tri" onclick="togglePlanItem('${monthKey}','${pid}','${it.id}')">${it.state === 1 ? '✔' : (it.state === 2 ? '✖' : '')}</div><div>${it.desc} — <span class="small">${formatMoney(it.value)}</span></div></div>
+      <div><button class="btn-ghost" onclick="editPlanItem('${monthKey}','${pid}','${it.id}')">Editar</button> <button class="btn-ghost" onclick="removePlanItem('${monthKey}','${pid}','${it.id}')">Excluir</button></div>`; itemsDiv.appendChild(row);
+      });
+    }
+    function togglePlanItem(monthKey, pid, itemId) { const it = state.planejamento[monthKey].periods[pid].items.find(x => x.id === itemId); if (!it) return; it.state = (it.state + 1) % 3; saveLocal(); renderPlanItems(monthKey, pid); renderPlanSummary(monthKey); }
+    function editPlanItem(monthKey, pid, itemId) { const it = state.planejamento[monthKey].periods[pid].items.find(x => x.id === itemId); if (!it) return; const nd = prompt('Descrição', it.desc); if (nd === null) return; const nv = Number(prompt('Valor', it.value)) || 0; it.desc = nd; it.value = nv; saveLocal(); renderPlanItems(monthKey, pid); renderPlanSummary(monthKey); }
+    function removePlanItem(monthKey, pid, itemId) { if (!confirm('Remover item?')) return; const arr = state.planejamento[monthKey].periods[pid].items; state.planejamento[monthKey].periods[pid].items = arr.filter(x => x.id !== itemId); saveLocal(); renderPlanItems(monthKey, pid); renderPlanSummary(monthKey); }
+    function clearPlanPeriod(monthKey, pid) { if (!confirm('Limpar período?')) return; state.planejamento[monthKey].periods[pid].items = []; saveLocal(); renderPlanItems(monthKey, pid); renderPlanSummary(monthKey); }
+    function renderPlanSummary(key) { if (!key) { el('#plan_summary').innerText = 'Nenhum planejamento selecionado'; return; } const p = state.planejamento[key].periods; const totalMeta = (p.p1.meta || 0) + (p.p2.meta || 0) + (p.p3.meta || 0); const totalDue = (p.p1.items || []).reduce((s, i) => s + i.value, 0) + (p.p2.items || []).reduce((s, i) => s + i.value, 0) + (p.p3.items || []).reduce((s, i) => s + i.value, 0); el('#plan_summary').innerText = `Meta (soma 3 períodos): ${formatMoney(totalMeta)} — Total Contas: ${formatMoney(totalDue)}`; }
+
+    /* ====== CADERNO (notas) ====== */
+    function createNoteTab() {
+      const name = el('#note_tab_name').value.trim(); if (!name) return alert('Nome da aba é necessário');
+      const tab = { id: uid('nt'), name, blocks: [] };
+      state.caderno.push(tab); el('#note_tab_name').value = ''; saveLocal(); renderNoteTabs();
+      setTimeout(() => { const tabs = document.querySelectorAll('#noteTabs .note-tab'); tabs.forEach(t => { if (t.dataset.id === tab.id) { t.classList.add('active'); } else t.classList.remove('active'); }); renderNoteBlocks(tab.id); }, 50);
+    }
+    function renderNoteTabs() {
+      const container = el('#noteTabs'); if (!container) return;
+      container.innerHTML = '<div class="small">Nenhuma aba criada</div>';
+      if (!state.caderno.length) { container.innerHTML = '<div class="small">Nenhuma aba criada</div>'; return; }
+      state.caderno.forEach((t, idx) => {
+        const div = document.createElement('div'); div.className = 'note-tab'; div.dataset.id = t.id;
+        div.innerHTML = `<span style="margin-right:8px">${t.name}</span><button class="btn-ghost" onclick="editNoteTab('${t.id}')">✎</button><button class="btn-ghost" onclick="removeNoteTab('${t.id}')">✖</button>`;
+        div.onclick = (ev) => { if (ev.target.tagName === 'BUTTON') return; els('.note-tab').forEach(x => x.classList.remove('active')); div.classList.add('active'); renderNoteBlocks(t.id); };
+        div.setAttribute('draggable', 'true');
+        div.addEventListener('dragstart', (e) => e.dataTransfer.setData('text/plain', t.id));
+        div.addEventListener('dragover', (e) => e.preventDefault());
+        div.addEventListener('drop', (e) => { e.preventDefault(); const dragged = e.dataTransfer.getData('text/plain'); reorderNoteTabs(dragged, t.id); });
+        container.appendChild(div);
+      });
+    }
+    function editNoteTab(tabId) { const t = state.caderno.find(x => x.id === tabId); if (!t) return; const newName = prompt('Renomear aba', t.name); if (newName === null) return; t.name = newName.trim() || t.name; saveLocal(); renderNoteTabs(); renderNoteBlocks(t.id); }
+    function removeNoteTab(tabId) { if (!confirm('Remover aba e todos os blocos nela?')) return; state.caderno = state.caderno.filter(x => x.id !== tabId); saveLocal(); renderNoteTabs(); el('#noteBlocks').innerHTML = ''; }
+    function reorderNoteTabs(draggedId, targetId) { const idxD = state.caderno.findIndex(x => x.id === draggedId); const idxT = state.caderno.findIndex(x => x.id === targetId); if (idxD == -1 || idxT == -1) return; const [item] = state.caderno.splice(idxD, 1); state.caderno.splice(idxT, 0, item); saveLocal(); renderNoteTabs(); }
+    function addBlock(type = 'checklist') {
+      const title = el('#note_block_title').value.trim();
+      if (!title) return alert('Insira título do bloco');
+      const activeEl = document.querySelector('.note-tab.active');
+      if (!activeEl) return alert('Selecione uma aba primeiro');
+      const tab = state.caderno.find(t => t.id === activeEl.dataset.id);
+      if (!tab) return;
+
+      const newBlock = { id: uid('b'), title, type: type };
+      if (type === 'checklist') newBlock.items = [];
+      else if (type === 'free_text') newBlock.content = '';
+
+      tab.blocks.push(newBlock);
+      el('#note_block_title').value = '';
+      saveLocal();
+      renderNoteBlocks(tab.id);
+    }
+    function addFreeTextBlock() { addBlock('free_text'); }
+    function updateBlockContent(tabId, blockId, content) {
+      const tab = state.caderno.find(t => t.id === tabId); if (!tab) return;
+      const block = tab.blocks.find(b => b.id === blockId); if (!block) return;
+      block.content = content;
+      saveLocalSilent();
+    }
+    function saveFreeNote(tabId, blockId) {
+      const tab = state.caderno.find(t => t.id === tabId); if (!tab) return;
+      const block = tab.blocks.find(b => b.id === blockId); if (!block) return;
+
+      const elText = document.getElementById(`note_text_${blockId}`);
+      if (elText) {
+        block.content = elText.value;
+      }
+
+      saveLocal();
+      if (window.saveStateToFirestore) {
+        window.saveStateToFirestore().then(() => alert('Anotação salva e sincronizada!'));
+      } else {
+        alert('Anotação salva localmente!');
+      }
+    }
+    function renderNoteBlocks(tabId) {
+      const tab = state.caderno.find(t => t.id === tabId); if (!tab) { el('#noteBlocks').innerHTML = ''; return; }
+      const container = el('#noteBlocks'); container.innerHTML = '';
+      tab.blocks.forEach(block => {
+        const box = document.createElement('div'); box.className = 'card'; box.style.marginBottom = '10px';
+
+        let headerHtml = `<div style="display:flex;justify-content:space-between;align-items:center"><strong>${block.title}</strong><div>`;
+        if (!block.type || block.type === 'checklist') {
+          headerHtml += `<button class="btn-ghost" onclick="addItemPrompt('${tab.id}','${block.id}')">+ Item</button> `;
+        }
+        headerHtml += `<button class="btn-ghost" onclick="removeBlock('${tab.id}','${block.id}')">Excluir bloco</button></div></div>`;
+
+        let bodyHtml = '';
+        if (!block.type || block.type === 'checklist') {
+          bodyHtml = `<div id="items_${block.id}" style="margin-top:8px"></div>`;
+        } else if (block.type === 'free_text') {
+          bodyHtml = `<div style="margin-top:8px">
+            <textarea id="note_text_${block.id}" class="input" style="min-height:100px;resize:vertical;width:100%;font-family:inherit" oninput="updateBlockContent('${tab.id}','${block.id}', this.value)">${block.content || ''}</textarea>
+            <div style="margin-top:8px;text-align:right">
+              <button class="btn" onclick="saveFreeNote('${tab.id}','${block.id}')" style="background:var(--success);color:#fff">Salvar Anotação</button>
+            </div>
+          </div>`;
         }
 
-        const btnSync = el('#btnSyncAll');
-        if (btnSync) {
-            btnSync.addEventListener('click', () => {
-                if (window.saveStateToFirestore) window.saveStateToFirestore();
-                else alert('Funcionalidade de nuvem não inicializada.');
-            });
-        }
+        box.innerHTML = headerHtml + bodyHtml;
 
-        const btnHide = el('#btnHideValues');
-        if (btnHide) {
-            btnHide.addEventListener('click', () => {
-                state.settings.hideValues = !state.settings.hideValues;
-                btnHide.innerText = state.settings.hideValues ? 'Mostrar Valores' : 'Ocultar Valores';
-                saveLocal();
-            });
+        box.setAttribute('draggable', 'true');
+        box.addEventListener('dragstart', (e) => e.dataTransfer.setData('text/plain', JSON.stringify({ tab: tab.id, block: block.id })));
+        box.addEventListener('dragover', (e) => e.preventDefault());
+        box.addEventListener('drop', (e) => { e.preventDefault(); const data = JSON.parse(e.dataTransfer.getData('text/plain')); reorderBlocks(data.tab, data.block, tab.id, block.id); });
+        container.appendChild(box);
+
+        if (!block.type || block.type === 'checklist') {
+          renderItems(tab.id, block.id);
         }
-        
-        // Observer Toque
-        const mo = new MutationObserver(muts => {
-            muts.forEach(m => {
-                if(m.addedNodes) m.addedNodes.forEach(n => {
-                    if(n.nodeType===1 && n.matches && n.matches('[onclick]')) n.addEventListener('touchstart',e=>{e.preventDefault();n.click();},{passive:false});
-                });
-            });
+      });
+    }
+    function reorderBlocks(srcTabId, srcBlockId, tgtTabId, tgtBlockId) { const srcTab = state.caderno.find(t => t.id === srcTabId); const tgtTab = state.caderno.find(t => t.id === tgtTabId); if (!srcTab || !tgtTab) return; const bi = srcTab.blocks.findIndex(b => b.id === srcBlockId); const [block] = srcTab.blocks.splice(bi, 1); const ti = tgtTab.blocks.findIndex(b => b.id === tgtBlockId); tgtTab.blocks.splice(ti, 0, block); saveLocal(); renderNoteTabs(); renderNoteBlocks(tgtTab.id); }
+    function addItemPrompt(tabId, blockId) { const text = prompt('Descrição do item (aceita emojis)'); if (!text) return; const tab = state.caderno.find(t => t.id === tabId); const block = tab.blocks.find(b => b.id === blockId); block.items.push({ id: uid('it'), text, state: 0 }); saveLocal(); renderItems(tabId, blockId); }
+    function renderItems(tabId, blockId) {
+      const tab = state.caderno.find(t => t.id === tabId); if (!tab) return; const block = tab.blocks.find(b => b.id === blockId); if (!block) return; const container = el('#items_' + block.id); if (!container) return; container.innerHTML = ''; block.items.forEach(it => {
+        const row = document.createElement('div'); row.style.display = 'flex'; row.style.alignItems = 'center'; row.style.justifyContent = 'space-between'; row.style.padding = '6px 0'; row.innerHTML = `<div style="display:flex;gap:8px;align-items:center"><div class="checkbox-tri" onclick="toggleItemState('${tabId}','${blockId}','${it.id}')">${it.state === 1 ? '✔' : (it.state === 2 ? '✖' : '')}</div><div>${it.text}</div></div>
+      <div><button class="btn-ghost" onclick="editItem('${tabId}','${blockId}','${it.id}')">Editar</button> <button class="btn-ghost" onclick="removeItem('${tabId}','${blockId}','${it.id}')">Excluir</button></div>`; container.appendChild(row);
+      });
+    }
+    function toggleItemState(tabId, blockId, itemId) { const it = state.caderno.find(t => t.id === tabId).blocks.find(b => b.id === blockId).items.find(i => i.id === itemId); if (!it) return; it.state = (it.state + 1) % 3; saveLocal(); renderItems(tabId, blockId); }
+    function editItem(tabId, blockId, itemId) { const it = state.caderno.find(t => t.id === tabId).blocks.find(b => b.id === blockId).items.find(i => i.id === itemId); const txt = prompt('Editar item', it.text); if (txt === null) return; it.text = txt; saveLocal(); renderItems(tabId, blockId); }
+    function removeItem(tabId, blockId, itemId) { if (!confirm('Remover item?')) return; const block = state.caderno.find(t => t.id === tabId).blocks.find(b => b.id === blockId); block.items = block.items.filter(i => i.id !== itemId); saveLocal(); renderItems(tabId, blockId); }
+    function removeBlock(tabId, blockId) { if (!confirm('Remover bloco?')) return; const tab = state.caderno.find(t => t.id === tabId); tab.blocks = tab.blocks.filter(b => b.id !== blockId); saveLocal(); renderNoteBlocks(tabId); }
+
+    /* ===== MODAL ===== */
+    let modalCallback = null;
+    function showModal(title, htmlContent, callback) {
+      el('#modalTitle').innerText = title; el('#modalBody').innerHTML = htmlContent;
+      el('#modalEdit').style.display = 'flex'; modalCallback = callback;
+    }
+    function closeModal() { el('#modalEdit').style.display = 'none'; modalCallback = null; }
+    function confirmModal() { if (modalCallback) modalCallback(); closeModal(); }
+
+    /* ===== BACKUP / IMPORT / EXPORT ===== */
+    function exportAll() {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'borges_backup_' + new Date().toISOString().slice(0, 10) + '.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function importAll() {
+      const f = el('#fileImport').files[0];
+      if (!f) return alert('Escolha um arquivo JSON');
+
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          // Garantir que chaves novas existam mesmo em backups antigos
+          const defaultState = {
+            reservas: [],
+            isolatedReservas: [],
+            transacoes: [],
+            investimentos: [],
+            fluxo: [],
+            custo: [],
+            planejamento: {},
+            caderno: [],
+            settings: { hideValues: false },
+            assets: [],
+            alertas: []
+          };
+          state = Object.assign({}, defaultState, parsed);
+          if (!state.settings) state.settings = { hideValues: false };
+          saveLocal();
+          renderAll();
+          alert('✅ Backup importado com sucesso!');
+        } catch (err) {
+          console.error('Erro de Parsing do JSON:', err);
+          alert('❌ Arquivo inválido ou corrompido. Verifique o console para mais detalhes.');
+        }
+      };
+      reader.readAsText(f);
+    }
+
+    /* ===== RESET TOTAL DO PAINEL (com dupla confirmação) ===== */
+    function resetPainel() {
+      const confirmar = confirm("⚠️ Tem certeza que deseja apagar TODOS os dados do painel?\nEssa ação não pode ser desfeita!");
+      if (!confirmar) return;
+
+      const validacao = prompt("Para confirmar, digite a palavra: ZERAR");
+      if (validacao !== "ZERAR") {
+        alert("❌ Cancelado. Nenhum dado foi apagado.");
+        return;
+      }
+
+      // Limpa completamente o armazenamento local
+      localStorage.clear();
+
+      alert("✅ Painel zerado com sucesso!");
+      location.reload(); // recarrega o painel limpo
+    }
+
+    /* ===== Charts helpers (Chart.js usage kept) ===== */
+    let chartFluxMonthly = null;
+    let chartCustoTop = null;
+    let chartPlan = null;
+    let chartInvCompSmall = null;
+
+    function monthKeyFromDateString(d) { return d && d.length >= 7 ? d.slice(0, 7) : (new Date()).toISOString().slice(0, 7); }
+
+    function computeFluxoMonthly(monthKey) {
+      const entriesByDay = {}; const exitsByDay = {};
+      const list = Array.isArray(state.fluxo) ? state.fluxo : [];
+      for (const f of list) {
+        if (!f.date) continue;
+        if (f.date.slice(0, 7) !== monthKey) continue;
+        const day = Number(f.date.slice(8, 10));
+        // Check for 'entrada' explicitly, otherwise treat as 'saida' if it's 'saida' or fallback
+        // Assuming 'type' is either 'entrada' or 'saida'
+        if (f.type === 'entrada') {
+          entriesByDay[day] = (entriesByDay[day] || 0) + Number(f.value || 0);
+        } else if (f.type === 'saida') {
+          exitsByDay[day] = (exitsByDay[day] || 0) + Number(f.value || 0);
+        }
+      }
+      const maxDay = Math.max(...Object.keys(entriesByDay).map(Number).concat(Object.keys(exitsByDay).map(Number)).concat([30]));
+      const labels = []; const entriesArr = []; const exitsArr = [];
+      let totalEntries = 0, totalExits = 0;
+      for (let d = 1; d <= maxDay; d++) {
+        labels.push(String(d).padStart(2, '0'));
+        const e = entriesByDay[d] || 0; const s = exitsByDay[d] || 0;
+        entriesArr.push(e); exitsArr.push(s);
+        totalEntries += e; totalExits += s;
+      }
+      const net = totalEntries - totalExits;
+      return { labels, entriesArr, exitsArr, totalEntries, totalExits, net };
+    }
+
+    function computeCustoByCategory(monthKey) {
+      const cats = {};
+      const list = Array.isArray(state.custo) ? state.custo : [];
+      for (const c of list) {
+        if (!c.date) continue;
+        if (c.date.slice(0, 7) !== monthKey) continue;
+        cats[c.cat] = (cats[c.cat] || 0) + Number(c.value || 0);
+      }
+      const labels = Object.keys(cats); const values = labels.map(l => cats[l]); const total = values.reduce((a, b) => a + b, 0);
+      return { labels, values, total, cats };
+    }
+
+    function computePlanProgress(monthKey) {
+      if (!monthKey || !state.planejamento[monthKey]) return { meta: 0, done: 0, pct: 0 };
+      const p = state.planejamento[monthKey].periods;
+      const meta = (p.p1.meta || 0) + (p.p2.meta || 0) + (p.p3.meta || 0);
+      const done = (p.p1.items || []).reduce((s, i) => s + (i.state === 1 ? i.value : 0), 0)
+        + (p.p2.items || []).reduce((s, i) => s + (i.state === 1 ? i.value : 0), 0)
+        + (p.p3.items || []).reduce((s, i) => s + (i.state === 1 ? i.value : 0), 0);
+      const pct = meta ? Math.round((done / meta) * 100) : 0;
+      return { meta, done, pct };
+    }
+
+    /* ====== Dashboard render + summary computations ====== */
+    function computeResumoFinanceiro(monthKey) {
+      // Entradas: transacoes tipo 'entrada' + fluxo type 'entrada'
+      const entradasFromTrans = (state.transacoes || []).filter(t => (t.tipo === 'entrada' || t.tipo === 'aporte')).reduce((s, t) => s + Number(t.valor || 0), 0);
+      const entradasFromFluxo = (state.fluxo || []).filter(f => f.type === 'entrada').reduce((s, f) => s + Number(f.value || 0), 0);
+      const totalEntradas = entradasFromTrans + entradasFromFluxo;
+      // Saídas
+      const saidasFromTrans = (state.transacoes || []).filter(t => t.tipo === 'saida' || t.tipo === 'retirada').reduce((s, t) => s + Number(t.valor || 0), 0);
+      const saidasFromFluxo = (state.fluxo || []).filter(f => f.type === 'saida').reduce((s, f) => s + Number(f.value || 0), 0);
+      const saidasFromCusto = (state.custo || []).reduce((s, c) => s + Number(c.value || 0), 0);
+      const totalSaidas = saidasFromTrans + saidasFromFluxo;
+      // Removido saidasFromCusto para não duplicar custo de vida
+      // Reservas total (saldo) - ONLY NORMAL RESERVES
+      const reservasTotal = (state.reservas || []).reduce((s, r) => s + Number(r.saldo || 0), 0);
+      // Investimentos total (quantidade * preco)
+      const investimentosTotal = (state.investimentos || []).reduce((s, i) => s + (Number(i.quantidade || 0) * Number(i.preco || 0)), 0);
+      const resultado = totalEntradas - totalSaidas;
+      return { totalEntradas, totalSaidas, resultado, reservasTotal, investimentosTotal };
+    }
+
+    /* ====== Render Dashboard (Chart.js) ====== */
+    /* ====== Render Dashboard (Chart.js) ====== */
+    window.toggleDashSection = function (section) {
+      if (!state.settings.hideDashSections) state.settings.hideDashSections = {};
+      state.settings.hideDashSections[section] = !state.settings.hideDashSections[section];
+      saveLocal();
+      renderDashboard();
+    };
+
+    function renderDashboard() {
+      const monthKey = getSelectedMonthKey() || new Date().toISOString().slice(0, 7);
+
+      // Apply visibility settings
+      const sections = ['topstats', 'reservas', 'custo', 'fluxo', 'plan', 'invest', 'recent'];
+      if (!state.settings.hideDashSections) state.settings.hideDashSections = {};
+
+      sections.forEach(sec => {
+        const elContent = document.getElementById('content_' + sec);
+        if (elContent) {
+          elContent.style.display = state.settings.hideDashSections[sec] ? 'none' : (sec === 'topstats' || sec === 'custo' || sec === 'fluxo' || sec === 'plan' ? 'flex' : 'block');
+          // Restore specific display types if not hidden
+          if (!state.settings.hideDashSections[sec]) {
+            if (sec === 'topstats') elContent.style.display = 'flex';
+            else if (sec === 'custo' || sec === 'fluxo' || sec === 'plan') elContent.style.display = 'flex';
+            else elContent.style.display = 'block';
+          }
+        }
+      });
+
+      // resumo financeiro
+      const resumo = computeResumoFinanceiro(monthKey);
+      el('#dash_entradas').innerText = formatMoney(resumo.totalEntradas || 0);
+      el('#dash_saidas').innerText = formatMoney(resumo.totalSaidas || 0);
+      el('#dash_resultado').innerText = formatMoney(resumo.resultado || 0);
+      el('#dash_result_status').innerText = resumo.resultado >= 0 ? 'Positivo' : 'Negativo';
+
+      // reservas & investimentos
+      el('#dash_reservas_total').innerText = formatMoney(resumo.reservasTotal || 0);
+      el('#dash_reservas_count').innerText = (state.reservas || []).length;
+      el('#dash_invest_total').innerText = formatMoney(resumo.investimentosTotal || 0);
+      el('#dash_inv_count').innerText = (state.investimentos || []).length;
+
+      // alerta custo de vida
+      const custoRes = computeCustoByCategory(monthKey);
+      el('#dash_custo_total').innerText = formatMoney(custoRes.total || 0);
+      el('#dash_custo_month_label').innerText = monthKey;
+      const alertEl = el('#dash_alert');
+      if (custoRes.total > resumo.totalEntradas) {
+        alertEl.style.display = 'block';
+        alertEl.innerText = 'Alerta: seu custo de vida atual ultrapassa as entradas. Revise despesas.';
+        alertEl.style.borderLeft = '4px solid var(--danger)';
+      } else {
+        if (custoRes.total === 0) alertEl.style.display = 'none';
+        else { alertEl.style.display = 'block'; alertEl.innerText = 'Seu custo de vida está dentro da margem.'; alertEl.style.borderLeft = '4px solid var(--success)'; }
+      }
+
+      // Charts: custo (doughnut)
+      if (chartCustoTop) { chartCustoTop.destroy(); chartCustoTop = null; }
+      try {
+        const ctxC = document.getElementById('chartCustoTop').getContext('2d');
+        chartCustoTop = new Chart(ctxC, {
+          type: 'doughnut',
+          data: { labels: custoRes.labels.length ? custoRes.labels : ['Sem dados'], datasets: [{ data: custoRes.values.length ? custoRes.values : [1], backgroundColor: ['#60a5fa', '#1e88e5', '#16a34a', '#f59e0b', '#ef4444', '#7c3aed', '#0ea5a4'] }] },
+          options: { maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#e6eef8' } } } }
         });
-        mo.observe(document.body, { childList: true, subtree: true });
+      } catch (e) {/*silent*/ }
+
+      // Fluxo mensal chart
+      const fluxoRes = computeFluxoMonthly(monthKey);
+      el('#dash_fluxo_entries').innerText = formatMoney(fluxoRes.totalEntries || 0);
+      el('#dash_fluxo_exits').innerText = formatMoney(fluxoRes.totalExits || 0);
+      el('#dash_fluxo_net').innerText = formatMoney(fluxoRes.net || 0);
+      el('#dash_fluxo_net').style.color = (fluxoRes.net >= 0) ? 'var(--success)' : 'var(--danger)';
+      if (chartFluxMonthly) { chartFluxMonthly.destroy(); chartFluxMonthly = null; }
+      try {
+        const ctxF = document.getElementById('chartFluxMonthly').getContext('2d');
+        chartFluxMonthly = new Chart(ctxF, {
+          type: 'bar',
+          data: { labels: fluxoRes.labels, datasets: [{ label: 'Entradas', data: fluxoRes.entriesArr, backgroundColor: '#16a34a' }, { label: 'Saídas', data: fluxoRes.exitsArr, backgroundColor: '#ef4444' }] },
+          options: { maintainAspectRatio: false, scales: { x: { ticks: { color: '#e6eef8' } }, y: { ticks: { color: '#e6eef8' } } }, plugins: { legend: { labels: { color: '#e6eef8' } } } }
+        });
+      } catch (e) {/*silent*/ }
+
+      // Plan small chart (donut)
+      const planRes = computePlanProgress(monthKey);
+      el('#dash_plan_meta').innerText = `Meta: ${formatMoney(planRes.meta || 0)}`;
+      el('#dash_plan_done').innerText = `Concluído: ${formatMoney(planRes.done || 0)}`;
+      const pct = Math.min(100, Math.max(0, planRes.pct || 0));
+      el('#dash_plan_bar').style.width = pct + '%';
+      el('#dash_plan_pct').innerText = pct + '%';
+      if (chartPlan) { chartPlan.destroy(); chartPlan = null; }
+      try {
+        const ctxP = document.getElementById('chartPlan').getContext('2d');
+        const rem = Math.max(0, (planRes.meta || 0) - (planRes.done || 0));
+        chartPlan = new Chart(ctxP, { type: 'doughnut', data: { labels: ['Concluído', 'Restante'], datasets: [{ data: [planRes.done || 0, rem], backgroundColor: ['#60a5fa', '#374151'] }] }, options: { maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+      } catch (e) {/*silent*/ }
+
+      // Invest composition small chart
+      try {
+        const cats = {};
+        state.investimentos.forEach(it => { const v = (Number(it.quantidade || 0) * Number(it.preco || 0)); cats[it.categoria] = (cats[it.categoria] || 0) + v; });
+        const labels = Object.keys(cats); const values = labels.map(l => cats[l]);
+        if (chartInvCompSmall) { chartInvCompSmall.destroy(); chartInvCompSmall = null; }
+        const ctxI = document.getElementById('chartInvCompSmall') && document.getElementById('chartInvCompSmall').getContext('2d');
+        if (ctxI) {
+          chartInvCompSmall = new Chart(ctxI, { type: 'doughnut', data: { labels: labels.length ? labels : ['Sem dados'], datasets: [{ data: values.length ? values : [1], backgroundColor: ['#60a5fa', '#1e88e5', '#16a34a', '#f59e0b', '#ef4444'] }] }, options: { maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#e6eef8' } } } } });
+        }
+      } catch (e) {/*silent*/ }
+
+      // Recents
+      const tbody = el('#dash_recent tbody'); if (!tbody) return;
+      tbody.innerHTML = '';
+      const recent = [].concat(state.transacoes || [], state.fluxo || []).slice(0, 10);
+      if (!recent.length) tbody.innerHTML = '<tr><td colspan="4" class="small">Sem registros</td></tr>';
+      else {
+        recent.forEach(r => {
+          const tr = document.createElement('tr');
+          const dateStr = r.date ? (r.date.length === 10 ? new Date(r.date + 'T00:00:00').toLocaleDateString() : new Date(r.date).toLocaleDateString()) : '-';
+          tr.innerHTML = `<td>${dateStr}</td><td>${r.tipo || r.type || 'mov'}</td><td>${r.reserva || r.desc || r.ativo || ''}</td><td>${formatMoney(r.valor || r.value || 0)}</td>`;
+          tbody.appendChild(tr);
+        });
+      }
+      el('#dash_updated').innerText = new Date().toLocaleString();
+    }
+
+    /* ===== Expor bloco de notas (para colar no GPT) ===== */
+    function compileExportText() {
+      const resumo = computeResumoFinanceiro(getSelectedMonthKey() || new Date().toISOString().slice(0, 7));
+      const topCats = computeCustoByCategory(getSelectedMonthKey()).cats || {};
+      const topCatsList = Object.keys(topCats).map(k => `${k}: ${formatMoney(topCats[k])}`).join(' • ');
+      const investSummary = (state.investimentos || []).slice(0, 8).map(i => `${i.ativo} (${i.categoria}) — ${formatMoney(Number(i.quantidade || 0) * Number(i.preco || 0))}`).join('\n');
+
+      let cadernoText = '';
+      if (state.caderno && state.caderno.length) {
+        cadernoText = state.caderno.map(tab => {
+          const blocks = (tab.blocks || []).map(b => {
+            const items = (b.items || []).map(it => `    - ${it.text} [${it.state === 1 ? '✔' : (it.state === 2 ? '✖' : ' ')}]`).join('\n');
+            return `  [Bloco: ${b.title}]\n${items}`;
+          }).join('\n\n');
+          return `[Aba: ${tab.name}]\n${blocks}`;
+        }).join('\n\n====================\n\n');
+      }
+
+      const text = [
+        `RESUMO FINANCEIRO — ${new Date().toLocaleDateString()}`,
+        `ENTRADAS: ${formatMoney(resumo.totalEntradas)}`,
+        `SAÍDAS: ${formatMoney(resumo.totalSaidas)}`,
+        `RESULTADO: ${formatMoney(resumo.resultado)}`,
+        `RESERVAS (total saldo): ${formatMoney(resumo.reservasTotal)}`,
+        `INVESTIMENTOS (total): ${formatMoney(resumo.investimentosTotal)}`,
+        `CUSTO DE VIDA (mês): ${formatMoney(computeCustoByCategory(getSelectedMonthKey()).total || 0)}`,
+        `PRINCIPAIS CATEGORIAS: ${topCatsList || '—'}`,
+        `INVESTIMENTOS (top 8):\n${investSummary || '—'}`,
+        `\nTRANSAÇÕES RECENTES:\n${(state.transacoes || []).slice(0, 10).map(t => `${t.date || t.date}: ${t.reserva || ''} ${t.tipo || ''} ${formatMoney(t.valor || 0)}`).join('\n')}`,
+        `\nCADERNO DE NOTAS:\n${cadernoText || '—'}`
+      ].join('\n');
+      return text;
+    }
+    function exportToClipboardAndModal() {
+      const txt = compileExportText();
+      // copy
+      navigator.clipboard.writeText(txt).then(() => {
+        showModal('Exportar (Bloco de Notas) — Texto copiado', `<textarea class="input" style="height:260px">${txt}</textarea>`, null);
+        alert('Resumo copiado para a área de transferência. Cole no ChatGPT para análise.');
+      }).catch(() => { showModal('Exportar (Bloco de Notas)', `<textarea class="input" style="height:260px">${txt}</textarea>`, null); alert('Não foi possível copiar automaticamente. Abra o modal e copie manualmente.'); });
+    }
+
+    /* ===== MOBILE TOUCH SUPPORT ===== */
+    function attachTouch(el) {
+      if (!el) return;
+      try {
+        if (el.__touchAttached) return;
+        el.addEventListener('touchstart', e => {
+          e.preventDefault();
+          el.click();
+        }, { passive: false });
+        el.__touchAttached = true;
+      } catch (err) { }
+    }
+
+    function enableTouchForOnclicks() {
+      document.querySelectorAll('[onclick]').forEach(el => attachTouch(el));
+      document.querySelectorAll('.btn, .btn-ghost, button').forEach(b => {
+        if (!b.__touchAttached) {
+          b.addEventListener('touchstart', e => {
+            e.preventDefault();
+            b.click();
+          }, { passive: false });
+          b.__touchAttached = true;
+        }
+      });
+    }
+
+    /* ===== Clear Tab Data Functions ===== */
+    function clearCusto() { if (!confirm('Tem certeza que deseja apagar TODOS os dados de Custo de Vida?')) return; state.custo = []; saveLocal(); renderCusto(); }
+    function clearFluxo() { if (!confirm('Tem certeza que deseja apagar TODOS os dados de Fluxo Diário?')) return; state.fluxo = []; saveLocal(); renderFluxo(); }
+    function clearReservas() { if (!confirm('Tem certeza que deseja apagar TODAS as Reservas?')) return; state.reservas = []; saveLocal(); renderReservations(); }
+    function clearInvestimentos() { if (!confirm('Tem certeza que deseja apagar TODOS os Investimentos?')) return; state.investimentos = []; saveLocal(); renderInvestments(); }
+    function clearPlanejamento() { if (!confirm('Tem certeza que deseja apagar TODO o Planejamento?')) return; state.planejamento = {}; saveLocal(); getMonthOptions(); renderPlanForMonth(getSelectedMonthKey()); }
+    function clearCaderno() { if (!confirm('Tem certeza que deseja apagar TODO o Caderno de Notas?')) return; state.caderno = []; saveLocal(); renderNoteTabs(); el('#noteBlocks').innerHTML = ''; }
+
+
+
+    /* ===== Render all structural tables/cards ===== */
+    function renderAll() {
+      reorderReservationsByDefault();
+      renderReservations();
+      renderInvestments();
+      renderFluxo();
+      renderCusto();
+      renderNoteTabs();
+      getMonthOptions();
+      const key = getSelectedMonthKey() || new Date().toISOString().slice(0, 7);
+      if (state.planejamento[key]) renderPlanForMonth(key);
+      renderDashboard(); // garante dashboard atualizado
+      enableTouchForOnclicks(); // manter suporte touch atualizado
+      if (window.enhancements && window.enhancements.renderAlertsDashboard) window.enhancements.renderAlertsDashboard();
+      if (window.enhancements && window.enhancements.createRemindersTab) window.enhancements.createRemindersTab();
+      if (window.enhancements && window.enhancements.renderAssets) window.enhancements.renderAssets();
+    }
+  </script>
+
+
+
+  <!-- ===================== INIT ===================== -->
+  <script>
+    (function init() {
+      const apiDisplay = el('#apiUrlDisplay');
+      if (apiDisplay) apiDisplay.innerText = '(Drive API Direct)';
+
+      loadLocal();
+
+      if (!state.reservas || !state.reservas.length)
+        createDefaultReservas();
+
+      getMonthOptions();
+      renderAll();
+
+      const btnSync = el('#btnSyncAll');
+      if (btnSync) {
+        btnSync.addEventListener('click', () => {
+          if (window.saveStateToFirestore) window.saveStateToFirestore();
+          else alert('Funcionalidade de nuvem não inicializada.');
+        });
+      }
+
+      const btnHide = el('#btnHideValues');
+      if (btnHide) {
+        btnHide.addEventListener('click', () => {
+          state.settings.hideValues = !state.settings.hideValues;
+          btnHide.innerText = state.settings.hideValues ? 'Mostrar Valores' : 'Ocultar Valores';
+          saveLocal();
+        });
+      }
+
+      // btnExportNotes removed as button was deleted from DOM
+
+      // Observa mutações para ativar suporte a toque
+
+      // Observa mutações para ativar suporte a toque
+      const mo = new MutationObserver(muts => {
+        muts.forEach(m => {
+          if (m.addedNodes && m.addedNodes.length) {
+            m.addedNodes.forEach(node => {
+              if (node.nodeType === 1) {
+                if (node.matches && node.matches('[onclick]'))
+                  attachTouch(node);
+
+                if (node.querySelectorAll)
+                  node.querySelectorAll('[onclick]').forEach(elm => attachTouch(elm));
+              }
+            });
+          }
+        });
+      });
+
+      mo.observe(document.body, { childList: true, subtree: true });
     })();
   </script>
 
+
+
+
+
+  <!-- GOOGLE DRIVE SYNC REMOVED -->
+
+  <!-- Google Scripts Removed -->
+
+  <!-- ===================== FIREBASE LOGIN ===================== -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-    
-    const firebaseConfig = { apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8", authDomain: "painel-financeiro-borges.firebaseapp.com", projectId: "painel-financeiro-borges", storageBucket: "painel-financeiro-borges.firebasestorage.app", messagingSenderId: "354997627208", appId: "1:354997627208:web:90604d0a7dcd45b6e4eb7d", measurementId: "G-KH9BDWN2WH" };
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+      from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, getDocs, query, where, orderBy, limit }
+      from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
+      authDomain: "painel-financeiro-borges.firebaseapp.com",
+      projectId: "painel-financeiro-borges",
+      storageBucket: "painel-financeiro-borges.firebasestorage.app",
+      messagingSenderId: "354997627208",
+      appId: "1:354997627208:web:90604d0a7dcd45b6e4eb7d",
+      measurementId: "G-KH9BDWN2WH"
+    };
+
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    window.auth = auth; window.db = getFirestore(app);
-    
-    window.saveStateToFirestore = async function(){
-        if(!auth.currentUser) return alert('Logue primeiro');
-        await setDoc(doc(window.db, "users", auth.currentUser.uid), JSON.parse(JSON.stringify(state)));
-        alert('Salvo na nuvem!');
+    window.auth = auth; // Expose auth globally for security checks
+    window.db = getFirestore(app); // Global database instance for access across functions
+    const provider = new GoogleAuthProvider();
+
+    const btnLogin = document.getElementById("btnLogin");
+    const btnLogout = document.getElementById("btnLogout");
+
+    if (btnLogin) {
+      btnLogin.addEventListener("click", () => {
+        signInWithPopup(auth, provider)
+          .catch(err => alert("Erro ao entrar: " + err.message));
+      });
     }
-    
-    onAuthStateChanged(auth, u => {
-        if(u) {
-            document.getElementById('btnLogin').style.display='none';
-            document.getElementById('btnLogout').style.display='inline-block';
-            getDoc(doc(window.db, "users", u.uid)).then(s => {
-                if(s.exists() && confirm('Carregar da nuvem?')) { state = Object.assign(state, s.data()); saveLocal(); }
-            });
+
+    if (btnLogout) {
+      btnLogout.addEventListener("click", () => signOut(auth));
+    }
+
+    // --- FIRESTORE SYNC LOGIC ---
+
+    window.saveStateToFirestore = async function () {
+      // STRICT SECURITY CHECK
+      if (!window.auth || !window.auth.currentUser || !window.db) {
+        alert("⚠️ Você precisa estar logado e conectado para salvar na nuvem.");
+        return;
+      }
+
+      const user = window.auth.currentUser;
+
+      try {
+        const btn = document.getElementById('btnSyncAll');
+        if (btn) btn.innerText = 'Salvando...';
+
+        const docRef = doc(window.db, "users", user.uid);
+        // Deep copy state to avoid issues, though Firestore handles objects well
+        const payload = JSON.parse(JSON.stringify(window.state));
+        await setDoc(docRef, payload);
+
+        alert("✅ Dados salvos na nuvem com sucesso!");
+        if (btn) btn.innerText = 'Salvar no Cloud';
+      } catch (e) {
+        console.error("Erro ao salvar:", e);
+        alert("❌ Erro ao salvar na nuvem: " + e.message);
+        const btn = document.getElementById('btnSyncAll');
+        if (btn) btn.innerText = 'Salvar no Cloud';
+      }
+    };
+
+
+
+
+
+    async function loadStateFromFirestore(user) {
+      // STRICT SECURITY CHECK
+      if (!user || !user.uid || !window.db) {
+        console.error("Erro: Usuário não identificado ou banco de dados não inicializado.");
+        return;
+      }
+      console.log("Carregando dados da nuvem para UID:", user.uid);
+
+      try {
+        const docRef = doc(window.db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+
+          if (confirm("☁️ Backup encontrado na nuvem. Deseja carregar e substituir os dados locais atuais?")) {
+            // Garantir estrutura completa ao carregar da nuvem
+            const defaultState = {
+              reservas: [],
+              isolatedReservas: [],
+              transacoes: [],
+              investimentos: [],
+              fluxo: [],
+              custo: [],
+              planejamento: {},
+              caderno: [],
+              settings: { hideValues: false },
+              assets: [],
+              alertas: []
+            };
+
+            window.state = Object.assign({}, defaultState, window.state, data);
+            window.saveLocal();
+            window.renderAll();
+            alert("✅ Dados carregados da nuvem.");
+          }
+        } else {
+          console.log("Nenhum backup encontrado na nuvem.");
         }
+      } catch (e) {
+        console.error("Erro ao carregar:", e);
+        alert("❌ Erro ao carregar da nuvem: " + e.message);
+      }
+    }
+
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        console.log("Logado como:", user.email);
+        if (btnLogin) btnLogin.style.display = "none";
+        if (btnLogout) btnLogout.style.display = "inline-block";
+        window.userEmail = user.email;
+
+        // Attempt to load data ONLY if user exists
+        loadStateFromFirestore(user);
+
+      } else {
+        console.log("Deslogado");
+        if (btnLogin) btnLogin.style.display = "inline-block";
+        if (btnLogout) btnLogout.style.display = "none";
+        window.userEmail = null;
+      }
     });
-    
-    if(document.getElementById('btnLogin')) document.getElementById('btnLogin').onclick = () => signInWithPopup(auth, new GoogleAuthProvider());
-    if(document.getElementById('btnLogout')) document.getElementById('btnLogout').onclick = () => signOut(auth);
   </script>
 
+  <!-- ===================== ENHANCEMENTS ===================== -->
   <script src="enhancements.js"></script>
+
+  <!-- ===================== DEBUG HELPERS (FINAL) ===================== -->
+  <script>
+    window._borges_state = state;
+    window.saveLocal = saveLocal;
+  </script>
+
 </body>
+
 </html>
+
