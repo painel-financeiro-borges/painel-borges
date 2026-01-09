@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LIFE OS | Painel Oficial</title>
+    <title>LIFE OS | Living Reality</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
@@ -23,12 +23,9 @@
         .input-invisible { background: transparent; border: none; border-bottom: 1px dashed #444; color: inherit; outline: none; text-align: right; transition: all 0.3s; }
         .input-invisible:focus { border-bottom: 1px solid #FFD700; color: #FFD700; }
         
-        /* Blur de Privacidade */
-        .blur-value { filter: blur(5px); user-select: none; transition: filter 0.3s; }
-        .blur-value:hover { filter: blur(3px); }
-        .visible-value { filter: blur(0); }
-
-        /* Animações e Slides */
+        /* Blur de Privacidade - FORÇADO */
+        .blur-value { color: transparent !important; text-shadow: 0 0 8px rgba(255,255,255,0.7); cursor: pointer; user-select: none; }
+        
         @keyframes fadeInOut { 0% { opacity: 0; transform: translateY(5px); } 10% { opacity: 1; transform: translateY(0); } 90% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-5px); } }
         .afformation-anim { animation: fadeInOut 10s infinite; }
         .slide { position: absolute; inset: 0; opacity: 0; transition: opacity 2s ease-in-out; background-size: cover; background-position: center; }
@@ -65,10 +62,10 @@
                 <button onclick="closeModal('script-modal')" class="absolute top-4 right-4 text-zinc-500 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
                 <div class="p-8 border-b border-white/5 bg-black/40 rounded-t-2xl"><h2 class="text-2xl font-cinzel text-gold">O Roteiro da Verdade</h2></div>
                 <div class="p-8 overflow-y-auto leading-relaxed text-zinc-300 font-light text-lg space-y-6">
-                    <p>Hoje, 21 de maio de 2026, eu acordo e a primeira coisa que sinto é o silêncio. Não há pressa. Eu olho para o meu saldo e os <strong class="text-white">R$ 3.000.000</strong> continuam lá, intocáveis, rendendo a minha liberdade.</p>
-                    <p>A minha manhã é dedicada ao que importa. Tomo café com Levy, sem interrupções. Hoje é quarta-feira, dia de natação. Eu estou lá, na borda da piscina, vendo-o nadar. Ele olha para mim e sorri, porque sabe que eu estou ali. <em class="text-emerald-400">Não estou no celular, estou presente.</em></p>
-                    <p>À noite, o ritual repete-se na Capoeira. A casa da Mainha está finalmente como ela sonhou.</p>
-                    <p>Eu não trabalho por necessidade, eu crio por prazer. Sou um pai presente, um filho dedicado e um homem em paz. <strong>Felizão.</strong></p>
+                    <div id="dynamic-script-content"></div>
+                </div>
+                <div class="p-6 border-t border-white/5 bg-black/40 text-center rounded-b-2xl">
+                    <p class="text-[10px] text-zinc-600 uppercase tracking-widest">Baseado nos dados atuais do seu Painel</p>
                 </div>
             </div>
         </div>
@@ -109,19 +106,22 @@
                 <div class="glass rounded-3xl p-0 relative overflow-hidden border-t-4 border-gold">
                     <div class="bg-gradient-to-r from-zinc-900 to-black p-6 border-b border-white/5 flex justify-between items-center">
                         <div class="flex items-center gap-3"><i class="fa-solid fa-vault text-gold text-2xl"></i><div><h2 class="text-gold text-sm font-bold tracking-widest uppercase">Cofre Automático</h2><p class="text-[10px] text-zinc-500">Juros Compostos Diários (Selic)</p></div></div>
-                        <span class="bg-emerald-900/30 text-emerald-400 text-[10px] px-2 py-1 rounded border border-emerald-500/20 animate-pulse">ONLINE</span>
+                        <div class="flex gap-2">
+                            <button onclick="simulateMonth()" class="bg-white/5 hover:bg-white/10 text-xs text-zinc-400 px-2 py-1 rounded border border-white/10 transition" title="Simular avanço de 1 mês">>> 1 Mês</button>
+                            <span class="bg-emerald-900/30 text-emerald-400 text-[10px] px-2 py-1 rounded border border-emerald-500/20 animate-pulse flex items-center">ONLINE</span>
+                        </div>
                     </div>
                     <div class="p-8 text-center">
-                        <div class="text-5xl font-bold text-white font-cinzel mb-2 flex justify-center">
-                            <span class="text-2xl mr-2 mt-2">R$</span>
-                            <span id="display-principal" class="blur-value">...</span>
+                        <div class="text-5xl font-bold text-white font-cinzel mb-2 flex justify-center items-baseline gap-2">
+                            <span class="text-2xl text-zinc-500">R$</span>
+                            <span id="display-principal" class="blur-value transition-all">...</span>
                         </div>
                         <p class="text-xs text-zinc-500 mb-6">Patrimônio Principal</p>
 
                         <div class="bg-white/5 p-4 rounded-xl border border-white/5 mb-6 flex justify-between items-center">
                             <div class="text-left">
                                 <p class="text-[10px] text-zinc-400 uppercase">Rendimento Mensal</p>
-                                <p class="text-emerald-400 font-bold text-lg">+ R$ <span id="yield-preview">...</span></p>
+                                <p class="text-emerald-400 font-bold text-lg flex gap-1">+ R$ <span id="yield-preview" class="blur-value">...</span></p>
                             </div>
                             <div class="text-right">
                                 <p class="text-[10px] text-zinc-400 uppercase">Crescimento</p>
@@ -131,7 +131,7 @@
 
                         <div class="grid grid-cols-2 gap-4">
                             <button onclick="openInvestModal()" class="bg-gold-gradient text-black font-bold py-3.5 rounded-xl text-xs hover:scale-[1.02] flex items-center justify-center gap-2"><i class="fa-solid fa-plus"></i> NOVO APORTE</button>
-                            <button onclick="openWithdrawModal()" class="bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3.5 rounded-xl text-xs transition border border-zinc-600 flex items-center justify-center gap-2"><i class="fa-solid fa-money-bill-transfer"></i> SACAR PARTE</button>
+                            <button onclick="openWithdrawModal()" class="bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3.5 rounded-xl text-xs transition border border-zinc-600 flex items-center justify-center gap-2"><i class="fa-solid fa-money-bill-transfer"></i> SACAR / DIVIDENDOS</button>
                         </div>
                     </div>
                 </div>
@@ -173,7 +173,38 @@
         </div>
     </div>
 
-    <div id="withdraw-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4"><div class="glass w-full max-w-sm p-6 rounded-2xl border border-white/10"><button onclick="closeModal('withdraw-modal')" class="absolute top-4 right-4 text-zinc-500 hover:text-white"><i class="fa-solid fa-xmark"></i></button><h3 class="text-lg font-bold text-white mb-2">Realizar Saque</h3><input type="number" id="withdraw-amount" value="20000" class="w-full bg-zinc-900 rounded-xl p-3 text-white border border-zinc-700 focus:border-gold outline-none mb-4 text-xl font-bold"><button onclick="executeWithdraw()" class="w-full bg-white text-black font-bold py-3 rounded-xl hover:bg-zinc-200">Confirmar Transferência</button></div></div>
+    <div id="withdraw-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4">
+        <div class="glass w-full max-w-md p-6 rounded-2xl border border-white/10">
+            <button onclick="closeModal('withdraw-modal')" class="absolute top-4 right-4 text-zinc-500 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="text-lg font-bold text-white mb-4">Realizar Saque</h3>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs text-zinc-500 uppercase block mb-2">Origem do Dinheiro</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="withdrawType" value="dividend" checked class="peer sr-only">
+                            <div class="p-3 bg-zinc-900 border border-zinc-700 rounded-xl peer-checked:border-emerald-500 peer-checked:bg-emerald-900/20 text-center transition">
+                                <p class="text-xs font-bold text-white">💰 Rendimento</p>
+                                <p class="text-[9px] text-zinc-500">Não mexe no Principal</p>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="withdrawType" value="principal" class="peer sr-only">
+                            <div class="p-3 bg-zinc-900 border border-zinc-700 rounded-xl peer-checked:border-red-500 peer-checked:bg-red-900/20 text-center transition">
+                                <p class="text-xs font-bold text-white">🏦 Principal</p>
+                                <p class="text-[9px] text-zinc-500">Reduz o Patrimônio</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <input type="number" id="withdraw-amount" value="20000" class="w-full bg-zinc-900 rounded-xl p-3 text-white border border-zinc-700 focus:border-gold outline-none text-xl font-bold">
+                <button onclick="executeWithdraw()" class="w-full bg-white text-black font-bold py-3 rounded-xl hover:bg-zinc-200">Confirmar Transferência</button>
+            </div>
+        </div>
+    </div>
+
     <div id="transaction-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4"><div class="glass w-full max-w-md p-6 rounded-2xl"><button onclick="closeModal('transaction-modal')" class="absolute top-4 right-4 text-zinc-500"><i class="fa-solid fa-xmark"></i></button><h3 id="modal-title" class="text-lg font-bold text-white mb-4"></h3><div class="space-y-4"><input type="text" id="trans-desc" placeholder="Descrição" class="w-full bg-zinc-900 rounded-xl p-3 text-white outline-none"><input type="number" id="trans-value" placeholder="Valor" class="w-full bg-zinc-900 rounded-xl p-3 text-white outline-none"><input type="date" id="trans-date" class="w-full bg-zinc-900 rounded-xl p-3 text-white outline-none"><input type="text" id="trans-img" placeholder="Link Foto (Opcional)" class="w-full bg-zinc-900 rounded-xl p-3 text-white text-xs outline-none"><textarea id="trans-details" placeholder="Detalhes..." class="w-full bg-zinc-900 rounded-xl p-3 text-zinc-400 text-xs outline-none"></textarea><input type="hidden" id="trans-type"><button onclick="addTransaction()" class="w-full bg-gold-gradient text-black font-bold py-3 rounded-xl">Salvar</button></div></div></div>
     <div id="invest-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4"><div class="glass w-full max-w-md p-6 rounded-2xl"><button onclick="closeModal('invest-modal')" class="absolute top-4 right-4 text-zinc-500"><i class="fa-solid fa-xmark"></i></button><h3 class="text-lg font-bold text-gold mb-4">Novo Aporte</h3><div class="space-y-4"><select id="invest-source" class="w-full bg-zinc-900 rounded-xl p-3 text-white"><option value="external">Dinheiro Externo</option><option value="wallet">Da Carteira Livre</option></select><input type="number" id="invest-value" placeholder="Valor" class="w-full bg-zinc-900 rounded-xl p-3 text-white"><input type="text" id="invest-details" placeholder="Nota" class="w-full bg-zinc-900 rounded-xl p-3 text-white"><button onclick="addInvestment()" class="w-full bg-gold-gradient text-black font-bold py-3 rounded-xl">Aportar</button></div></div></div>
     <div id="asset-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4"><div class="glass w-full max-w-md p-6 rounded-2xl"><button onclick="closeModal('asset-modal')" class="absolute top-4 right-4 text-zinc-500"><i class="fa-solid fa-xmark"></i></button><h3 class="text-lg font-bold text-white mb-4">Novo Ativo</h3><div class="space-y-4"><input type="text" id="asset-name" placeholder="Nome" class="w-full bg-zinc-900 rounded-xl p-3 text-white"><input type="text" id="asset-img" placeholder="URL Imagem" class="w-full bg-zinc-900 rounded-xl p-3 text-white"><button onclick="addAsset()" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl">Adicionar</button></div></div></div>
@@ -286,19 +317,37 @@
             }
         }
 
+        // --- SIMULADOR DE MÊS (ACELERAR TEMPO) ---
+        window.simulateMonth = () => {
+            const interest = window.data.principal * 0.009; // 0.9%
+            if(confirm(`Simular passagem de 1 mês?\n+ R$ ${interest.toLocaleString('pt-BR')} serão adicionados ao Principal.`)) {
+                window.data.principal += interest;
+                window.data.history.unshift({
+                    id: Date.now(),
+                    desc: "Rendimento Mensal (Simulado)",
+                    details: "Avanço temporal manual. Juros compostos adicionados ao montante.",
+                    value: interest,
+                    date: new Date().toISOString(),
+                    type: 'investment'
+                });
+                saveDataToFirebase();
+                playSound('coin');
+            }
+        };
+
         // --- UI & LOGIC ---
         
         window.togglePrivacy = () => {
             isPrivate = !isPrivate;
             const icon = document.getElementById('privacy-icon');
+            const elements = [document.getElementById('display-principal'), document.getElementById('wallet-balance'), document.getElementById('yield-preview')];
+            
             if (isPrivate) {
                 icon.className = 'fa-solid fa-eye-slash';
-                document.getElementById('display-principal').classList.add('blur-value');
-                document.getElementById('wallet-balance').classList.add('blur-value');
+                elements.forEach(el => el.classList.add('blur-value'));
             } else {
                 icon.className = 'fa-solid fa-eye';
-                document.getElementById('display-principal').classList.remove('blur-value');
-                document.getElementById('wallet-balance').classList.remove('blur-value');
+                elements.forEach(el => el.classList.remove('blur-value'));
             }
         };
 
@@ -326,33 +375,49 @@
         // Funções Exportadas
         window.saveConfig = () => { window.data.monthlyCost = parseFloat(document.getElementById('monthly-cost').value); saveDataToFirebase(); closeModal('config-modal'); };
         
+        // --- SAQUE INTELIGENTE (CORRIGIDO) ---
         window.executeWithdraw = () => {
             const amount = parseFloat(document.getElementById('withdraw-amount').value);
-            if (!amount || amount > window.data.principal) return alert("Saldo insuficiente");
-            window.data.principal -= amount;
+            const type = document.querySelector('input[name="withdrawType"]:checked').value;
+            
+            if (!amount || amount <= 0) return alert("Valor inválido");
+            
+            if (type === 'principal') {
+                if (amount > window.data.principal) return alert("Saldo insuficiente");
+                window.data.principal -= amount;
+                window.data.history.unshift({id: Date.now(), desc: "Resgate de Principal", details: "Retirada do montante investido.", value: amount, date: new Date().toISOString(), type: 'income'});
+            } else {
+                // Modo Dividendos (Cria dinheiro na carteira sem descontar do principal, assumindo que veio do rendimento externo)
+                window.data.history.unshift({id: Date.now(), desc: "Resgate de Dividendos", details: "Lucro transferido para conta corrente (Principal Intacto).", value: amount, date: new Date().toISOString(), type: 'income'});
+            }
+            
             window.data.wallet += amount;
-            window.data.history.unshift({id: Date.now(), desc: "Resgate de Lucro", details: "Transferência para Carteira Livre.", value: amount, date: new Date().toISOString(), type: 'income'});
-            saveDataToFirebase(); closeModal('withdraw-modal');
+            saveDataToFirebase(); closeModal('withdraw-modal'); playSound('coin');
         };
 
         window.addTransaction = () => {
             const desc = document.getElementById('trans-desc').value; const val = parseFloat(document.getElementById('trans-value').value);
             const date = document.getElementById('trans-date').value; const img = document.getElementById('trans-img').value;
             const details = document.getElementById('trans-details').value; const type = document.getElementById('trans-type').value;
+            
             if(!desc || !val) return alert("Preencha dados");
             if(type === 'expense' && val > window.data.wallet) return alert("Saldo insuficiente");
+            
             if(type === 'expense') window.data.wallet -= val; else window.data.wallet += val;
             window.data.history.unshift({id: Date.now(), desc, value: val, date, img, details, type});
-            saveDataToFirebase(); closeModal('transaction-modal');
+            saveDataToFirebase(); closeModal('transaction-modal'); playSound(type==='expense'?'paper':'coin');
         };
 
         window.addInvestment = () => {
             const source = document.getElementById('invest-source').value; const val = parseFloat(document.getElementById('invest-value').value); const details = document.getElementById('invest-details').value;
             if(!val) return;
-            if(source === 'wallet') { if(val > window.data.wallet) return alert("Saldo insuficiente"); window.data.wallet -= val; }
+            if(source === 'wallet') {
+                if(val > window.data.wallet) return alert("Saldo insuficiente");
+                window.data.wallet -= val;
+            }
             window.data.principal += val;
             window.data.history.unshift({id: Date.now(), desc: "Aporte no Tesouro", value: val, date: new Date().toISOString(), type: 'investment', details: details || (source==='wallet'?"Reinvestimento":"Aporte Novo")});
-            saveDataToFirebase(); closeModal('invest-modal');
+            saveDataToFirebase(); closeModal('invest-modal'); playSound('coin');
         };
 
         window.endOfDay = () => {
@@ -363,6 +428,22 @@
                 window.data.habits.forEach(h=>h.done=false);
                 saveDataToFirebase();
             }
+        };
+
+        // --- ROTEIRO DINÂMICO ---
+        window.openScriptModal = () => {
+            const date = new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
+            const balance = window.data.principal.toLocaleString('pt-BR');
+            
+            const html = `
+                <p>Hoje, <strong>${date}</strong>, eu acordo e a primeira coisa que sinto é o silêncio. Não há pressa. Eu olho para o meu saldo e os <strong class="text-white text-xl">R$ ${balance}</strong> continuam lá, intocáveis, rendendo a minha liberdade.</p>
+                <p>A minha manhã é dedicada ao que importa. Tomo café com Levy, sem interrupções. Hoje é dia de estar presente. Eu olho para ele e sorrio, porque ele sabe que eu estou ali. <em class="text-emerald-400">Não estou no celular, estou presente.</em></p>
+                <p>À noite, o ritual repete-se na Capoeira. A casa da Mainha está finalmente como ela sonhou. O dinheiro agora é cuidado e amor.</p>
+                <p>Eu não trabalho por necessidade, eu crio por prazer. Sou um pai presente, um filho dedicado e um homem em paz. <strong>Felizão.</strong></p>
+            `;
+            
+            document.getElementById('dynamic-script-content').innerHTML = html;
+            document.getElementById('script-modal').classList.remove('hidden');
         };
 
         window.toggleHabit = (i) => { window.data.habits[i].done = !window.data.habits[i].done; saveDataToFirebase(); };
@@ -395,7 +476,6 @@
         window.rotateSlide = () => { const s=document.querySelectorAll('.slide'); const a=document.querySelector('.slide.active'); if(!a)return; a.classList.remove('active'); let n=a.nextElementSibling; if(!n||!n.classList.contains('slide')) n=s[0]; n.classList.add('active'); };
         window.toggleDetails = (id) => { document.getElementById(`details-${id}`).classList.toggle('open'); document.getElementById(`arrow-${id}`).classList.toggle('open'); };
         
-        window.openScriptModal=()=>{document.getElementById('script-modal').classList.remove('hidden')};
         window.toggleCinema=()=>{const el=document.getElementById('cinema-mode'); if(el.classList.contains('hidden')){el.classList.remove('hidden');if(document.documentElement.requestFullscreen)document.documentElement.requestFullscreen();}else{el.classList.add('hidden');if(document.exitFullscreen)document.exitFullscreen();}};
         window.openWithdrawModal=()=>{document.getElementById('withdraw-modal').classList.remove('hidden')};
         window.openInvestModal=()=>{document.getElementById('invest-modal').classList.remove('hidden')};
@@ -403,6 +483,10 @@
         window.openConfigModal=()=>{document.getElementById('config-modal').classList.remove('hidden')};
         window.openTransactionModal=(t)=>{document.getElementById('transaction-modal').classList.remove('hidden'); document.getElementById('trans-type').value=t; document.getElementById('modal-title').innerText=t==='expense'?'💸 Desfrutar':'✨ Manifestar'; document.getElementById('trans-date').value=new Date().toISOString().split('T')[0];};
         window.closeModal=(id)=>{document.getElementById(id).classList.add('hidden'); if(id==='transaction-modal'){ document.getElementById('trans-desc').value=''; document.getElementById('trans-value').value=''; document.getElementById('trans-img').value=''; document.getElementById('trans-details').value=''; } else { document.getElementById('invest-value').value=''; }};
+        
+        // Sons
+        const audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+        function playSound(t){ if(audioCtx.state==='suspended')audioCtx.resume(); const o=audioCtx.createOscillator(); const g=audioCtx.createGain(); o.connect(g); g.connect(audioCtx.destination); if(t==='coin'){o.type='sine';o.frequency.setValueAtTime(1200,audioCtx.currentTime);o.frequency.exponentialRampToValueAtTime(2000,audioCtx.currentTime+0.1);g.gain.setValueAtTime(0.3,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(0.01,audioCtx.currentTime+0.5);o.start();o.stop(audioCtx.currentTime+0.5);}else{o.type='triangle';o.frequency.setValueAtTime(100,audioCtx.currentTime);g.gain.setValueAtTime(0.2,audioCtx.currentTime);g.gain.linearRampToValueAtTime(0.01,audioCtx.currentTime+0.15);o.start();o.stop(audioCtx.currentTime+0.15);}}
     </script>
 </body>
 </html>
