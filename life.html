@@ -28,7 +28,6 @@
         .arrow-rotate { transition: transform 0.3s; }
         .arrow-rotate.open { transform: rotate(180deg); }
         
-        /* Input File Customizado */
         .file-upload { display: none; }
         .file-label { cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; background: rgba(255,255,255,0.05); border: 1px dashed #555; padding: 12px; border-radius: 12px; transition: all 0.3s; font-size: 12px; color: #aaa; }
         .file-label:hover { border-color: #FFD700; color: #FFD700; background: rgba(255,215,0,0.05); }
@@ -58,7 +57,7 @@
 
     <div id="loading-screen" class="fixed inset-0 z-[190] bg-black/95 hidden flex flex-col items-center justify-center">
         <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gold mb-4"></div>
-        <p class="text-gold text-xs tracking-widest uppercase">Materializando...</p>
+        <p class="text-gold text-xs tracking-widest uppercase">Otimizando Realidade...</p>
     </div>
 
     <div id="app-content" class="hidden relative z-10">
@@ -182,11 +181,8 @@
     <textarea id="trans-details" placeholder="Detalhes..." class="w-full bg-zinc-900 rounded-xl p-3 text-zinc-400 text-xs outline-none"></textarea><input type="hidden" id="trans-type"><button onclick="addTransaction()" class="w-full bg-gold-gradient text-black font-bold py-3 rounded-xl">Salvar</button></div></div></div>
     
     <div id="invest-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4"><div class="glass w-full max-w-md p-6 rounded-2xl"><button onclick="closeModal('invest-modal')" class="absolute top-4 right-4 text-zinc-500"><i class="fa-solid fa-xmark"></i></button><h3 class="text-lg font-bold text-gold mb-4">Novo Aporte</h3><div class="space-y-4"><select id="invest-source" class="w-full bg-zinc-900 rounded-xl p-3 text-white"><option value="external">Dinheiro Externo</option><option value="wallet">Da Carteira Livre</option></select><input type="number" id="invest-value" placeholder="Valor" class="w-full bg-zinc-900 rounded-xl p-3 text-white"><input type="text" id="invest-details" placeholder="Nota" class="w-full bg-zinc-900 rounded-xl p-3 text-white"><button onclick="addInvestment()" class="w-full bg-gold-gradient text-black font-bold py-3 rounded-xl">Aportar</button></div></div></div>
-    
     <div id="asset-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4"><div class="glass w-full max-w-md p-6 rounded-2xl"><button onclick="closeModal('asset-modal')" class="absolute top-4 right-4 text-zinc-500"><i class="fa-solid fa-xmark"></i></button><h3 class="text-lg font-bold text-white mb-4">Novo Ativo</h3><div class="space-y-4"><input type="text" id="asset-name" placeholder="Nome" class="w-full bg-zinc-900 rounded-xl p-3 text-white">
-    
     <div class="relative"><input type="file" id="asset-file" class="hidden" accept="image/*"><label for="asset-file" class="file-label"><i class="fa-solid fa-image"></i> Foto do Ativo (Galeria)</label><p id="asset-file-name" class="text-[10px] text-emerald-400 mt-1 pl-2 hidden"></p></div>
-    
     <button onclick="addAsset()" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl">Adicionar</button></div></div></div>
     <div id="config-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4"><div class="glass w-full max-w-sm p-6 rounded-2xl"><button onclick="closeModal('config-modal')" class="absolute top-4 right-4 text-zinc-500"><i class="fa-solid fa-xmark"></i></button><h3 class="text-lg font-bold text-white mb-4">Custo de Vida</h3><input type="number" id="monthly-cost" class="w-full bg-zinc-900 rounded-xl p-3 text-white outline-none mb-4"><button onclick="saveConfig()" class="w-full bg-white text-black font-bold py-2 rounded-xl">Salvar</button></div></div>
 
@@ -282,49 +278,35 @@
             if(skipAnim) document.getElementById('display-principal').innerText = window.data.principal.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
             document.getElementById('cinema-value').innerText = window.data.principal.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
             document.getElementById('wallet-balance').innerText = window.data.wallet.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+            
             document.getElementById('yield-balance').innerText = window.data.yieldBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
             document.getElementById('monthly-cost').value = window.data.monthlyCost;
+            
             const monthsFree = window.data.wallet / window.data.monthlyCost;
             document.getElementById('freedom-time').innerHTML = `<span class="text-white text-lg">${Math.floor(monthsFree / 12)} Anos</span> e <span class="text-white text-lg">${Math.floor(monthsFree % 12)} Meses</span> de paz.`;
+
             renderHabits(); renderHistory(); renderAssets();
         }
 
-        // --- CONVERSOR DE IMAGEM BASE64 ---
+        // COMPRESSÃO INTELIGENTE (TURBO)
         function convertFileToBase64(file, callback) {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
+            const reader = new FileReader(); reader.readAsDataURL(file);
             reader.onload = function () {
-                const img = new Image();
-                img.src = reader.result;
+                const img = new Image(); img.src = reader.result;
                 img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    // Redimensionar para não pesar o banco
-                    const MAX_WIDTH = 800;
+                    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+                    const MAX_WIDTH = 600; 
                     const scaleSize = MAX_WIDTH / img.width;
-                    canvas.width = MAX_WIDTH;
-                    canvas.height = img.height * scaleSize;
+                    canvas.width = MAX_WIDTH; canvas.height = img.height * scaleSize;
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    callback(canvas.toDataURL('image/jpeg', 0.7)); // Compressão
+                    callback(canvas.toDataURL('image/jpeg', 0.6));
                 }
             };
         }
 
-        // --- LÓGICA DE UPLOAD VISUAL ---
-        document.getElementById('trans-file').addEventListener('change', function(e) {
-            if(e.target.files[0]) {
-                document.getElementById('trans-file-name').innerText = "Foto selecionada: " + e.target.files[0].name;
-                document.getElementById('trans-file-name').classList.remove('hidden');
-            }
-        });
-        document.getElementById('asset-file').addEventListener('change', function(e) {
-            if(e.target.files[0]) {
-                document.getElementById('asset-file-name').innerText = "Foto selecionada: " + e.target.files[0].name;
-                document.getElementById('asset-file-name').classList.remove('hidden');
-            }
-        });
+        document.getElementById('trans-file').addEventListener('change', function(e) { if(e.target.files[0]) { document.getElementById('trans-file-name').innerText = "Foto selecionada: " + e.target.files[0].name; document.getElementById('trans-file-name').classList.remove('hidden'); } });
+        document.getElementById('asset-file').addEventListener('change', function(e) { if(e.target.files[0]) { document.getElementById('asset-file-name').innerText = "Foto selecionada: " + e.target.files[0].name; document.getElementById('asset-file-name').classList.remove('hidden'); } });
 
-        // --- AÇÕES COM UPLOAD ---
         window.addTransaction = () => {
             const desc = document.getElementById('trans-desc').value; const val = parseFloat(document.getElementById('trans-value').value);
             const date = document.getElementById('trans-date').value; const details = document.getElementById('trans-details').value; const type = document.getElementById('trans-type').value;
@@ -338,32 +320,16 @@
                 window.data.history.unshift({id: Date.now(), desc, value: val, date: new Date().toISOString(), img: imgBase64, details, type});
                 saveDataToFirebase(); closeModal('transaction-modal'); playSound(type==='expense'?'paper':'coin');
             };
-
-            if(fileInput.files.length > 0) {
-                convertFileToBase64(fileInput.files[0], (base64) => processSave(base64));
-            } else {
-                processSave(null);
-            }
+            if(fileInput.files.length > 0) convertFileToBase64(fileInput.files[0], (base64) => processSave(base64)); else processSave(null);
         };
 
         window.addAsset = () => {
-            const n = document.getElementById('asset-name').value;
-            const fileInput = document.getElementById('asset-file');
-            
+            const n = document.getElementById('asset-name').value; const fileInput = document.getElementById('asset-file');
             if(!n) return;
-            
-            if(fileInput.files.length > 0) {
-                convertFileToBase64(fileInput.files[0], (base64) => {
-                    window.data.assets.push({id:Date.now(), name:n, img:base64}); 
-                    saveDataToFirebase(); closeModal('asset-modal'); playSound('coin');
-                });
-            } else {
-                window.data.assets.push({id:Date.now(), name:n, img:null}); 
-                saveDataToFirebase(); closeModal('asset-modal'); playSound('coin');
-            }
+            const processSave = (base64) => { window.data.assets.push({id:Date.now(), name:n, img:base64}); saveDataToFirebase(); closeModal('asset-modal'); playSound('coin'); };
+            if(fileInput.files.length > 0) convertFileToBase64(fileInput.files[0], (base64) => processSave(base64)); else processSave(null);
         };
 
-        // --- ROTEIROS IMERSIVOS ---
         window.openScriptModal = () => {
             const balance = window.data.principal.toLocaleString('pt-BR');
             const date = new Date().toLocaleDateString();
@@ -406,11 +372,11 @@
             
             if (type === 'principal') {
                 if (amount > window.data.principal) return alert("Saldo insuficiente");
-                window.data.principal -= amount; // Tira do Principal
+                window.data.principal -= amount; 
                 window.data.history.unshift({id: Date.now(), desc: "Resgate de Principal", details: "Retirada do capital investido.", value: amount, date: new Date().toISOString(), type: 'income'});
             } else {
                 if (amount > window.data.yieldBalance) return alert("Você não tem esse rendimento acumulado ainda!");
-                window.data.yieldBalance -= amount; // Tira do Pote de Juros
+                window.data.yieldBalance -= amount; 
                 window.data.history.unshift({id: Date.now(), desc: "Saque de Dividendos", details: "Lucro transferido para conta livre (Principal Intacto).", value: amount, date: new Date().toISOString(), type: 'income'});
             }
             window.data.wallet += amount; saveDataToFirebase(); closeModal('withdraw-modal'); playSound('coin');
@@ -438,8 +404,7 @@
 
         window.renderHabits = () => { const l=document.getElementById('habits-list'); l.innerHTML=''; window.data.habits.forEach((h,i)=>{ l.innerHTML+=`<div class="flex items-center justify-between group p-2 bg-white/5 rounded-xl hover:bg-white/10 transition"><label class="flex items-center gap-3 cursor-pointer w-full"><input type="checkbox" ${h.done?'checked':''} onchange="toggleHabit(${i})" class="w-5 h-5 accent-emerald-500 rounded border-zinc-700"><span class="text-sm text-zinc-300 ${h.done?'line-through opacity-50':''}">${h.text}</span></label><button onclick="removeHabit(${i})" class="text-zinc-600 hover:text-red-500 opacity-0 group-hover:opacity-100 px-2"><i class="fa-solid fa-trash"></i></button></div>` }); };
         window.renderAssets = () => { const l=document.getElementById('assets-list'); if(window.data.assets.length===0){l.innerHTML=`<div class="min-w-[250px] h-[250px] rounded-xl bg-zinc-800/50 border border-dashed border-zinc-700 flex flex-col items-center justify-center text-zinc-500 text-xs"><i class="fa-solid fa-image text-2xl mb-2 opacity-30"></i>Visualizar</div>`;return;} l.innerHTML=''; window.data.assets.forEach(a=>{ const bg=a.img?`background-image:url('${a.img}');background-size:cover;`:'background:#333'; l.innerHTML+=`<div class="min-w-[250px] h-[250px] rounded-xl relative overflow-hidden group shadow-lg border border-white/10 snap-center" style="${bg}"><div class="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent"></div><div class="absolute bottom-4 left-4"><p class="text-white font-bold text-lg shadow-black drop-shadow-md">${a.name}</p><p class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">CONQUISTADO</p></div><button onclick="deleteAsset(${a.id})" class="absolute top-2 right-2 text-white/50 hover:text-red-500 opacity-0 group-hover:opacity-100"><i class="fa-solid fa-trash"></i></button></div>`; }); };
-        // IMAGEM CORRIGIDA (CONTAIN)
-        window.renderHistory = () => { const c=document.getElementById('history-container'); c.innerHTML=''; if(window.data.history.length===0){ document.getElementById('empty-history').classList.remove('hidden'); return; } document.getElementById('empty-history').classList.add('hidden'); window.data.history.forEach(item => { let cl, sn, ic; if(item.type==='expense'){cl='text-red-400';sn='- ';ic='fa-arrow-trend-down';} else if(item.type==='income'){cl='text-emerald-400';sn='+ ';ic='fa-arrow-trend-up';} else if(item.type==='investment'){cl='text-gold';sn='⬆ ';ic='fa-vault';} else {cl='text-purple-400';sn='';ic='fa-trophy';} const dt = new Date(item.date).toLocaleDateString(); const det = (item.details||"").replace(/\n/g, "<br>"); const img = item.img ? `<div class="w-full h-72 bg-black/50 overflow-hidden relative border-y border-white/5"><img src="${item.img}" class="w-full h-full object-contain" onerror="this.style.display='none'"></div>` : ''; c.innerHTML+=`<div class="relative pl-8 group"><div class="absolute left-0 top-0 bottom-0 w-px bg-zinc-800 group-hover:bg-zinc-700 transition"></div><div class="absolute -left-[5px] top-6 w-2.5 h-2.5 rounded-full ${item.type==='expense'?'bg-red-500':(item.type==='ritual'?'bg-purple-500':'bg-emerald-500')} ring-4 ring-[#050505]"></div><div class="glass rounded-2xl overflow-hidden border border-white/5 hover:border-white/10 transition"><div onclick="toggleDetails(${item.id})" class="p-5 cursor-pointer flex justify-between items-start gap-4"><div class="flex-1"><div class="flex items-center gap-2 mb-1"><span class="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">${dt}</span><i class="fa-solid ${ic} text-[10px] text-zinc-600"></i></div><h4 class="text-white font-bold text-lg leading-tight">${item.desc}</h4></div><div class="text-right"><p class="${cl} font-bold text-xl">${sn}${item.type!=='ritual'?'R$ '+item.value.toLocaleString('pt-BR'):''}</p><i id="arrow-${item.id}" class="fa-solid fa-chevron-down text-zinc-600 text-xs arrow-rotate mt-2"></i></div></div>${img}<div id="details-${item.id}" class="details-content bg-black/40"><div class="p-5 text-sm text-zinc-400 border-t border-white/5"><p class="leading-relaxed italic">"${det}"</p><div class="mt-4 text-right"><button onclick="deleteTrans(${item.id})" class="text-xs text-red-500 hover:text-white transition"><i class="fa-solid fa-trash"></i> Apagar</button></div></div></div></div></div>`; }); };
+        window.renderHistory = () => { const c=document.getElementById('history-container'); c.innerHTML=''; if(window.data.history.length===0){ document.getElementById('empty-history').classList.remove('hidden'); return; } document.getElementById('empty-history').classList.add('hidden'); window.data.history.forEach(item => { let cl, sn, ic; if(item.type==='expense'){cl='text-red-400';sn='- ';ic='fa-arrow-trend-down';} else if(item.type==='income'){cl='text-emerald-400';sn='+ ';ic='fa-arrow-trend-up';} else if(item.type==='investment'){cl='text-gold';sn='⬆ ';ic='fa-vault';} else {cl='text-purple-400';sn='';ic='fa-trophy';} const dt = new Date(item.date).toLocaleDateString(); const det = (item.details||"").replace(/\n/g, "<br>"); const img = item.img ? `<div class="w-full h-72 bg-black/50 overflow-hidden relative border-y border-white/5"><img src="${item.img}" class="w-full h-full object-contain" loading="lazy"></div>` : ''; c.innerHTML+=`<div class="relative pl-8 group"><div class="absolute left-0 top-0 bottom-0 w-px bg-zinc-800 group-hover:bg-zinc-700 transition"></div><div class="absolute -left-[5px] top-6 w-2.5 h-2.5 rounded-full ${item.type==='expense'?'bg-red-500':(item.type==='ritual'?'bg-purple-500':'bg-emerald-500')} ring-4 ring-[#050505]"></div><div class="glass rounded-2xl overflow-hidden border border-white/5 hover:border-white/10 transition"><div onclick="toggleDetails(${item.id})" class="p-5 cursor-pointer flex justify-between items-start gap-4"><div class="flex-1"><div class="flex items-center gap-2 mb-1"><span class="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">${dt}</span><i class="fa-solid ${ic} text-[10px] text-zinc-600"></i></div><h4 class="text-white font-bold text-lg leading-tight">${item.desc}</h4></div><div class="text-right"><p class="${cl} font-bold text-xl">${sn}${item.type!=='ritual'?'R$ '+item.value.toLocaleString('pt-BR'):''}</p><i id="arrow-${item.id}" class="fa-solid fa-chevron-down text-zinc-600 text-xs arrow-rotate mt-2"></i></div></div>${img}<div id="details-${item.id}" class="details-content bg-black/40"><div class="p-5 text-sm text-zinc-400 border-t border-white/5"><p class="leading-relaxed italic">"${det}"</p><div class="mt-4 text-right"><button onclick="deleteTrans(${item.id})" class="text-xs text-red-500 hover:text-white transition"><i class="fa-solid fa-trash"></i> Apagar</button></div></div></div></div></div>`; }); };
 
         const afformations = ["Por que é tão natural para mim ter R$ 3 milhões?", "Por que Levy se sente tão seguro com a minha presença?", "Como consegui equilibrar o sucesso com minha paz?", "Por que cuidar da casa da Mainha me traz tanta alegria?", "Por que meu inglês flui tão facilmente hoje?"];
         window.rotateAfformation = () => { const el=document.getElementById('afformation-display'); if(!el)return; const r=afformations[Math.floor(Math.random()*afformations.length)]; el.classList.remove('afformation-anim'); void el.offsetWidth; el.innerText=`"${r}"`; el.classList.add('afformation-anim'); const c=document.getElementById('cinema-afformation'); if(c) c.innerText=`"${r}"`; };
