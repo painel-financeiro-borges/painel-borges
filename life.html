@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LIFE OS | Living Compounding</title>
+    <title>LIFE OS | Cloud Master</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
@@ -15,34 +15,21 @@
             background-image: radial-gradient(circle at 50% 0%, #1a1500 0%, #000000 80%);
             overflow-x: hidden;
         }
-        
         h1, h2, h3, .font-cinzel { font-family: 'Cinzel', serif; }
-
         .text-gold { color: #FFD700; text-shadow: 0 0 20px rgba(255, 215, 0, 0.2); }
         .border-gold { border-color: #FFD700; }
         .bg-gold-gradient { background: linear-gradient(135deg, #FFD700 0%, #FDB931 100%); }
-        
-        .glass { 
-            background: rgba(10, 10, 10, 0.6); 
-            backdrop-filter: blur(24px); 
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
-        }
-
+        .glass { background: rgba(10, 10, 10, 0.6); backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7); }
         .input-invisible { background: transparent; border: none; border-bottom: 1px dashed #444; color: inherit; outline: none; text-align: right; transition: all 0.3s; }
         .input-invisible:focus { border-bottom: 1px solid #FFD700; color: #FFD700; }
-
         @keyframes fadeInOut { 0% { opacity: 0; transform: translateY(5px); } 10% { opacity: 1; transform: translateY(0); } 90% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-5px); } }
         .afformation-anim { animation: fadeInOut 10s infinite; }
-
         .slide { position: absolute; inset: 0; opacity: 0; transition: opacity 2s ease-in-out; background-size: cover; background-position: center; }
         .slide.active { opacity: 0.3; transform: scale(1.05); transition: opacity 2s ease, transform 10s linear; }
-
         .details-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease, opacity 0.4s ease; opacity: 0; }
         .details-content.open { max-height: 800px; opacity: 1; }
         .arrow-rotate { transition: transform 0.3s; }
         .arrow-rotate.open { transform: rotate(180deg); }
-        
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: #000; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
@@ -50,356 +37,350 @@
 </head>
 <body class="min-h-screen pb-20 selection:bg-gold selection:text-black">
 
-    <div id="script-modal" class="fixed inset-0 bg-black/95 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-xl">
-        <div class="max-w-3xl w-full h-[80vh] bg-zinc-900/50 border border-gold/20 rounded-2xl relative flex flex-col shadow-[0_0_100px_rgba(255,215,0,0.1)]">
-            <button onclick="closeModal('script-modal')" class="absolute top-4 right-4 text-zinc-500 hover:text-white transition"><i class="fa-solid fa-xmark text-xl"></i></button>
-            <div class="p-8 border-b border-white/5 flex justify-between items-center bg-black/40 rounded-t-2xl">
-                <div><h2 class="text-2xl font-cinzel text-gold">O Roteiro da Verdade</h2></div>
-            </div>
-            <div class="p-8 overflow-y-auto leading-relaxed text-zinc-300 font-light text-lg space-y-6">
-                <p>Hoje, 21 de maio de 2026, eu acordo e a primeira coisa que sinto é o silêncio. Não há pressa. Eu olho para o meu saldo e os <strong class="text-white">R$ 3.000.000</strong> continuam lá, intocáveis, rendendo a minha liberdade.</p>
-                <p>A minha manhã é dedicada ao que importa. Tomo café com Levy, sem interrupções. Hoje é quarta-feira, dia de natação. Eu estou lá, na borda da piscina, vendo-o nadar. Ele olha para mim e sorri, porque sabe que eu estou ali. <em class="text-emerald-400">Não estou no celular, estou presente.</em></p>
-                <p>À noite, o ritual repete-se na Capoeira. A casa da Mainha está finalmente como ela sonhou. O dinheiro agora é cuidado e amor.</p>
-                <p>Eu não trabalho por necessidade, eu crio por prazer. Sou um pai presente, um filho dedicado e um homem em paz. <strong>Felizão.</strong></p>
-            </div>
+    <div id="auth-gate" class="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-center p-4">
+        <div class="text-center space-y-6 max-w-sm w-full">
+            <h1 class="text-4xl font-cinzel text-gold animate-pulse">ACESSO RESTRITO</h1>
+            <p class="text-zinc-500 text-xs tracking-[0.3em] uppercase">Sistema de Prosperidade Pessoal</p>
+            <input type="password" id="password-input" placeholder="Senha Mestra" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-center text-white focus:border-gold outline-none transition">
+            <button onclick="checkPassword()" class="w-full bg-gold-gradient text-black font-bold py-3 rounded-xl hover:scale-105 transition">Entrar</button>
+            <p id="auth-error" class="text-red-500 text-xs hidden">Acesso Negado.</p>
         </div>
     </div>
 
-    <div id="cinema-mode" class="fixed inset-0 z-[100] hidden flex flex-col items-center justify-center text-center p-4 bg-black">
-        <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?q=80&w=2070&auto=format&fit=crop')"></div>
-        <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1611974765270-ca12586343bb?q=80&w=2070&auto=format&fit=crop')"></div>
-        <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop')"></div>
-        <div class="relative z-10 space-y-8 max-w-4xl">
-            <p class="text-gold tracking-[0.5em] text-xs uppercase font-cinzel opacity-80">Realidade Confirmada</p>
-            <h1 class="text-7xl md:text-9xl font-bold text-white font-cinzel drop-shadow-2xl">R$ <span id="cinema-value">3.000.000</span></h1>
-            <div id="cinema-afformation" class="text-zinc-300 text-2xl font-light italic transition-opacity duration-1000"></div>
-            <button onclick="toggleCinema()" class="mt-20 text-[10px] border border-white/10 text-white/30 hover:text-white px-6 py-2 rounded-full uppercase tracking-widest">Voltar</button>
-        </div>
+    <div id="loading-screen" class="fixed inset-0 z-[190] bg-black/90 hidden flex items-center justify-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gold"></div>
     </div>
 
-    <header class="p-6 md:px-12 md:py-8 flex flex-col md:flex-row justify-between items-center relative gap-6 border-b border-white/5 bg-black/20">
-        <div class="text-center md:text-left">
-            <p class="text-[9px] text-zinc-500 tracking-[0.4em] uppercase mb-1">Architect of Reality</p>
-            <h1 class="text-3xl font-bold text-white tracking-tight font-cinzel">PROSPERIDADE <span class="text-gold">ABSOLUTA</span></h1>
-        </div>
-        <div class="flex-1 max-w-xl mx-4 hidden md:block">
-            <div class="glass px-6 py-3 rounded-full border border-emerald-500/20 text-center relative overflow-hidden group cursor-pointer" onclick="rotateAfformation()">
-                <div class="absolute inset-0 bg-emerald-500/5 group-hover:bg-emerald-500/10 transition"></div>
-                <p id="afformation-display" class="text-emerald-300 text-sm font-medium italic afformation-anim"></p>
+    <div id="app-content" class="hidden">
+        
+        <div id="script-modal" class="fixed inset-0 bg-black/95 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-xl">
+            <div class="max-w-3xl w-full h-[80vh] bg-zinc-900/50 border border-gold/20 rounded-2xl relative flex flex-col">
+                <button onclick="closeModal('script-modal')" class="absolute top-4 right-4 text-zinc-500 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+                <div class="p-8 border-b border-white/5 flex justify-between items-center bg-black/40 rounded-t-2xl"><div><h2 class="text-2xl font-cinzel text-gold">O Roteiro da Verdade</h2></div></div>
+                <div class="p-8 overflow-y-auto leading-relaxed text-zinc-300 font-light text-lg space-y-6">
+                    <p>Hoje, 21 de maio de 2026, eu acordo e a primeira coisa que sinto é o silêncio. Não há pressa. Eu olho para o meu saldo e os <strong class="text-white">R$ 3.000.000</strong> continuam lá, intocáveis, rendendo a minha liberdade.</p>
+                    <p>A minha manhã é dedicada ao que importa. Tomo café com Levy, sem interrupções. Hoje é quarta-feira, dia de natação. Eu estou lá, na borda da piscina, vendo-o nadar. Ele olha para mim e sorri, porque sabe que eu estou ali. <em class="text-emerald-400">Não estou no celular, estou presente.</em></p>
+                    <p>À noite, o ritual repete-se na Capoeira. A casa da Mainha está finalmente como ela sonhou. O dinheiro agora é cuidado e amor.</p>
+                    <p>Eu não trabalho por necessidade, eu crio por prazer. Sou um pai presente, um filho dedicado e um homem em paz. <strong>Felizão.</strong></p>
+                </div>
             </div>
         </div>
-        <div class="flex gap-3">
-            <button onclick="openScriptModal()" class="bg-gold-gradient text-black px-4 py-2 rounded-lg text-xs font-bold hover:scale-105 transition shadow-[0_0_15px_rgba(255,215,0,0.3)] flex items-center gap-2"><i class="fa-solid fa-book-open"></i> Ler Roteiro</button>
-            <button onclick="toggleCinema()" class="glass hover:bg-white/10 text-white px-4 py-2 rounded-lg text-xs transition border border-white/10"><i class="fa-solid fa-film"></i></button>
+
+        <div id="cinema-mode" class="fixed inset-0 z-[100] hidden flex flex-col items-center justify-center text-center p-4 bg-black">
+            <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?q=80&w=2070&auto=format&fit=crop')"></div>
+            <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1611974765270-ca12586343bb?q=80&w=2070&auto=format&fit=crop')"></div>
+            <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop')"></div>
+            <div class="relative z-10 space-y-8 max-w-4xl">
+                <p class="text-gold tracking-[0.5em] text-xs uppercase font-cinzel opacity-80">Realidade Confirmada</p>
+                <h1 class="text-7xl md:text-9xl font-bold text-white font-cinzel drop-shadow-2xl">R$ <span id="cinema-value">3.000.000</span></h1>
+                <div id="cinema-afformation" class="text-zinc-300 text-2xl font-light italic transition-opacity duration-1000"></div>
+                <button onclick="toggleCinema()" class="mt-20 text-[10px] border border-white/10 text-white/30 hover:text-white px-6 py-2 rounded-full uppercase tracking-widest">Voltar</button>
+            </div>
         </div>
-    </header>
 
-    <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 px-4 md:px-8 mt-8">
+        <header class="p-6 md:px-12 md:py-8 flex flex-col md:flex-row justify-between items-center relative gap-6 border-b border-white/5 bg-black/20">
+            <div class="text-center md:text-left">
+                <p class="text-[9px] text-zinc-500 tracking-[0.4em] uppercase mb-1">Architect of Reality</p>
+                <h1 class="text-3xl font-bold text-white tracking-tight font-cinzel">PROSPERIDADE <span class="text-gold">ABSOLUTA</span></h1>
+            </div>
+            <div class="flex-1 max-w-xl mx-4 hidden md:block">
+                <div class="glass px-6 py-3 rounded-full border border-emerald-500/20 text-center relative overflow-hidden group cursor-pointer" onclick="rotateAfformation()">
+                    <div class="absolute inset-0 bg-emerald-500/5 group-hover:bg-emerald-500/10 transition"></div>
+                    <p id="afformation-display" class="text-emerald-300 text-sm font-medium italic afformation-anim"></p>
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="openScriptModal()" class="bg-gold-gradient text-black px-4 py-2 rounded-lg text-xs font-bold hover:scale-105 transition shadow-[0_0_15px_rgba(255,215,0,0.3)] flex items-center gap-2"><i class="fa-solid fa-book-open"></i> Ler Roteiro</button>
+                <button onclick="toggleCinema()" class="glass hover:bg-white/10 text-white px-4 py-2 rounded-lg text-xs transition border border-white/10"><i class="fa-solid fa-film"></i></button>
+            </div>
+        </header>
 
-        <div class="md:col-span-5 space-y-8">
-            
-            <div class="glass rounded-3xl p-0 relative overflow-hidden border-t-4 border-gold">
-                <div class="bg-gradient-to-r from-zinc-900 to-black p-6 border-b border-white/5 flex justify-between items-center">
-                    <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-vault text-gold text-2xl"></i>
-                        <div>
-                            <h2 class="text-gold text-sm font-bold tracking-widest uppercase">Cofre Automático</h2>
-                            <p class="text-[10px] text-zinc-500">Juros Compostos Diários (Selic)</p>
+        <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 px-4 md:px-8 mt-8">
+            <div class="md:col-span-5 space-y-8">
+                <div class="glass rounded-3xl p-0 relative overflow-hidden border-t-4 border-gold">
+                    <div class="bg-gradient-to-r from-zinc-900 to-black p-6 border-b border-white/5 flex justify-between items-center">
+                        <div class="flex items-center gap-3"><i class="fa-solid fa-vault text-gold text-2xl"></i><div><h2 class="text-gold text-sm font-bold tracking-widest uppercase">Cofre Automático</h2><p class="text-[10px] text-zinc-500">Juros Compostos Diários (Selic)</p></div></div>
+                        <span class="bg-emerald-900/30 text-emerald-400 text-[10px] px-2 py-1 rounded border border-emerald-500/20 animate-pulse">CLOUD SYNC</span>
+                    </div>
+                    <div class="p-8 text-center">
+                        <div class="text-5xl font-bold text-white font-cinzel mb-1">R$ <span id="display-principal">...</span></div>
+                        <p class="text-xs text-zinc-500 mb-8">Patrimônio em Crescimento Contínuo</p>
+                        <div class="grid grid-cols-2 gap-4">
+                            <button onclick="openInvestModal()" class="bg-gold-gradient text-black font-bold py-3.5 rounded-xl text-xs hover:scale-[1.02] flex items-center justify-center gap-2"><i class="fa-solid fa-plus"></i> NOVO APORTE</button>
+                            <button onclick="openWithdrawModal()" class="bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3.5 rounded-xl text-xs transition border border-zinc-600 flex items-center justify-center gap-2"><i class="fa-solid fa-money-bill-transfer"></i> SACAR PARTE</button>
                         </div>
                     </div>
-                    <span class="bg-emerald-900/30 text-emerald-400 text-[10px] px-2 py-1 rounded border border-emerald-500/20 animate-pulse">ATIVO</span>
                 </div>
-                
-                <div class="p-8 text-center">
-                    <div class="text-5xl font-bold text-white font-cinzel mb-1">R$ <span id="display-principal">3.000.000</span></div>
-                    <p class="text-xs text-zinc-500 mb-8">Patrimônio em Crescimento Contínuo</p>
-
-                    <div class="grid grid-cols-2 gap-4">
-                        <button onclick="openInvestModal()" class="bg-gold-gradient text-black font-bold py-3.5 rounded-xl text-xs hover:scale-[1.02] flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-plus"></i> NOVO APORTE
-                        </button>
-                        <button onclick="openWithdrawModal()" class="bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3.5 rounded-xl text-xs transition border border-zinc-600 flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-money-bill-transfer"></i> SACAR PARTE
-                        </button>
+                <div class="glass rounded-3xl p-6 border-l-4 border-emerald-500 relative">
+                    <div class="flex justify-between items-start mb-6">
+                        <div><h2 class="text-emerald-400 font-bold flex items-center gap-2"><i class="fa-solid fa-wallet"></i> Carteira Livre</h2><p class="text-[10px] text-zinc-500 mt-1">Para desfrute e contas.</p></div>
+                        <button onclick="openConfigModal()" class="text-zinc-600 hover:text-white"><i class="fa-solid fa-gear"></i></button>
+                    </div>
+                    <div class="text-3xl font-bold text-white mb-6">R$ <span id="wallet-balance">...</span></div>
+                    <div class="bg-emerald-900/20 p-3 rounded-lg border border-emerald-500/20 mb-6 flex items-center gap-3">
+                        <i class="fa-solid fa-hourglass-half text-emerald-400 text-lg"></i>
+                        <div><p class="text-[10px] text-emerald-200 uppercase font-bold">Tempo de Liberdade</p><p id="freedom-time" class="text-white text-sm font-bold">Calculando...</p></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="openTransactionModal('expense')" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 py-3 rounded-xl text-xs font-bold transition">Registrar Gasto</button>
+                        <button onclick="openTransactionModal('income')" class="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 py-3 rounded-xl text-xs font-bold transition">Entrada Extra</button>
                     </div>
                 </div>
-            </div>
-
-            <div class="glass rounded-3xl p-6 border-l-4 border-emerald-500 relative">
-                <div class="flex justify-between items-start mb-6">
-                    <div>
-                        <h2 class="text-emerald-400 font-bold flex items-center gap-2"><i class="fa-solid fa-wallet"></i> Carteira Livre</h2>
-                        <p class="text-[10px] text-zinc-500 mt-1">Para desfrute e contas.</p>
-                    </div>
-                    <button onclick="openConfigModal()" class="text-zinc-600 hover:text-white"><i class="fa-solid fa-gear"></i></button>
-                </div>
-                <div class="text-3xl font-bold text-white mb-6">R$ <span id="wallet-balance">0,00</span></div>
-                <div class="grid grid-cols-2 gap-3">
-                    <button onclick="openTransactionModal('expense')" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 py-3 rounded-xl text-xs font-bold transition">Registrar Gasto</button>
-                    <button onclick="openTransactionModal('income')" class="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 py-3 rounded-xl text-xs font-bold transition">Entrada Extra</button>
+                <div class="glass rounded-3xl p-6">
+                    <div class="flex justify-between items-center mb-4"><h2 class="text-zinc-300 text-sm font-bold uppercase tracking-widest">Rituais de Identidade</h2><button onclick="endOfDay()" class="text-[10px] text-zinc-400 hover:text-white transition"><i class="fa-solid fa-moon"></i> Encerrar Dia</button></div>
+                    <div id="habits-list" class="space-y-2"></div>
+                    <div class="mt-4 flex gap-2"><input type="text" id="new-habit-text" placeholder="Novo ritual..." class="bg-zinc-900/50 text-xs p-2 rounded w-full border border-zinc-700 outline-none focus:border-gold"><button onclick="addHabit()" class="bg-white/10 text-white px-3 rounded hover:bg-white/20">+</button></div>
                 </div>
             </div>
-
-            <div class="glass rounded-3xl p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-zinc-300 text-sm font-bold uppercase tracking-widest">Rituais de Identidade</h2>
-                    <button onclick="endOfDay()" class="text-[10px] text-zinc-400 hover:text-white transition"><i class="fa-solid fa-moon"></i> Encerrar Dia</button>
+            <div class="md:col-span-7 space-y-6">
+                <div class="glass rounded-3xl p-6">
+                    <div class="flex justify-between items-center mb-4"><h2 class="text-gold text-sm font-bold uppercase tracking-widest flex items-center gap-2"><i class="fa-solid fa-gem"></i> Galeria de Posse</h2><button onclick="openAssetModal()" class="text-[10px] bg-gold-gradient text-black px-2 py-1 rounded font-bold hover:brightness-110">+ Adicionar</button></div>
+                    <div id="assets-list" class="flex gap-4 overflow-x-auto pb-4 scrollbar-hide"></div>
                 </div>
-                <div id="habits-list" class="space-y-2"></div>
-                <div class="mt-4 flex gap-2">
-                    <input type="text" id="new-habit-text" placeholder="Novo ritual..." class="bg-zinc-900/50 text-xs p-2 rounded w-full border border-zinc-700 outline-none focus:border-gold">
-                    <button onclick="addHabit()" class="bg-white/10 text-white px-3 rounded hover:bg-white/20">+</button>
+                <div class="glass rounded-3xl p-6 min-h-[600px] relative">
+                     <div class="flex items-center gap-3 mb-6 relative z-10 bg-[#0a0a0a] w-fit pr-4"><h2 class="text-xl font-bold text-white font-cinzel">DIÁRIO DE GRATIDÃO</h2></div>
+                     <div id="history-container" class="space-y-8 relative z-10"></div>
+                     <div id="empty-history" class="text-center mt-20 hidden"><p class="text-zinc-500 text-sm">Carregando sua história...</p></div>
                 </div>
-            </div>
-        </div>
-
-        <div class="md:col-span-7 space-y-6">
-            <div class="glass rounded-3xl p-6 min-h-[600px] relative">
-                 <div class="flex items-center gap-3 mb-6 relative z-10 bg-[#0a0a0a] w-fit pr-4">
-                    <h2 class="text-xl font-bold text-white font-cinzel">DIÁRIO DE GRATIDÃO</h2>
-                 </div>
-                 <div id="history-container" class="space-y-8 relative z-10"></div>
-                 <div id="empty-history" class="text-center mt-20 hidden"><p class="text-zinc-500 text-sm">Sua história começa agora.</p></div>
             </div>
         </div>
     </div>
 
-    <div id="withdraw-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="glass w-full max-w-sm p-6 rounded-2xl border border-white/10">
-            <button onclick="closeModal('withdraw-modal')" class="absolute top-4 right-4 text-zinc-500 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
-            <h3 class="text-lg font-bold text-white mb-2">Realizar Saque</h3>
-            <p class="text-xs text-zinc-400 mb-4">Retirar do Principal para a Carteira.</p>
-            <input type="number" id="withdraw-amount" value="20000" class="w-full bg-zinc-900 rounded-xl p-3 text-white border border-zinc-700 focus:border-gold outline-none mb-4 text-xl font-bold">
-            <button onclick="executeWithdraw()" class="w-full bg-white text-black font-bold py-3 rounded-xl hover:bg-zinc-200">Confirmar Transferência</button>
-        </div>
-    </div>
-
-    <div id="transaction-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4"><div class="glass w-full max-w-md p-6 rounded-2xl"><button onclick="closeModal('transaction-modal')" class="absolute top-4 right-4 text-zinc-500"><i class="fa-solid fa-xmark"></i></button><h3 id="modal-title" class="text-lg font-bold text-white mb-4"></h3><div class="space-y-4"><input type="text" id="trans-desc" class="w-full bg-zinc-900 rounded-xl p-3 text-white outline-none"><input type="number" id="trans-value" class="w-full bg-zinc-900 rounded-xl p-3 text-white outline-none"><input type="date" id="trans-date" class="w-full bg-zinc-900 rounded-xl p-3 text-white outline-none"><input type="text" id="trans-img" placeholder="Link Foto" class="w-full bg-zinc-900 rounded-xl p-3 text-white text-xs outline-none"><textarea id="trans-details" placeholder="Detalhes..." class="w-full bg-zinc-900 rounded-xl p-3 text-zinc-400 text-xs outline-none"></textarea><input type="hidden" id="trans-type"><button onclick="addTransaction()" class="w-full bg-gold-gradient text-black font-bold py-3 rounded-xl">Salvar</button></div></div></div>
-    
-    <div id="invest-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4"><div class="glass w-full max-w-md p-6 rounded-2xl"><button onclick="closeModal('invest-modal')" class="absolute top-4 right-4 text-zinc-500"><i class="fa-solid fa-xmark"></i></button><h3 class="text-lg font-bold text-gold mb-4">Novo Aporte</h3><div class="space-y-4"><select id="invest-source" class="w-full bg-zinc-900 rounded-xl p-3 text-white"><option value="external">Dinheiro Externo</option><option value="wallet">Da Carteira Livre</option></select><input type="number" id="invest-value" placeholder="Valor" class="w-full bg-zinc-900 rounded-xl p-3 text-white"><button onclick="addInvestment()" class="w-full bg-gold-gradient text-black font-bold py-3 rounded-xl">Aportar</button></div></div></div>
-    
+    <div id="withdraw-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4"><div class="glass w-full max-w-sm p-6 rounded-2xl border border-white/10"><button onclick="closeModal('withdraw-modal')" class="absolute top-4 right-4 text-zinc-500 hover:text-white"><i class="fa-solid fa-xmark"></i></button><h3 class="text-lg font-bold text-white mb-2">Realizar Saque</h3><input type="number" id="withdraw-amount" value="20000" class="w-full bg-zinc-900 rounded-xl p-3 text-white border border-zinc-700 focus:border-gold outline-none mb-4 text-xl font-bold"><button onclick="executeWithdraw()" class="w-full bg-white text-black font-bold py-3 rounded-xl hover:bg-zinc-200">Confirmar Transferência</button></div></div>
+    <div id="transaction-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4"><div class="glass w-full max-w-md p-6 rounded-2xl"><button onclick="closeModal('transaction-modal')" class="absolute top-4 right-4 text-zinc-500"><i class="fa-solid fa-xmark"></i></button><h3 id="modal-title" class="text-lg font-bold text-white mb-4"></h3><div class="space-y-4"><input type="text" id="trans-desc" placeholder="Descrição" class="w-full bg-zinc-900 rounded-xl p-3 text-white outline-none"><input type="number" id="trans-value" placeholder="Valor" class="w-full bg-zinc-900 rounded-xl p-3 text-white outline-none"><input type="date" id="trans-date" class="w-full bg-zinc-900 rounded-xl p-3 text-white outline-none"><input type="text" id="trans-img" placeholder="Link Foto (Opcional)" class="w-full bg-zinc-900 rounded-xl p-3 text-white text-xs outline-none"><textarea id="trans-details" placeholder="Detalhes..." class="w-full bg-zinc-900 rounded-xl p-3 text-zinc-400 text-xs outline-none"></textarea><input type="hidden" id="trans-type"><button onclick="addTransaction()" class="w-full bg-gold-gradient text-black font-bold py-3 rounded-xl">Salvar</button></div></div></div>
+    <div id="invest-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4"><div class="glass w-full max-w-md p-6 rounded-2xl"><button onclick="closeModal('invest-modal')" class="absolute top-4 right-4 text-zinc-500"><i class="fa-solid fa-xmark"></i></button><h3 class="text-lg font-bold text-gold mb-4">Novo Aporte</h3><div class="space-y-4"><select id="invest-source" class="w-full bg-zinc-900 rounded-xl p-3 text-white"><option value="external">Dinheiro Externo</option><option value="wallet">Da Carteira Livre</option></select><input type="number" id="invest-value" placeholder="Valor" class="w-full bg-zinc-900 rounded-xl p-3 text-white"><input type="text" id="invest-details" placeholder="Nota" class="w-full bg-zinc-900 rounded-xl p-3 text-white"><button onclick="addInvestment()" class="w-full bg-gold-gradient text-black font-bold py-3 rounded-xl">Aportar</button></div></div></div>
     <div id="asset-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4"><div class="glass w-full max-w-md p-6 rounded-2xl"><button onclick="closeModal('asset-modal')" class="absolute top-4 right-4 text-zinc-500"><i class="fa-solid fa-xmark"></i></button><h3 class="text-lg font-bold text-white mb-4">Novo Ativo</h3><div class="space-y-4"><input type="text" id="asset-name" placeholder="Nome" class="w-full bg-zinc-900 rounded-xl p-3 text-white"><input type="text" id="asset-img" placeholder="URL Imagem" class="w-full bg-zinc-900 rounded-xl p-3 text-white"><button onclick="addAsset()" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl">Adicionar</button></div></div></div>
+    <div id="config-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4"><div class="glass w-full max-w-sm p-6 rounded-2xl"><button onclick="closeModal('config-modal')" class="absolute top-4 right-4 text-zinc-500"><i class="fa-solid fa-xmark"></i></button><h3 class="text-lg font-bold text-white mb-4">Custo de Vida</h3><input type="number" id="monthly-cost" class="w-full bg-zinc-900 rounded-xl p-3 text-white outline-none mb-4"><button onclick="saveConfig()" class="w-full bg-white text-black font-bold py-2 rounded-xl">Salvar</button></div></div>
 
-    <script>
-        // --- CONFIGURAÇÃO ---
-        const afformations = [
-            "Por que é tão natural para mim ter R$ 3 milhões?",
-            "Por que Levy se sente tão seguro com a minha presença?",
-            "Como consegui equilibrar o sucesso com minha paz?",
-            "Por que cuidar da casa da Mainha me traz tanta alegria?",
-            "Por que meu inglês flui tão facilmente hoje?"
-        ];
-        
-        // --- SONOPLASTIA ---
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function playSound(type) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
-            osc.connect(gainNode); gainNode.connect(audioCtx.destination);
-            if (type === 'coin') {
-                osc.type = 'sine'; osc.frequency.setValueAtTime(1200, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(2000, audioCtx.currentTime + 0.1);
-                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.5);
-            } else if (type === 'paper') {
-                osc.type = 'triangle'; osc.frequency.setValueAtTime(100, audioCtx.currentTime);
-                gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime); gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.15);
-            }
-        }
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // --- ESTADO ---
-        let principal = 3000000;
-        let wallet = 0;
-        let history = [];
-        let assets = [];
-        let habits = [
-            { id: 1, text: "Natação/Futebol com Levy (Presença)", done: false },
-            { id: 2, text: "Capoeira / Academia", done: false },
-            { id: 3, text: "Casa da Mainha (Cuidado)", done: false },
-            { id: 4, text: "Inglês (30min)", done: false }
-        ];
-
-        window.onload = function() {
-            if(localStorage.getItem('life_principal')) principal = parseFloat(localStorage.getItem('life_principal'));
-            if(localStorage.getItem('life_wallet')) wallet = parseFloat(localStorage.getItem('life_wallet'));
-            if(localStorage.getItem('life_history')) history = JSON.parse(localStorage.getItem('life_history'));
-            if(localStorage.getItem('life_habits_list')) habits = JSON.parse(localStorage.getItem('life_habits_list'));
-            if(localStorage.getItem('life_assets')) assets = JSON.parse(localStorage.getItem('life_assets'));
-
-            checkCompoundInterest(); // Verifica se o dinheiro cresceu
-            updateUI();
-            setInterval(rotateAfformation, 10000); rotateAfformation();
-            setInterval(rotateSlide, 8000);
+        // 🔥 SUAS CREDENCIAIS REAIS 🔥
+        const firebaseConfig = {
+            apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
+            authDomain: "painel-financeiro-borges.firebaseapp.com",
+            projectId: "painel-financeiro-borges",
+            storageBucket: "painel-financeiro-borges.firebasestorage.app",
+            messagingSenderId: "354997627208",
+            appId: "1:354997627208:web:90604d0a7dcd45b6e4eb7d",
+            measurementId: "G-KH9BDWN2WH"
         };
 
-        // --- MOTOR DE JUROS COMPOSTOS (OFFLINE) ---
-        function checkCompoundInterest() {
-            const lastDateStr = localStorage.getItem('life_last_login');
-            const now = new Date();
-            
-            if (lastDateStr) {
-                const lastDate = new Date(lastDateStr);
-                // Calcula diferença em dias
-                const diffTime = Math.abs(now - lastDate);
-                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)); 
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const docRef = doc(db, "life_os", "main_data");
 
-                if (diffDays > 0) {
-                    // Taxa diária aprox (0.03% ao dia)
-                    const dailyRate = 0.0003; 
-                    const interest = principal * (Math.pow(1 + dailyRate, diffDays) - 1);
-                    
-                    if (interest > 0) {
-                        principal += interest;
-                        // Adiciona notificação discreta no histórico
-                        history.unshift({
-                            id: Date.now(),
-                            desc: "Rendimento Automático",
-                            details: `Seu dinheiro trabalhou por ${diffDays} dias enquanto você vivia.\nJuros compostos aplicados.`,
-                            value: interest,
-                            date: new Date().toISOString(),
-                            type: 'investment' // Usa cor dourada
-                        });
-                        alert(`💰 Enquanto você estava fora, seu dinheiro rendeu: R$ ${interest.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`);
-                        saveData();
-                    }
-                }
+        // --- VARIÁVEIS GLOBAIS ---
+        window.data = {
+            principal: 3000000,
+            wallet: 0,
+            monthlyCost: 5000,
+            history: [],
+            assets: [],
+            habits: [
+                { id: 1, text: "Natação/Futebol com Levy (Presença)", done: false },
+                { id: 2, text: "Capoeira / Academia", done: false },
+                { id: 3, text: "Casa da Mainha (Cuidado)", done: false },
+                { id: 4, text: "Inglês (30min)", done: false }
+            ],
+            mood: "Felizão 😍",
+            lastLogin: new Date().toISOString()
+        };
+
+        // --- SISTEMA DE SENHA ---
+        window.checkPassword = async () => {
+            const input = document.getElementById('password-input').value;
+            const error = document.getElementById('auth-error');
+            
+            if (input === "Liberdade@123456") {
+                document.getElementById('auth-gate').style.opacity = '0';
+                setTimeout(() => document.getElementById('auth-gate').classList.add('hidden'), 500);
+                document.getElementById('app-content').classList.remove('hidden');
+                document.getElementById('loading-screen').classList.remove('hidden');
+                
+                await loadDataFromFirebase();
+                
+                document.getElementById('loading-screen').classList.add('hidden');
+                
+                // Inicia Ciclos
+                setInterval(rotateAfformation, 10000); rotateAfformation();
+                setInterval(rotateSlide, 8000);
+            } else {
+                error.classList.remove('hidden');
+                error.innerText = "Senha Incorreta.";
             }
-            localStorage.setItem('life_last_login', new Date().toISOString());
+        };
+
+        // --- FIREBASE CRUD ---
+        async function loadDataFromFirebase() {
+            try {
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const cloudData = docSnap.data();
+                    window.data = { ...window.data, ...cloudData }; // Merge
+                    checkCompoundInterest(); // Verifica juros baseados no Cloud Time
+                } else {
+                    // Primeiro acesso: Cria documento
+                    saveDataToFirebase();
+                }
+                updateUI();
+            } catch (e) {
+                console.error("Erro ao carregar:", e);
+                alert("Erro ao conectar no banco de dados. Verifique a internet.");
+            }
         }
 
+        async function saveDataToFirebase() {
+            try {
+                window.data.lastLogin = new Date().toISOString();
+                await setDoc(docRef, window.data);
+                updateUI();
+            } catch (e) {
+                console.error("Erro ao salvar:", e);
+            }
+        }
+
+        // --- MOTOR DE JUROS (Auto-Compounding Cloud) ---
+        function checkCompoundInterest() {
+            const lastDate = new Date(window.data.lastLogin);
+            const now = new Date();
+            const diffDays = Math.floor(Math.abs(now - lastDate) / (1000 * 60 * 60 * 24)); 
+
+            if (diffDays > 0) {
+                const dailyRate = 0.0003; 
+                const interest = window.data.principal * (Math.pow(1 + dailyRate, diffDays) - 1);
+                
+                if (interest > 0) {
+                    window.data.principal += interest;
+                    window.data.history.unshift({
+                        id: Date.now(),
+                        desc: "Rendimento Automático",
+                        details: `O sistema calculou ${diffDays} dias de juros compostos enquanto você vivia.`,
+                        value: interest,
+                        date: now.toISOString(),
+                        type: 'investment'
+                    });
+                    alert(`💰 Bem-vindo de volta! Seu dinheiro rendeu: R$ ${interest.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`);
+                    saveDataToFirebase();
+                }
+            }
+        }
+
+        // --- FUNÇÕES UI & LÓGICA (Adaptadas para usar window.data e salvar no Firebase) ---
+        
         function updateUI() {
-            document.getElementById('display-principal').innerText = principal.toLocaleString('pt-BR');
-            document.getElementById('cinema-value').innerText = principal.toLocaleString('pt-BR');
-            document.getElementById('wallet-balance').innerText = wallet.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+            document.getElementById('display-principal').innerText = window.data.principal.toLocaleString('pt-BR');
+            document.getElementById('cinema-value').innerText = window.data.principal.toLocaleString('pt-BR');
+            document.getElementById('wallet-balance').innerText = window.data.wallet.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+            document.getElementById('monthly-cost').value = window.data.monthlyCost;
+            document.getElementById('status-mood').value = window.data.mood;
+            
+            // Calculadora Liberdade
+            const monthsFree = window.data.wallet / window.data.monthlyCost;
+            const years = Math.floor(monthsFree / 12);
+            const months = Math.floor(monthsFree % 12);
+            document.getElementById('freedom-time').innerHTML = `<span class="text-white text-lg">${years} Anos</span> e <span class="text-white text-lg">${months} Meses</span> de paz.`;
+
             renderHabits(); renderHistory(); renderAssets();
         }
 
-        // --- LÓGICA GERAL ---
-        function openWithdrawModal() { document.getElementById('withdraw-modal').classList.remove('hidden'); }
+        // Expondo funções para o HTML (Necessário pq é type=module)
+        window.saveConfig = () => { window.data.monthlyCost = parseFloat(document.getElementById('monthly-cost').value); saveDataToFirebase(); closeModal('config-modal'); };
         
-        function executeWithdraw() {
+        window.executeWithdraw = () => {
             const amount = parseFloat(document.getElementById('withdraw-amount').value);
-            if (!amount || amount <= 0) return alert("Valor inválido");
-            if (amount > principal) return alert("Saldo principal insuficiente");
+            if (!amount || amount > window.data.principal) return alert("Inválido");
+            window.data.principal -= amount;
+            window.data.wallet += amount;
+            window.data.history.unshift({id: Date.now(), desc: "Resgate de Lucro", details: "Transferência para Carteira Livre.", value: amount, date: new Date().toISOString(), type: 'income'});
+            saveDataToFirebase(); closeModal('withdraw-modal'); playSound('coin');
+        };
 
-            principal -= amount;
-            wallet += amount;
+        window.addTransaction = () => {
+            const desc = document.getElementById('trans-desc').value;
+            const val = parseFloat(document.getElementById('trans-value').value);
+            const date = document.getElementById('trans-date').value;
+            const img = document.getElementById('trans-img').value;
+            const details = document.getElementById('trans-details').value;
+            const type = document.getElementById('trans-type').value;
             
-            history.unshift({
-                id: Date.now(),
-                desc: "Resgate de Lucro",
-                details: "Transferência do Cofre para Carteira Livre para desfrute.",
-                value: amount,
-                date: new Date().toISOString(),
-                type: 'income'
-            });
+            if(!desc || !val) return alert("Preencha dados");
+            if(type === 'expense' && val > window.data.wallet) return alert("Saldo insuficiente");
             
-            saveData();
-            closeModal('withdraw-modal');
-            playSound('coin');
-            updateUI();
-        }
+            if(type === 'expense') window.data.wallet -= val; else window.data.wallet += val;
+            window.data.history.unshift({id: Date.now(), desc, value: val, date, img, details, type});
+            saveDataToFirebase(); closeModal('transaction-modal'); playSound(type==='expense'?'paper':'coin');
+        };
 
-        function endOfDay() {
-            const completedHabits = habits.filter(h => h.done);
-            const doneCount = completedHabits.length;
-            
-            if(confirm(`Encerrar dia com ${doneCount}/${habits.length} rituais?`)) {
-                // Cria lista detalhada dos feitos
-                const detailsText = completedHabits.length > 0 
-                    ? "Rituais realizados:\n• " + completedHabits.map(h => h.text).join('\n• ')
-                    : "Nenhum ritual registrado hoje.";
-
-                history.unshift({
-                    id: Date.now(), 
-                    desc: `Dia Encerrado`, 
-                    details: detailsText, 
-                    value: 0, 
-                    date: new Date().toISOString(), 
-                    type: 'ritual'
-                });
-                
-                habits.forEach(h=>h.done=false);
-                saveData();
-                playSound('coin');
-                updateUI();
+        window.addInvestment = () => {
+            const source = document.getElementById('invest-source').value;
+            const val = parseFloat(document.getElementById('invest-value').value);
+            const details = document.getElementById('invest-details').value;
+            if(!val) return;
+            if(source === 'wallet') {
+                if(val > window.data.wallet) return alert("Saldo insuficiente");
+                window.data.wallet -= val;
             }
-        }
+            window.data.principal += val;
+            window.data.history.unshift({id: Date.now(), desc: "Aporte no Tesouro", value: val, date: new Date().toISOString(), type: 'investment', details: details || (source==='wallet'?"Reinvestimento":"Aporte Novo")});
+            saveDataToFirebase(); closeModal('invest-modal'); playSound('coin');
+        };
 
-        function renderHistory() {
-            const container = document.getElementById('history-container');
-            container.innerHTML = '';
-            if(history.length === 0) { document.getElementById('empty-history').classList.remove('hidden'); return; }
-            document.getElementById('empty-history').classList.add('hidden');
+        window.endOfDay = () => {
+            const done = window.data.habits.filter(h=>h.done).length;
+            const habitsDoneText = window.data.habits.filter(h=>h.done).map(h=> h.text).join('\n• ');
+            if(confirm(`Encerrar dia?`)) {
+                window.data.history.unshift({id:Date.now(), desc:`Dia Encerrado`, details:`Rituais cumpridos (${done}/${window.data.habits.length}):\n• ${habitsDoneText}`, value:0, date:new Date().toISOString(), type:'ritual'});
+                window.data.habits.forEach(h=>h.done=false);
+                saveDataToFirebase(); playSound('coin');
+            }
+        };
 
-            history.forEach(item => {
-                let colorClass, sign, icon;
-                if (item.type === 'expense') { colorClass = 'text-red-400'; sign = '- '; icon = 'fa-arrow-trend-down'; }
-                else if (item.type === 'income') { colorClass = 'text-emerald-400'; sign = '+ '; icon = 'fa-arrow-trend-up'; }
-                else if (item.type === 'investment') { colorClass = 'text-gold'; sign = '⬆ '; icon = 'fa-vault'; }
-                else { colorClass = 'text-purple-400'; sign = ''; icon = 'fa-trophy'; }
-
-                const dateObj = new Date(item.date);
-                const hasImg = item.img && item.img.length > 5;
-                const safeDetails = (item.details || "").replace(/\n/g, "<br>");
-
-                const html = `
-                <div class="relative pl-8 group">
-                    <div class="absolute left-0 top-0 bottom-0 w-px bg-zinc-800 group-hover:bg-zinc-700 transition"></div>
-                    <div class="absolute -left-[5px] top-6 w-2.5 h-2.5 rounded-full ${item.type === 'expense' ? 'bg-red-500' : (item.type === 'ritual' ? 'bg-purple-500' : 'bg-emerald-500')} ring-4 ring-[#050505]"></div>
-                    <div class="glass rounded-2xl overflow-hidden border border-white/5 hover:border-white/10 transition">
-                        <div onclick="toggleDetails(${item.id})" class="p-5 cursor-pointer flex justify-between items-start gap-4">
-                            <div class="flex-1">
-                                <div class="flex items-center gap-2 mb-1">
-                                    <span class="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">${dateObj.toLocaleDateString()}</span>
-                                    <i class="fa-solid ${icon} text-[10px] text-zinc-600"></i>
-                                </div>
-                                <h4 class="text-white font-bold text-lg leading-tight">${item.desc}</h4>
-                            </div>
-                            <div class="text-right">
-                                <p class="${colorClass} font-bold text-xl">${sign}${item.type !== 'ritual' ? 'R$ ' + item.value.toLocaleString('pt-BR') : ''}</p>
-                                <i id="arrow-${item.id}" class="fa-solid fa-chevron-down text-zinc-600 text-xs arrow-rotate mt-2"></i>
-                            </div>
-                        </div>
-                        ${hasImg ? `<div class="w-full h-48 bg-black/50 overflow-hidden relative border-y border-white/5"><img src="${item.img}" class="w-full h-full object-cover opacity-80 hover:opacity-100 transition duration-700 hover:scale-105" onerror="this.style.display='none'"></div>` : ''}
-                        <div id="details-${item.id}" class="details-content bg-black/40">
-                            <div class="p-5 text-sm text-zinc-400 border-t border-white/5">
-                                <p class="leading-relaxed italic">${safeDetails || 'Registro confirmado.'}</p>
-                                <div class="mt-4 text-right"><button onclick="deleteTrans(${item.id})" class="text-xs text-red-500 hover:text-white transition"><i class="fa-solid fa-trash"></i> Apagar</button></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>`;
-                container.innerHTML += html;
-            });
-        }
-
-        // --- AUXILIARES (Toggles, Saves, Modais) ---
-        function toggleDetails(id) { document.getElementById(`details-${id}`).classList.toggle('open'); document.getElementById(`arrow-${id}`).classList.toggle('open'); }
-        function saveData() { localStorage.setItem('life_principal', principal); localStorage.setItem('life_wallet', wallet); localStorage.setItem('life_history', JSON.stringify(history)); localStorage.setItem('life_habits_list', JSON.stringify(habits)); localStorage.setItem('life_assets', JSON.stringify(assets)); updateUI(); }
-        function deleteTrans(id) { if(confirm("Remover?")) { const item = history.find(x => x.id === id); if(item.type==='expense') wallet+=item.value; else if(item.type==='income') wallet-=item.value; else if(item.type==='investment') { principal-=item.value; if(item.desc.includes("Reinvestimento")) wallet+=item.value; } history=history.filter(x=>x.id!==id); saveData(); } }
+        window.toggleHabit = (i) => { window.data.habits[i].done = !window.data.habits[i].done; saveDataToFirebase(); };
+        window.addHabit = () => { const t=document.getElementById('new-habit-text').value; if(t) { window.data.habits.push({id:Date.now(), text:t, done:false}); document.getElementById('new-habit-text').value=''; saveDataToFirebase(); } };
+        window.removeHabit = (i) => { window.data.habits.splice(i,1); saveDataToFirebase(); };
         
-        function renderHabits() { const l = document.getElementById('habits-list'); l.innerHTML=''; habits.forEach((h,i) => { l.innerHTML+=`<div class="flex items-center justify-between group p-2 bg-white/5 rounded-xl hover:bg-white/10 transition"><label class="flex items-center gap-3 cursor-pointer w-full"><input type="checkbox" ${h.done?'checked':''} onchange="toggleHabit(${i})" class="w-5 h-5 accent-emerald-500 rounded border-zinc-700"><span class="text-sm text-zinc-300 ${h.done?'line-through opacity-50':''}">${h.text}</span></label><button onclick="removeHabit(${i})" class="text-zinc-600 hover:text-red-500 opacity-0 group-hover:opacity-100 px-2"><i class="fa-solid fa-trash"></i></button></div>` }); }
-        function toggleHabit(i) { habits[i].done=!habits[i].done; saveData(); }
-        function addHabit() { const t=document.getElementById('new-habit-text').value; if(t) { habits.push({id:Date.now(), text:t, done:false}); document.getElementById('new-habit-text').value=''; saveData(); renderHabits(); } }
-        function removeHabit(i) { habits.splice(i,1); saveData(); renderHabits(); }
+        window.addAsset = () => { const n=document.getElementById('asset-name').value; const i=document.getElementById('asset-img').value; if(n){ window.data.assets.push({id:Date.now(), name:n, img:i}); saveDataToFirebase(); closeModal('asset-modal'); }};
+        window.deleteAsset = (id) => { if(confirm('Remover?')) { window.data.assets = window.data.assets.filter(a=>a.id!==id); saveDataToFirebase(); }};
+        window.deleteTrans = (id) => { if(confirm('Remover?')) { const item = window.data.history.find(x=>x.id===id); if(item.type==='expense') window.data.wallet+=item.value; else if(item.type==='income') window.data.wallet-=item.value; else if(item.type==='investment'){ window.data.principal-=item.value; if(item.desc.includes('Reinvestimento')) window.data.wallet+=item.value; } window.data.history = window.data.history.filter(x=>x.id!==id); saveDataToFirebase(); }};
 
-        function addTransaction() { const desc=document.getElementById('trans-desc').value; const val=parseFloat(document.getElementById('trans-value').value); const date=document.getElementById('trans-date').value; const img=document.getElementById('trans-img').value; const details=document.getElementById('trans-details').value; const type=document.getElementById('trans-type').value; if(!desc||!val||!date) return alert('Preencha os dados.'); if(type==='expense'&&val>wallet) return alert('Saldo insuficiente.'); if(type==='expense') wallet-=val; else wallet+=val; history.unshift({id:Date.now(), desc, value:val, date, img, details, type}); saveData(); closeModal('transaction-modal'); playSound(type==='expense'?'paper':'coin'); }
-        function addInvestment() { const source=document.getElementById('invest-source').value; const val=parseFloat(document.getElementById('invest-value').value); if(!val) return; if(source==='wallet') { if(val>wallet) return alert('Saldo insuficiente.'); wallet-=val; } principal+=val; history.unshift({id:Date.now(), desc:"Aporte no Tesouro", value:val, date:new Date().toISOString(), type:'investment', details:source==='wallet'?"Reinvestimento":"Aporte Novo"}); saveData(); closeModal('invest-modal'); playSound('coin'); }
-        function addAsset() { const name=document.getElementById('asset-name').value; const img=document.getElementById('asset-img').value; if(!name) return; assets.push({id:Date.now(), name, img}); saveData(); renderAssets(); closeModal('asset-modal'); playSound('coin'); }
-        function renderAssets() { const list = document.getElementById('assets-list'); if(assets.length === 0) { list.innerHTML = `<div class="min-w-[140px] h-[180px] rounded-xl bg-zinc-800/50 border border-dashed border-zinc-700 flex flex-col items-center justify-center text-zinc-500 text-xs"><i class="fa-solid fa-image text-2xl mb-2 opacity-30"></i>Visualizar</div>`; return; } list.innerHTML = ''; assets.forEach(a => { const bgStyle = a.img ? `background-image: url('${a.img}'); background-size: cover;` : 'background: #333;'; list.innerHTML += `<div class="min-w-[140px] h-[180px] rounded-xl relative overflow-hidden group shadow-lg border border-white/10" style="${bgStyle}"><div class="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent"></div><div class="absolute bottom-3 left-3"><p class="text-white font-bold text-xs shadow-black drop-shadow-md">${a.name}</p><p class="text-[9px] text-emerald-400 font-bold uppercase tracking-wider">Meu</p></div><button onclick="deleteAsset(${a.id})" class="absolute top-2 right-2 text-white/50 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-trash"></i></button></div>`; }); }
-        function deleteAsset(id) { if(confirm('Remover?')) { assets=assets.filter(a=>a.id!==id); saveData(); renderAssets(); } }
+        // --- RENDERIZADORES ---
+        window.renderHabits = () => { const l=document.getElementById('habits-list'); l.innerHTML=''; window.data.habits.forEach((h,i)=>{ l.innerHTML+=`<div class="flex items-center justify-between group p-2 bg-white/5 rounded-xl hover:bg-white/10 transition"><label class="flex items-center gap-3 cursor-pointer w-full"><input type="checkbox" ${h.done?'checked':''} onchange="toggleHabit(${i})" class="w-5 h-5 accent-emerald-500 rounded border-zinc-700"><span class="text-sm text-zinc-300 ${h.done?'line-through opacity-50':''}">${h.text}</span></label><button onclick="removeHabit(${i})" class="text-zinc-600 hover:text-red-500 opacity-0 group-hover:opacity-100 px-2"><i class="fa-solid fa-trash"></i></button></div>` }); };
+        window.renderAssets = () => { const l=document.getElementById('assets-list'); if(window.data.assets.length===0){l.innerHTML=`<div class="min-w-[140px] h-[180px] rounded-xl bg-zinc-800/50 border border-dashed border-zinc-700 flex flex-col items-center justify-center text-zinc-500 text-xs"><i class="fa-solid fa-image text-2xl mb-2 opacity-30"></i>Visualizar</div>`;return;} l.innerHTML=''; window.data.assets.forEach(a=>{ const bg=a.img?`background-image:url('${a.img}');background-size:cover;`:'background:#333'; l.innerHTML+=`<div class="min-w-[140px] h-[180px] rounded-xl relative overflow-hidden group shadow-lg border border-white/10" style="${bg}"><div class="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent"></div><div class="absolute bottom-3 left-3"><p class="text-white font-bold text-xs shadow-black drop-shadow-md">${a.name}</p></div><button onclick="deleteAsset(${a.id})" class="absolute top-2 right-2 text-white/50 hover:text-red-500 opacity-0 group-hover:opacity-100"><i class="fa-solid fa-trash"></i></button></div>`; }); };
+        window.renderHistory = () => { 
+            const c=document.getElementById('history-container'); c.innerHTML=''; 
+            if(window.data.history.length===0){ document.getElementById('empty-history').classList.remove('hidden'); return; }
+            document.getElementById('empty-history').classList.add('hidden');
+            window.data.history.forEach(item => {
+                let cl, sn, ic; 
+                if(item.type==='expense'){cl='text-red-400';sn='- ';ic='fa-arrow-trend-down';} else if(item.type==='income'){cl='text-emerald-400';sn='+ ';ic='fa-arrow-trend-up';} else if(item.type==='investment'){cl='text-gold';sn='⬆ ';ic='fa-vault';} else {cl='text-purple-400';sn='';ic='fa-trophy';}
+                const dt = new Date(item.date).toLocaleDateString();
+                const det = (item.details||"").replace(/\n/g, "<br>");
+                const img = item.img ? `<div class="w-full h-48 bg-black/50 overflow-hidden relative border-y border-white/5"><img src="${item.img}" class="w-full h-full object-cover opacity-80 hover:opacity-100 transition duration-700 hover:scale-105"></div>` : '';
+                c.innerHTML+=`<div class="relative pl-8 group"><div class="absolute left-0 top-0 bottom-0 w-px bg-zinc-800 group-hover:bg-zinc-700 transition"></div><div class="absolute -left-[5px] top-6 w-2.5 h-2.5 rounded-full ${item.type==='expense'?'bg-red-500':(item.type==='ritual'?'bg-purple-500':'bg-emerald-500')} ring-4 ring-[#050505]"></div><div class="glass rounded-2xl overflow-hidden border border-white/5 hover:border-white/10 transition"><div onclick="toggleDetails(${item.id})" class="p-5 cursor-pointer flex justify-between items-start gap-4"><div class="flex-1"><div class="flex items-center gap-2 mb-1"><span class="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">${dt}</span><i class="fa-solid ${ic} text-[10px] text-zinc-600"></i></div><h4 class="text-white font-bold text-lg leading-tight">${item.desc}</h4></div><div class="text-right"><p class="${cl} font-bold text-xl">${sn}${item.type!=='ritual'?'R$ '+item.value.toLocaleString('pt-BR'):''}</p><i id="arrow-${item.id}" class="fa-solid fa-chevron-down text-zinc-600 text-xs arrow-rotate mt-2"></i></div></div>${img}<div id="details-${item.id}" class="details-content bg-black/40"><div class="p-5 text-sm text-zinc-400 border-t border-white/5"><p class="leading-relaxed italic">"${det}"</p><div class="mt-4 text-right"><button onclick="deleteTrans(${item.id})" class="text-xs text-red-500 hover:text-white transition"><i class="fa-solid fa-trash"></i> Apagar</button></div></div></div></div></div>`;
+            });
+        };
 
-        function rotateAfformation() { const el=document.getElementById('afformation-display'); const rand=afformations[Math.floor(Math.random()*afformations.length)]; el.classList.remove('afformation-anim'); void el.offsetWidth; el.innerText=`"${rand}"`; el.classList.add('afformation-anim'); const c=document.getElementById('cinema-afformation'); if(c) c.innerText=`"${rand}"`; }
-        function rotateSlide() { const s=document.querySelectorAll('.slide'); const a=document.querySelector('.slide.active'); a.classList.remove('active'); let n=a.nextElementSibling; if(!n||!n.classList.contains('slide')) n=s[0]; n.classList.add('active'); }
-        function openScriptModal() { document.getElementById('script-modal').classList.remove('hidden'); }
-        function toggleCinema() { const el=document.getElementById('cinema-mode'); if(el.classList.contains('hidden')) { el.classList.remove('hidden'); if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); } else { el.classList.add('hidden'); if(document.exitFullscreen) document.exitFullscreen(); } }
-        function openTransactionModal(t) { document.getElementById('transaction-modal').classList.remove('hidden'); document.getElementById('trans-type').value=t; document.getElementById('modal-title').innerText=t==='expense'?'💸 Desfrutar (Gasto)':'✨ Manifestar (Entrada)'; document.getElementById('trans-date').value=new Date().toISOString().split('T')[0]; }
-        function openInvestModal() { document.getElementById('invest-modal').classList.remove('hidden'); }
-        function openAssetModal() { document.getElementById('asset-modal').classList.remove('hidden'); }
-        function openConfigModal() { document.getElementById('config-modal').classList.remove('hidden'); }
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-        function saveConfig() { monthlyCost=parseFloat(document.getElementById('monthly-cost').value); saveData(); closeModal('config-modal'); }
+        // --- UTILITÁRIOS ---
+        const afformations = ["Por que é tão natural para mim ter R$ 3 milhões?", "Por que Levy se sente tão seguro com a minha presença?", "Como consegui equilibrar o sucesso com minha paz?", "Por que cuidar da casa da Mainha me traz tanta alegria?", "Por que meu inglês flui tão facilmente hoje?"];
+        window.rotateAfformation = () => { const el=document.getElementById('afformation-display'); const r=afformations[Math.floor(Math.random()*afformations.length)]; el.classList.remove('afformation-anim'); void el.offsetWidth; el.innerText=`"${r}"`; el.classList.add('afformation-anim'); const c=document.getElementById('cinema-afformation'); if(c) c.innerText=`"${r}"`; };
+        window.rotateSlide = () => { const s=document.querySelectorAll('.slide'); const a=document.querySelector('.slide.active'); a.classList.remove('active'); let n=a.nextElementSibling; if(!n||!n.classList.contains('slide')) n=s[0]; n.classList.add('active'); };
+        window.toggleDetails = (id) => { document.getElementById(`details-${id}`).classList.toggle('open'); document.getElementById(`arrow-${id}`).classList.toggle('open'); };
+        
+        // Modais
+        window.openScriptModal=()=>{document.getElementById('script-modal').classList.remove('hidden')};
+        window.toggleCinema=()=>{const el=document.getElementById('cinema-mode'); if(el.classList.contains('hidden')){el.classList.remove('hidden');if(document.documentElement.requestFullscreen)document.documentElement.requestFullscreen();}else{el.classList.add('hidden');if(document.exitFullscreen)document.exitFullscreen();}};
+        window.openWithdrawModal=()=>{document.getElementById('withdraw-modal').classList.remove('hidden')};
+        window.openInvestModal=()=>{document.getElementById('invest-modal').classList.remove('hidden')};
+        window.openAssetModal=()=>{document.getElementById('asset-modal').classList.remove('hidden')};
+        window.openConfigModal=()=>{document.getElementById('config-modal').classList.remove('hidden')};
+        window.openTransactionModal=(t)=>{document.getElementById('transaction-modal').classList.remove('hidden'); document.getElementById('trans-type').value=t; document.getElementById('modal-title').innerText=t==='expense'?'💸 Desfrutar':'✨ Manifestar'; document.getElementById('trans-date').value=new Date().toISOString().split('T')[0];};
+        window.closeModal=(id)=>{document.getElementById(id).classList.add('hidden'); if(id==='transaction-modal'){ document.getElementById('trans-desc').value=''; document.getElementById('trans-value').value=''; document.getElementById('trans-img').value=''; document.getElementById('trans-details').value=''; } else { document.getElementById('invest-value').value=''; }};
+        
+        // Sons
+        const audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+        function playSound(t){ if(audioCtx.state==='suspended')audioCtx.resume(); const o=audioCtx.createOscillator(); const g=audioCtx.createGain(); o.connect(g); g.connect(audioCtx.destination); if(t==='coin'){o.type='sine';o.frequency.setValueAtTime(1200,audioCtx.currentTime);o.frequency.exponentialRampToValueAtTime(2000,audioCtx.currentTime+0.1);g.gain.setValueAtTime(0.3,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(0.01,audioCtx.currentTime+0.5);o.start();o.stop(audioCtx.currentTime+0.5);}else{o.type='triangle';o.frequency.setValueAtTime(100,audioCtx.currentTime);g.gain.setValueAtTime(0.2,audioCtx.currentTime);g.gain.linearRampToValueAtTime(0.01,audioCtx.currentTime+0.15);o.start();o.stop(audioCtx.currentTime+0.15);}}
     </script>
 </body>
 </html>
