@@ -3,49 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LIFE OS | Vision Board</title>
+    <title>LIFE OS | Vision Board Imersivo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <style>
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: #000; 
-            color: #e5e5e5; 
-            overflow-x: hidden;
-        }
+        body { font-family: 'Inter', sans-serif; background-color: #000; color: #e5e5e5; overflow-x: hidden; }
         h1, h2, h3, .font-cinzel { font-family: 'Cinzel', serif; }
         
-        /* Ouro Mágico */
         .text-gold { color: #FFD700; text-shadow: 0 0 25px rgba(255, 215, 0, 0.6); }
         .border-gold { border-color: #FFD700; }
         .bg-gold-gradient { background: linear-gradient(135deg, #FFD700 0%, #FDB931 100%); box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); }
-        
-        /* Vidro Premium (Mais escuro para contraste com fundo) */
-        .glass { 
-            background: rgba(0, 0, 0, 0.75); 
-            backdrop-filter: blur(20px); 
-            border: 1px solid rgba(255, 255, 255, 0.08); 
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8); 
-        }
-
+        .glass { background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9); }
         .input-invisible { background: transparent; border: none; border-bottom: 1px dashed #555; color: inherit; outline: none; text-align: right; transition: all 0.3s; }
         .input-invisible:focus { border-bottom: 1px solid #FFD700; color: #FFD700; }
 
-        /* SLIDESHOW DE FUNDO (Imersão Total) */
+        /* SLIDESHOW */
         #bg-slider { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
-        .bg-slide { 
-            position: absolute; inset: 0; opacity: 0; transition: opacity 2s ease-in-out; 
-            background-size: cover; background-position: center; 
-            filter: brightness(0.4) contrast(1.1); /* Escurece para ler texto */
-            transform: scale(1);
-        }
+        .bg-slide { position: absolute; inset: 0; opacity: 0; transition: opacity 2s ease-in-out; background-size: cover; background-position: center; filter: brightness(0.35) contrast(1.1); transform: scale(1); }
         .bg-slide.active { opacity: 1; transform: scale(1.05); transition: opacity 2s ease, transform 10s linear; }
 
-        /* Animações */
-        @keyframes fadeInOut { 0% { opacity: 0; transform: translateY(5px); } 10% { opacity: 1; transform: translateY(0); } 90% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-5px); } }
-        .afformation-anim { animation: fadeInOut 10s infinite; }
-        
         .details-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease, opacity 0.4s ease; opacity: 0; }
         .details-content.open { max-height: 800px; opacity: 1; }
         .arrow-rotate { transition: transform 0.3s; }
@@ -59,7 +36,11 @@
 <body class="min-h-screen pb-20 selection:bg-gold selection:text-black">
 
     <div id="bg-slider">
-        <div class="bg-slide active" style="background-image: url('https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?q=80&w=2070&auto=format&fit=crop')"></div> <div class="bg-slide" style="background-image: url('https://images.unsplash.com/photo-1600596542815-e32c215972f5?q=80&w=2574&auto=format&fit=crop')"></div> <div class="bg-slide" style="background-image: url('https://images.unsplash.com/photo-1617788138017-80ad40651399?q=80&w=2070&auto=format&fit=crop')"></div> <div class="bg-slide" style="background-image: url('https://images.unsplash.com/photo-1550565118-c974095cc3db?q=80&w=2608&auto=format&fit=crop')"></div> </div>
+        <div class="bg-slide active" style="background-image: url('https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?q=80&w=2070&auto=format&fit=crop')"></div>
+        <div class="bg-slide" style="background-image: url('https://images.unsplash.com/photo-1600596542815-e32c215972f5?q=80&w=2574&auto=format&fit=crop')"></div>
+        <div class="bg-slide" style="background-image: url('https://images.unsplash.com/photo-1617788138017-80ad40651399?q=80&w=2070&auto=format&fit=crop')"></div>
+        <div class="bg-slide" style="background-image: url('https://images.unsplash.com/photo-1550565118-c974095cc3db?q=80&w=2608&auto=format&fit=crop')"></div>
+    </div>
 
     <div id="auth-gate" class="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-center p-4">
         <div class="text-center space-y-6 max-w-sm w-full">
@@ -72,21 +53,26 @@
 
     <div id="loading-screen" class="fixed inset-0 z-[190] bg-black/95 hidden flex flex-col items-center justify-center">
         <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gold mb-4"></div>
-        <p class="text-gold text-xs tracking-widest uppercase">Materializando Realidade...</p>
+        <p class="text-gold text-xs tracking-widest uppercase">Materializando...</p>
     </div>
 
     <div id="app-content" class="hidden relative z-10">
         
         <div id="script-modal" class="fixed inset-0 bg-black/95 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-xl">
-            <div class="max-w-3xl w-full h-[80vh] bg-zinc-900/50 border border-gold/20 rounded-2xl relative flex flex-col shadow-[0_0_50px_rgba(255,215,0,0.1)]">
+            <div class="max-w-4xl w-full h-[85vh] bg-zinc-900/50 border border-gold/30 rounded-2xl relative flex flex-col shadow-[0_0_80px_rgba(255,215,0,0.15)]">
                 <button onclick="closeModal('script-modal')" class="absolute top-4 right-4 text-zinc-500 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
-                <div class="p-8 border-b border-white/5 bg-black/40 rounded-t-2xl"><h2 class="text-2xl font-cinzel text-gold" id="script-title">O Roteiro da Verdade</h2></div>
-                <div class="p-8 overflow-y-auto leading-relaxed text-zinc-300 font-light text-lg space-y-6">
-                    <div id="dynamic-script-content"></div>
-                </div>
-                <div class="p-6 border-t border-white/5 bg-black/40 text-center rounded-b-2xl">
-                    <button onclick="generateScript()" class="text-xs text-gold hover:underline"><i class="fa-solid fa-rotate"></i> Gerar Novo Cenário</button>
-                </div>
+                <div class="p-8 border-b border-white/5 bg-black/40 rounded-t-2xl"><h2 class="text-3xl font-cinzel text-gold tracking-wide" id="script-title"></h2></div>
+                <div class="p-10 overflow-y-auto leading-loose text-zinc-200 font-light text-xl space-y-8 font-serif" id="dynamic-script-content"></div>
+                <div class="p-4 border-t border-white/5 bg-black/40 text-center rounded-b-2xl"><p class="text-[10px] text-zinc-600 uppercase tracking-[0.3em]">Realidade Atual</p></div>
+            </div>
+        </div>
+
+        <div id="cinema-mode" class="fixed inset-0 z-[100] hidden flex flex-col items-center justify-center text-center p-4 bg-black">
+            <div class="relative z-10 space-y-8 max-w-4xl">
+                <p class="text-gold tracking-[0.5em] text-xs uppercase font-cinzel opacity-80">Realidade Confirmada</p>
+                <h1 class="text-7xl md:text-9xl font-bold text-white font-cinzel drop-shadow-2xl">R$ <span id="cinema-value">...</span></h1>
+                <div id="cinema-afformation" class="text-zinc-300 text-2xl font-light italic transition-opacity duration-1000"></div>
+                <button onclick="toggleCinema()" class="mt-20 text-[10px] border border-white/10 text-white/30 hover:text-white px-6 py-2 rounded-full uppercase tracking-widest">Voltar</button>
             </div>
         </div>
 
@@ -121,7 +107,6 @@
                     </div>
                     <div class="p-8 text-center relative">
                         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-gold/10 blur-[50px] rounded-full"></div>
-                        
                         <div class="text-5xl md:text-6xl font-bold text-white font-cinzel mb-2 flex justify-center items-baseline gap-2 relative z-10">
                             <span class="text-2xl text-zinc-500">R$</span>
                             <span id="display-principal" class="transition-all text-shadow-lg">0,00</span>
@@ -130,12 +115,12 @@
 
                         <div class="bg-white/5 p-4 rounded-xl border border-white/5 mb-6 flex justify-between items-center hover:bg-white/10 transition">
                             <div class="text-left">
-                                <p class="text-[10px] text-zinc-400 uppercase">Rendimento Mensal</p>
-                                <p class="text-emerald-400 font-bold text-xl flex gap-1 text-shadow-sm">+ R$ <span id="yield-preview">0,00</span></p>
+                                <p class="text-[10px] text-zinc-400 uppercase">Rendimento Disponível</p>
+                                <p class="text-emerald-400 font-bold text-xl flex gap-1 text-shadow-sm">+ R$ <span id="yield-balance">0,00</span></p>
                             </div>
                             <div class="text-right">
-                                <p class="text-[10px] text-zinc-400 uppercase">Crescimento</p>
-                                <p class="text-gold font-bold text-xs">+0.9% a.m.</p>
+                                <p class="text-[10px] text-zinc-400 uppercase">Acumulado</p>
+                                <i class="fa-solid fa-piggy-bank text-gold"></i>
                             </div>
                         </div>
 
@@ -163,9 +148,9 @@
                 </div>
 
                 <div class="glass rounded-3xl p-6">
-                    <div class="flex justify-between items-center mb-4"><h2 class="text-zinc-300 text-sm font-bold uppercase tracking-widest">Rituais de Identidade</h2><button onclick="endOfDay()" class="text-[10px] text-zinc-400 hover:text-white transition border border-zinc-700 px-2 py-1 rounded hover:bg-zinc-800"><i class="fa-solid fa-moon"></i> Encerrar Dia</button></div>
+                    <div class="flex justify-between items-center mb-4"><h2 class="text-zinc-300 text-sm font-bold uppercase tracking-widest">Compromissos de Identidade</h2><button onclick="endOfDay()" class="text-[10px] text-zinc-400 hover:text-white transition border border-zinc-700 px-2 py-1 rounded hover:bg-zinc-800"><i class="fa-solid fa-moon"></i> Encerrar Dia</button></div>
                     <div id="habits-list" class="space-y-2"></div>
-                    <div class="mt-4 flex gap-2"><input type="text" id="new-habit-text" placeholder="Novo ritual..." class="bg-zinc-900/50 text-xs p-3 rounded-lg w-full border border-zinc-700 outline-none focus:border-gold"><button onclick="addHabit()" class="bg-white/10 text-white px-4 rounded-lg hover:bg-white/20 transition">+</button></div>
+                    <div class="mt-4 flex gap-2"><input type="text" id="new-habit-text" placeholder="Novo compromisso..." class="bg-zinc-900/50 text-xs p-3 rounded-lg w-full border border-zinc-700 outline-none focus:border-gold"><button onclick="addHabit()" class="bg-white/10 text-white px-4 rounded-lg hover:bg-white/20 transition">+</button></div>
                 </div>
             </div>
 
@@ -174,7 +159,6 @@
                     <div class="flex justify-between items-center mb-6"><h2 class="text-gold text-sm font-bold uppercase tracking-widest flex items-center gap-2"><i class="fa-solid fa-gem"></i> Galeria de Posse</h2><button onclick="openAssetModal()" class="text-[10px] bg-gold-gradient text-black px-3 py-1.5 rounded font-bold hover:brightness-110 shadow-lg">+ Adicionar</button></div>
                     <div id="assets-list" class="flex gap-5 overflow-x-auto pb-6 scrollbar-hide snap-x"></div>
                 </div>
-                
                 <div class="glass rounded-3xl p-6 min-h-[600px] relative">
                      <div class="flex items-center gap-3 mb-8 relative z-10 w-fit pr-4 border-b border-white/10 pb-2"><h2 class="text-xl font-bold text-white font-cinzel">DIÁRIO DE GRATIDÃO</h2></div>
                      <div id="history-container" class="space-y-8 relative z-10"></div>
@@ -184,7 +168,8 @@
         </div>
     </div>
 
-    <div id="withdraw-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4"><div class="glass w-full max-w-md p-6 rounded-2xl border border-white/10"><button onclick="closeModal('withdraw-modal')" class="absolute top-4 right-4 text-zinc-500 hover:text-white"><i class="fa-solid fa-xmark"></i></button><h3 class="text-lg font-bold text-white mb-4">Realizar Saque</h3><div class="space-y-4"><div><label class="text-xs text-zinc-500 uppercase block mb-2">Origem do Dinheiro</label><div class="grid grid-cols-2 gap-2"><label class="cursor-pointer"><input type="radio" name="withdrawType" value="dividend" checked class="peer sr-only"><div class="p-3 bg-zinc-900 border border-zinc-700 rounded-xl peer-checked:border-emerald-500 peer-checked:bg-emerald-900/20 text-center transition"><p class="text-xs font-bold text-white">💰 Rendimento</p><p class="text-[9px] text-zinc-500">Não mexe no Principal</p></div></label><label class="cursor-pointer"><input type="radio" name="withdrawType" value="principal" class="peer sr-only"><div class="p-3 bg-zinc-900 border border-zinc-700 rounded-xl peer-checked:border-red-500 peer-checked:bg-red-900/20 text-center transition"><p class="text-xs font-bold text-white">🏦 Principal</p><p class="text-[9px] text-zinc-500">Reduz o Patrimônio</p></div></label></div></div><input type="number" id="withdraw-amount" value="20000" class="w-full bg-zinc-900 rounded-xl p-3 text-white border border-zinc-700 focus:border-gold outline-none text-xl font-bold"><button onclick="executeWithdraw()" class="w-full bg-white text-black font-bold py-3 rounded-xl hover:bg-zinc-200">Confirmar Transferência</button></div></div></div>
+    <div id="withdraw-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4"><div class="glass w-full max-w-md p-6 rounded-2xl border border-white/10"><button onclick="closeModal('withdraw-modal')" class="absolute top-4 right-4 text-zinc-500 hover:text-white"><i class="fa-solid fa-xmark"></i></button><h3 class="text-lg font-bold text-white mb-4">Realizar Saque</h3><div class="space-y-4"><div><label class="text-xs text-zinc-500 uppercase block mb-2">Origem do Dinheiro</label><div class="grid grid-cols-2 gap-2"><label class="cursor-pointer"><input type="radio" name="withdrawType" value="dividend" checked class="peer sr-only"><div class="p-3 bg-zinc-900 border border-zinc-700 rounded-xl peer-checked:border-emerald-500 peer-checked:bg-emerald-900/20 text-center transition"><p class="text-xs font-bold text-white">💰 Rendimento</p><p class="text-[9px] text-zinc-500">Subtrai do Pote de Juros</p></div></label><label class="cursor-pointer"><input type="radio" name="withdrawType" value="principal" class="peer sr-only"><div class="p-3 bg-zinc-900 border border-zinc-700 rounded-xl peer-checked:border-red-500 peer-checked:bg-red-900/20 text-center transition"><p class="text-xs font-bold text-white">🏦 Principal</p><p class="text-[9px] text-zinc-500">Reduz o Patrimônio Total</p></div></label></div></div><input type="number" id="withdraw-amount" value="20000" class="w-full bg-zinc-900 rounded-xl p-3 text-white border border-zinc-700 focus:border-gold outline-none text-xl font-bold"><button onclick="executeWithdraw()" class="w-full bg-white text-black font-bold py-3 rounded-xl hover:bg-zinc-200">Confirmar Transferência</button></div></div></div>
+    
     <div id="transaction-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4"><div class="glass w-full max-w-md p-6 rounded-2xl"><button onclick="closeModal('transaction-modal')" class="absolute top-4 right-4 text-zinc-500"><i class="fa-solid fa-xmark"></i></button><h3 id="modal-title" class="text-lg font-bold text-white mb-4"></h3><div class="space-y-4"><input type="text" id="trans-desc" placeholder="Descrição" class="w-full bg-zinc-900 rounded-xl p-3 text-white outline-none"><input type="number" id="trans-value" placeholder="Valor" class="w-full bg-zinc-900 rounded-xl p-3 text-white outline-none"><input type="date" id="trans-date" class="w-full bg-zinc-900 rounded-xl p-3 text-white outline-none"><input type="text" id="trans-img" placeholder="Link Foto (Opcional)" class="w-full bg-zinc-900 rounded-xl p-3 text-white text-xs outline-none"><textarea id="trans-details" placeholder="Detalhes..." class="w-full bg-zinc-900 rounded-xl p-3 text-zinc-400 text-xs outline-none"></textarea><input type="hidden" id="trans-type"><button onclick="addTransaction()" class="w-full bg-gold-gradient text-black font-bold py-3 rounded-xl">Salvar</button></div></div></div>
     <div id="invest-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4"><div class="glass w-full max-w-md p-6 rounded-2xl"><button onclick="closeModal('invest-modal')" class="absolute top-4 right-4 text-zinc-500"><i class="fa-solid fa-xmark"></i></button><h3 class="text-lg font-bold text-gold mb-4">Novo Aporte</h3><div class="space-y-4"><select id="invest-source" class="w-full bg-zinc-900 rounded-xl p-3 text-white"><option value="external">Dinheiro Externo</option><option value="wallet">Da Carteira Livre</option></select><input type="number" id="invest-value" placeholder="Valor" class="w-full bg-zinc-900 rounded-xl p-3 text-white"><input type="text" id="invest-details" placeholder="Nota" class="w-full bg-zinc-900 rounded-xl p-3 text-white"><button onclick="addInvestment()" class="w-full bg-gold-gradient text-black font-bold py-3 rounded-xl">Aportar</button></div></div></div>
     <div id="asset-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4"><div class="glass w-full max-w-md p-6 rounded-2xl"><button onclick="closeModal('asset-modal')" class="absolute top-4 right-4 text-zinc-500"><i class="fa-solid fa-xmark"></i></button><h3 class="text-lg font-bold text-white mb-4">Novo Ativo</h3><div class="space-y-4"><input type="text" id="asset-name" placeholder="Nome" class="w-full bg-zinc-900 rounded-xl p-3 text-white"><input type="text" id="asset-img" placeholder="URL Imagem" class="w-full bg-zinc-900 rounded-xl p-3 text-white"><button onclick="addAsset()" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl">Adicionar</button></div></div></div>
@@ -194,7 +179,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // CHAVES REAIS
         const firebaseConfig = {
             apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
             authDomain: "painel-financeiro-borges.firebaseapp.com",
@@ -209,9 +193,8 @@
         const db = getFirestore(app);
         const docRef = doc(db, "life_os", "main_data");
 
-        window.data = { principal: 3000000, wallet: 0, monthlyCost: 5000, history: [], assets: [], habits: [{ id: 1, text: "Natação/Futebol com Levy (Presença)", done: false }, { id: 2, text: "Capoeira / Academia", done: false }, { id: 3, text: "Casa da Mainha (Cuidado)", done: false }, { id: 4, text: "Inglês (30min)", done: false }], lastLogin: new Date().toISOString() };
+        window.data = { principal: 3000000, wallet: 0, yieldBalance: 0, monthlyCost: 5000, history: [], assets: [], habits: [{ id: 1, text: "Natação/Futebol com Levy (Presença)", done: false }, { id: 2, text: "Capoeira / Academia", done: false }, { id: 3, text: "Casa da Mainha (Cuidado)", done: false }, { id: 4, text: "Inglês (30min)", done: false }], lastLogin: new Date().toISOString() };
 
-        // SISTEMA DE SENHA
         window.checkPassword = async () => {
             const input = document.getElementById('password-input').value;
             const error = document.getElementById('auth-error');
@@ -224,6 +207,7 @@
                 document.getElementById('loading-screen').classList.add('hidden');
                 setInterval(rotateAfformation, 10000); rotateAfformation();
                 setInterval(rotateSlide, 8000);
+                animateValue("display-principal", 0, window.data.principal, 1500);
             } else { error.classList.remove('hidden'); }
         };
 
@@ -232,12 +216,10 @@
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
                     window.data = { ...window.data, ...docSnap.data() };
+                    if(!window.data.yieldBalance) window.data.yieldBalance = 0; // Migração
                     checkCompoundInterest(); 
                 } else { saveDataToFirebase(); }
-                // INICIA COM ANIMAÇÃO
-                animateValue("display-principal", 0, window.data.principal, 2000);
-                animateValue("wallet-balance", 0, window.data.wallet, 1500);
-                updateUI(false); // Update sem resetar a animação
+                updateUI(false); 
             } catch (e) { alert("Erro ao conectar."); }
         }
 
@@ -245,7 +227,6 @@
             try { window.data.lastLogin = new Date().toISOString(); await setDoc(docRef, window.data); updateUI(); } catch (e) { console.error(e); }
         }
 
-        // MOTOR DE JUROS
         function checkCompoundInterest() {
             const lastDate = new Date(window.data.lastLogin);
             const now = new Date();
@@ -254,43 +235,41 @@
                 const interest = window.data.principal * (Math.pow(1 + 0.0003, diffDays) - 1);
                 if (interest > 0) {
                     window.data.principal += interest;
-                    window.data.history.unshift({ id: Date.now(), desc: "Rendimento Processado", details: `Rendimento automático de ${diffDays} dias.`, value: interest, date: now.toISOString(), type: 'investment' });
+                    window.data.yieldBalance += interest; // Vai para o Pote
+                    window.data.history.unshift({ id: Date.now(), desc: "Rendimento Diário", details: `Acumulado de ${diffDays} dias offline.`, value: interest, date: now.toISOString(), type: 'investment' });
                     saveDataToFirebase();
                 }
             }
         }
 
-        // EFEITO CONTADOR (SLOT MACHINE)
+        window.simulateMonth = () => {
+            const interest = window.data.principal * 0.009; 
+            if(confirm(`Processar fechamento de mês?\n+ R$ ${interest.toLocaleString('pt-BR')} para o Pote.`)) {
+                window.data.principal += interest;
+                window.data.yieldBalance += interest; // Vai para o Pote
+                window.data.history.unshift({ id: Date.now(), desc: "Rendimento Mensal Creditado", details: "Dividendos acumulados no pote de juros.", value: interest, date: new Date().toISOString(), type: 'investment' });
+                saveDataToFirebase(); playSound('coin');
+            }
+        };
+
         function animateValue(id, start, end, duration) {
-            const obj = document.getElementById(id);
-            let startTimestamp = null;
+            const obj = document.getElementById(id); let startTimestamp = null;
             const step = (timestamp) => {
                 if (!startTimestamp) startTimestamp = timestamp;
                 const progress = Math.min((timestamp - startTimestamp) / duration, 1);
                 const val = Math.floor(progress * (end - start) + start);
                 obj.innerHTML = val.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
                 if (progress < 1) window.requestAnimationFrame(step);
-            };
-            window.requestAnimationFrame(step);
+            }; window.requestAnimationFrame(step);
         }
 
-        window.simulateMonth = () => {
-            const interest = window.data.principal * 0.009; 
-            if(confirm(`Processar fechamento de mês?\n+ R$ ${interest.toLocaleString('pt-BR')} serão creditados.`)) {
-                window.data.principal += interest;
-                window.data.history.unshift({ id: Date.now(), desc: "Juros Compostos Creditados", details: "Rendimento mensal de 0.9% aplicado.", value: interest, date: new Date().toISOString(), type: 'investment' });
-                saveDataToFirebase(); playSound('coin');
-            }
-        };
-
         function updateUI(skipAnim = true) {
-            if(skipAnim) {
-                document.getElementById('display-principal').innerText = window.data.principal.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-                document.getElementById('wallet-balance').innerText = window.data.wallet.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-            }
+            if(skipAnim) document.getElementById('display-principal').innerText = window.data.principal.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+            document.getElementById('cinema-value').innerText = window.data.principal.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+            document.getElementById('wallet-balance').innerText = window.data.wallet.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
             
-            const yieldVal = window.data.principal * 0.009;
-            document.getElementById('yield-preview').innerText = yieldVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+            // MOSTRA O POTE ACUMULADO
+            document.getElementById('yield-balance').innerText = window.data.yieldBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
             document.getElementById('monthly-cost').value = window.data.monthlyCost;
             
             const monthsFree = window.data.wallet / window.data.monthlyCost;
@@ -299,33 +278,52 @@
             renderHabits(); renderHistory(); renderAssets();
         }
 
-        // ROTEIROS
-        window.generateScript = () => {
-            const scripts = [
-                `Hoje, <strong>${new Date().toLocaleDateString()}</strong>, acordei sem despertador. Olhei o saldo de <strong>R$ ${window.data.principal.toLocaleString()}</strong> e sorri. Levei Levy na natação e fiquei lá, 100% presente.`,
-                `Hoje é um dia de alta performance. Meu inglês está fluindo. A Capoeira é meu templo. A casa da Mainha está impecável. Sou um ímã de prosperidade.`,
-                `O dia termina em paz. As contas estão pagas, o patrimônio cresceu. Deito com a certeza de missão cumprida. Obrigado.`
+        // --- ROTEIROS IMERSIVOS ---
+        window.openScriptModal = () => {
+            const balance = window.data.principal.toLocaleString('pt-BR');
+            const date = new Date().toLocaleDateString();
+            
+            const scenarios = [
+                {
+                    title: "A Manhã de Paz",
+                    text: `Hoje, <strong>${date}</strong>, acordei naturalmente com a luz do sol entrando pela janela do meu quarto climatizado. O silêncio é o meu maior luxo. Peguei o celular e vi meu patrimônio de <strong>R$ ${balance}</strong> trabalhando por mim enquanto eu dormia. Senti uma onda de gratidão profunda. Levantei sem pressa, tomei aquele café especial moído na hora e fui levar o Levy. No carro, conversamos e rimos. Eu não tinha nenhuma reunião urgente, nenhum chefe, nenhuma pressão. Apenas eu e meu filho vivendo o agora.`
+                },
+                {
+                    title: "A Tarde do Criador",
+                    text: `Depois de um almoço saudável, dediquei minha tarde aos meus projetos. Não por obrigação, mas por paixão. O Núcleo Insight está rodando liso. Fiz minha aula de Inglês e senti meu cérebro expandindo. Às 16h, parei tudo. Fui para a natação do Levy. Sentei na arquibancada, respirei fundo e assisti a cada mergulho dele. Ele olhou para mim e sorriu. Eu estava lá. 100% lá. Essa é a verdadeira riqueza.`
+                },
+                {
+                    title: "A Noite de Gratidão",
+                    text: `A noite caiu suavemente. Fui para a Capoeira e meu corpo respondeu com vigor e energia. Depois, passei na casa da Mainha. O quarto dela está lindo, reformado, cheiroso. O sorriso dela ao me ver é meu maior dividendo. Voltei para minha casa organizada, tomei um banho relaxante e olhei para o extrato da minha Carteira Livre: contas pagas, viagens planejadas, zero dívidas. Encostei a cabeça no travesseiro com a consciência limpa de quem construiu um império de paz.`
+                }
             ];
-            const rand = scripts[Math.floor(Math.random() * scripts.length)];
-            document.getElementById('dynamic-script-content').innerHTML = `<p>${rand}</p>`;
+            
+            const rand = scenarios[Math.floor(Math.random() * scenarios.length)];
+            document.getElementById('script-title').innerText = rand.title;
+            document.getElementById('dynamic-script-content').innerHTML = `<p>${rand.text}</p>`;
+            document.getElementById('script-modal').classList.remove('hidden');
         };
-        window.openScriptModal = () => { generateScript(); document.getElementById('script-modal').classList.remove('hidden'); };
 
-        // CRUD & AUX
         window.saveConfig = () => { window.data.monthlyCost = parseFloat(document.getElementById('monthly-cost').value); saveDataToFirebase(); closeModal('config-modal'); };
+        
+        // --- SAQUE INTELIGENTE (Corrigido) ---
         window.executeWithdraw = () => {
             const amount = parseFloat(document.getElementById('withdraw-amount').value);
             const type = document.querySelector('input[name="withdrawType"]:checked').value;
             if (!amount || amount <= 0) return alert("Valor inválido");
+            
             if (type === 'principal') {
                 if (amount > window.data.principal) return alert("Saldo insuficiente");
-                window.data.principal -= amount;
+                window.data.principal -= amount; // Tira do Principal
                 window.data.history.unshift({id: Date.now(), desc: "Resgate de Principal", details: "Retirada do capital investido.", value: amount, date: new Date().toISOString(), type: 'income'});
             } else {
-                window.data.history.unshift({id: Date.now(), desc: "Dividendos Recebidos", details: "Lucro transferido para conta livre.", value: amount, date: new Date().toISOString(), type: 'income'});
+                if (amount > window.data.yieldBalance) return alert("Você não tem esse rendimento acumulado ainda!");
+                window.data.yieldBalance -= amount; // Tira do Pote de Juros
+                window.data.history.unshift({id: Date.now(), desc: "Saque de Dividendos", details: "Lucro transferido para conta livre (Principal Intacto).", value: amount, date: new Date().toISOString(), type: 'income'});
             }
             window.data.wallet += amount; saveDataToFirebase(); closeModal('withdraw-modal'); playSound('coin');
         };
+
         window.addTransaction = () => {
             const desc = document.getElementById('trans-desc').value; const val = parseFloat(document.getElementById('trans-value').value);
             const img = document.getElementById('trans-img').value; const details = document.getElementById('trans-details').value; const type = document.getElementById('trans-type').value;
@@ -335,6 +333,7 @@
             window.data.history.unshift({id: Date.now(), desc, value: val, date: new Date().toISOString(), img, details, type});
             saveDataToFirebase(); closeModal('transaction-modal'); playSound(type==='expense'?'paper':'coin');
         };
+
         window.addInvestment = () => {
             const source = document.getElementById('invest-source').value; const val = parseFloat(document.getElementById('invest-value').value); const details = document.getElementById('invest-details').value;
             if(!val) return;
@@ -343,10 +342,12 @@
             window.data.history.unshift({id: Date.now(), desc: "Aporte Confirmado", value: val, date: new Date().toISOString(), type: 'investment', details: details || (source==='wallet'?"Reinvestimento":"Aporte Novo")});
             saveDataToFirebase(); closeModal('invest-modal'); playSound('coin');
         };
+
         window.endOfDay = () => {
             const done = window.data.habits.filter(h=>h.done).length; const habitsText = window.data.habits.filter(h=>h.done).map(h=> h.text).join('\n• ');
-            if(confirm(`Encerrar dia?`)) { window.data.history.unshift({id:Date.now(), desc:`Dia Encerrado`, details:`Rituais cumpridos (${done}/${window.data.habits.length}):\n• ${habitsText}`, value:0, date:new Date().toISOString(), type:'ritual'}); window.data.habits.forEach(h=>h.done=false); saveDataToFirebase(); }
+            if(confirm(`Encerrar dia?`)) { window.data.history.unshift({id:Date.now(), desc:`Dia Encerrado`, details:`Compromissos cumpridos (${done}/${window.data.habits.length}):\n• ${habitsText}`, value:0, date:new Date().toISOString(), type:'ritual'}); window.data.habits.forEach(h=>h.done=false); saveDataToFirebase(); }
         };
+
         window.toggleHabit = (i) => { window.data.habits[i].done = !window.data.habits[i].done; saveDataToFirebase(); };
         window.addHabit = () => { const t=document.getElementById('new-habit-text').value; if(t) { window.data.habits.push({id:Date.now(), text:t, done:false}); document.getElementById('new-habit-text').value=''; saveDataToFirebase(); } };
         window.removeHabit = (i) => { window.data.habits.splice(i,1); saveDataToFirebase(); };
@@ -355,16 +356,15 @@
         window.deleteTrans = (id) => { if(confirm('Remover?')) { const item = window.data.history.find(x=>x.id===id); if(item.type==='expense') window.data.wallet+=item.value; else if(item.type==='income') window.data.wallet-=item.value; else if(item.type==='investment'){ window.data.principal-=item.value; if(item.desc.includes('Reinvestimento')) window.data.wallet+=item.value; } window.data.history = window.data.history.filter(x=>x.id!==id); saveDataToFirebase(); }};
 
         window.renderHabits = () => { const l=document.getElementById('habits-list'); l.innerHTML=''; window.data.habits.forEach((h,i)=>{ l.innerHTML+=`<div class="flex items-center justify-between group p-2 bg-white/5 rounded-xl hover:bg-white/10 transition"><label class="flex items-center gap-3 cursor-pointer w-full"><input type="checkbox" ${h.done?'checked':''} onchange="toggleHabit(${i})" class="w-5 h-5 accent-emerald-500 rounded border-zinc-700"><span class="text-sm text-zinc-300 ${h.done?'line-through opacity-50':''}">${h.text}</span></label><button onclick="removeHabit(${i})" class="text-zinc-600 hover:text-red-500 opacity-0 group-hover:opacity-100 px-2"><i class="fa-solid fa-trash"></i></button></div>` }); };
-        // CARDS MAIORES (250px)
         window.renderAssets = () => { const l=document.getElementById('assets-list'); if(window.data.assets.length===0){l.innerHTML=`<div class="min-w-[250px] h-[250px] rounded-xl bg-zinc-800/50 border border-dashed border-zinc-700 flex flex-col items-center justify-center text-zinc-500 text-xs"><i class="fa-solid fa-image text-2xl mb-2 opacity-30"></i>Visualizar</div>`;return;} l.innerHTML=''; window.data.assets.forEach(a=>{ const bg=a.img?`background-image:url('${a.img}');background-size:cover;`:'background:#333'; l.innerHTML+=`<div class="min-w-[250px] h-[250px] rounded-xl relative overflow-hidden group shadow-lg border border-white/10 snap-center" style="${bg}"><div class="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent"></div><div class="absolute bottom-4 left-4"><p class="text-white font-bold text-lg shadow-black drop-shadow-md">${a.name}</p><p class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">CONQUISTADO</p></div><button onclick="deleteAsset(${a.id})" class="absolute top-2 right-2 text-white/50 hover:text-red-500 opacity-0 group-hover:opacity-100"><i class="fa-solid fa-trash"></i></button></div>`; }); };
-        // IMAGEM CORRIGIDA (CONTAIN)
         window.renderHistory = () => { const c=document.getElementById('history-container'); c.innerHTML=''; if(window.data.history.length===0){ document.getElementById('empty-history').classList.remove('hidden'); return; } document.getElementById('empty-history').classList.add('hidden'); window.data.history.forEach(item => { let cl, sn, ic; if(item.type==='expense'){cl='text-red-400';sn='- ';ic='fa-arrow-trend-down';} else if(item.type==='income'){cl='text-emerald-400';sn='+ ';ic='fa-arrow-trend-up';} else if(item.type==='investment'){cl='text-gold';sn='⬆ ';ic='fa-vault';} else {cl='text-purple-400';sn='';ic='fa-trophy';} const dt = new Date(item.date).toLocaleDateString(); const det = (item.details||"").replace(/\n/g, "<br>"); const img = item.img ? `<div class="w-full h-72 bg-black/50 overflow-hidden relative border-y border-white/5"><img src="${item.img}" class="w-full h-full object-contain" onerror="this.style.display='none'"></div>` : ''; c.innerHTML+=`<div class="relative pl-8 group"><div class="absolute left-0 top-0 bottom-0 w-px bg-zinc-800 group-hover:bg-zinc-700 transition"></div><div class="absolute -left-[5px] top-6 w-2.5 h-2.5 rounded-full ${item.type==='expense'?'bg-red-500':(item.type==='ritual'?'bg-purple-500':'bg-emerald-500')} ring-4 ring-[#050505]"></div><div class="glass rounded-2xl overflow-hidden border border-white/5 hover:border-white/10 transition"><div onclick="toggleDetails(${item.id})" class="p-5 cursor-pointer flex justify-between items-start gap-4"><div class="flex-1"><div class="flex items-center gap-2 mb-1"><span class="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">${dt}</span><i class="fa-solid ${ic} text-[10px] text-zinc-600"></i></div><h4 class="text-white font-bold text-lg leading-tight">${item.desc}</h4></div><div class="text-right"><p class="${cl} font-bold text-xl">${sn}${item.type!=='ritual'?'R$ '+item.value.toLocaleString('pt-BR'):''}</p><i id="arrow-${item.id}" class="fa-solid fa-chevron-down text-zinc-600 text-xs arrow-rotate mt-2"></i></div></div>${img}<div id="details-${item.id}" class="details-content bg-black/40"><div class="p-5 text-sm text-zinc-400 border-t border-white/5"><p class="leading-relaxed italic">"${det}"</p><div class="mt-4 text-right"><button onclick="deleteTrans(${item.id})" class="text-xs text-red-500 hover:text-white transition"><i class="fa-solid fa-trash"></i> Apagar</button></div></div></div></div></div>`; }); };
 
         const afformations = ["Por que é tão natural para mim ter R$ 3 milhões?", "Por que Levy se sente tão seguro com a minha presença?", "Como consegui equilibrar o sucesso com minha paz?", "Por que cuidar da casa da Mainha me traz tanta alegria?", "Por que meu inglês flui tão facilmente hoje?"];
-        window.rotateAfformation = () => { const el=document.getElementById('afformation-display'); if(!el)return; const r=afformations[Math.floor(Math.random()*afformations.length)]; el.classList.remove('afformation-anim'); void el.offsetWidth; el.innerText=`"${r}"`; el.classList.add('afformation-anim'); };
+        window.rotateAfformation = () => { const el=document.getElementById('afformation-display'); if(!el)return; const r=afformations[Math.floor(Math.random()*afformations.length)]; el.classList.remove('afformation-anim'); void el.offsetWidth; el.innerText=`"${r}"`; el.classList.add('afformation-anim'); const c=document.getElementById('cinema-afformation'); if(c) c.innerText=`"${r}"`; };
         window.rotateSlide = () => { const s=document.querySelectorAll('.bg-slide'); const a=document.querySelector('.bg-slide.active'); if(!a)return; a.classList.remove('active'); let n=a.nextElementSibling; if(!n||!n.classList.contains('bg-slide')) n=s[0]; n.classList.add('active'); };
         window.toggleDetails = (id) => { document.getElementById(`details-${id}`).classList.toggle('open'); document.getElementById(`arrow-${id}`).classList.toggle('open'); };
         
+        window.toggleCinema=()=>{const el=document.getElementById('cinema-mode'); if(el.classList.contains('hidden')){el.classList.remove('hidden');if(document.documentElement.requestFullscreen)document.documentElement.requestFullscreen();}else{el.classList.add('hidden');if(document.exitFullscreen)document.exitFullscreen();}};
         window.openWithdrawModal=()=>{document.getElementById('withdraw-modal').classList.remove('hidden')};
         window.openInvestModal=()=>{document.getElementById('invest-modal').classList.remove('hidden')};
         window.openAssetModal=()=>{document.getElementById('asset-modal').classList.remove('hidden')};
