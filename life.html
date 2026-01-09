@@ -17,7 +17,6 @@
         .input-invisible { background: transparent; border: none; border-bottom: 1px dashed #444; color: inherit; outline: none; text-align: right; transition: all 0.3s; }
         .input-invisible:focus { border-bottom: 1px solid #FFD700; color: #FFD700; }
         
-        /* Sliders e Animações */
         #bg-slider { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
         .bg-slide { position: absolute; inset: 0; opacity: 0; transition: opacity 2s ease-in-out; background-size: cover; background-position: center; filter: brightness(0.35) contrast(1.1); transform: scale(1); }
         .bg-slide.active { opacity: 1; transform: scale(1.05); transition: opacity 2s ease, transform 10s linear; }
@@ -29,7 +28,6 @@
         .afformation-anim { animation: fadeInOut 10s infinite; }
         @keyframes fadeInOut { 0% { opacity: 0; transform: translateY(5px); } 10% { opacity: 1; transform: translateY(0); } 90% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-5px); } }
 
-        /* Upload Híbrido */
         .file-label { cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; background: rgba(255,255,255,0.05); border: 1px dashed #555; padding: 10px; border-radius: 8px; transition: all 0.3s; font-size: 11px; color: #aaa; width: 100%; }
         .file-label:hover { border-color: #FFD700; color: #FFD700; background: rgba(255,215,0,0.05); }
 
@@ -51,8 +49,9 @@
         <div class="text-center space-y-6 max-w-sm w-full">
             <h1 class="text-4xl font-cinzel text-gold animate-pulse">ACESSO RESTRITO</h1>
             <input type="password" id="password-input" placeholder="Senha" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-center text-white focus:border-gold outline-none transition">
-            <button onclick="checkPassword()" class="w-full bg-gold-gradient text-black font-bold py-3 rounded-xl hover:scale-105 transition">Entrar</button>
+            <button onclick="checkPassword()" type="button" class="w-full bg-gold-gradient text-black font-bold py-3 rounded-xl hover:scale-105 transition">Entrar</button>
             <p id="auth-error" class="text-red-500 text-xs hidden">Senha incorreta</p>
+            <p id="system-status" class="text-emerald-500 text-[10px] tracking-widest mt-2 animate-pulse">SISTEMA PRONTO</p>
         </div>
     </div>
 
@@ -185,6 +184,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+        // CHAVES REAIS DO PROJETO
         const firebaseConfig = {
             apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
             authDomain: "painel-financeiro-borges.firebaseapp.com",
@@ -199,8 +199,9 @@
         const db = getFirestore(app);
         const docRef = doc(db, "life_os", "main_data");
 
-        window.data = { principal: 3000000, wallet: 0, yieldBalance: 0, monthlyCost: 5000, history: [], assets: [], habits: [{ id: 1, text: "Natação/Futebol com Levy (Presença)", done: false }, { id: 2, text: "Capoeira / Academia", done: false }, { id: 3, text: "Casa da Mainha (Cuidado)", done: false }, { id: 4, text: "Inglês (30min)", done: false }], lastLogin: new Date().toISOString() };
+        window.data = { principal: 3000000, wallet: 0, yieldBalance: 0, monthlyCost: 5000, history: [], assets: [], habits: [{ id: 1, text: "Natação de Levy (Presença)", done: false }, { id: 2, text: "Capoeira / Academia", done: false }, { id: 3, text: "Casa da Mainha (Cuidado)", done: false }, { id: 4, text: "Inglês (30min)", done: false }], lastLogin: new Date().toISOString() };
 
+        // SISTEMA DE LOGIN SEGURO
         window.checkPassword = async () => {
             const input = document.getElementById('password-input').value;
             const error = document.getElementById('auth-error');
@@ -209,12 +210,16 @@
                 setTimeout(() => document.getElementById('auth-gate').classList.add('hidden'), 500);
                 document.getElementById('app-content').classList.remove('hidden');
                 document.getElementById('loading-screen').classList.remove('hidden');
+                
                 await loadDataFromFirebase();
+                
                 document.getElementById('loading-screen').classList.add('hidden');
                 setInterval(rotateAfformation, 10000); rotateAfformation();
                 setInterval(rotateSlide, 8000);
                 animateValue("display-principal", 0, window.data.principal, 1500);
-            } else { error.classList.remove('hidden'); }
+            } else {
+                error.classList.remove('hidden');
+            }
         };
 
         async function loadDataFromFirebase() {
@@ -226,11 +231,14 @@
                     checkCompoundInterest(); 
                 } else { saveDataToFirebase(); }
                 updateUI(false); 
-            } catch (e) { alert("Erro ao conectar."); }
+            } catch (e) { 
+                console.error(e); 
+                alert("Erro de conexão. Verifique sua internet."); 
+            }
         }
 
         async function saveDataToFirebase() {
-            try { window.data.lastLogin = new Date().toISOString(); await setDoc(docRef, window.data); updateUI(); } catch (e) { console.error(e); }
+            try { window.data.lastLogin = new Date().toISOString(); await setDoc(docRef, window.data); updateUI(); } catch (e) { console.error("Erro ao salvar:", e); }
         }
 
         function checkCompoundInterest() {
@@ -283,24 +291,33 @@
             renderHabits(); renderHistory(); renderAssets();
         }
 
-        // COMPRESSOR
+        // COMPRESSOR DE IMAGEM
         function convertFileToBase64(file, callback) {
-            const reader=new FileReader(); reader.readAsDataURL(file);
-            reader.onload=function(){ const img=new Image(); img.src=reader.result; img.onload=function(){ const cvs=document.createElement('canvas'); const ctx=cvs.getContext('2d'); const sc=400/img.width; cvs.width=400; cvs.height=img.height*sc; ctx.drawImage(img,0,0,cvs.width,cvs.height); callback(cvs.toDataURL('image/jpeg',0.5)); } };
+            const reader = new FileReader(); reader.readAsDataURL(file);
+            reader.onload = function() {
+                const img = new Image(); img.src = reader.result;
+                img.onload = function() {
+                    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+                    const MAX_WIDTH = 400; const scaleSize = MAX_WIDTH / img.width;
+                    canvas.width = MAX_WIDTH; canvas.height = img.height * scaleSize;
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    callback(canvas.toDataURL('image/jpeg', 0.5));
+                }
+            };
         }
 
         // TRANSACTIONS
         window.addTransaction = () => {
-            const desc=document.getElementById('trans-desc').value; const val=parseFloat(document.getElementById('trans-value').value);
-            const date=document.getElementById('trans-date').value; const details=document.getElementById('trans-details').value; const type=document.getElementById('trans-type').value;
-            const link=document.getElementById('trans-img-link').value; const file=document.getElementById('trans-file').files[0];
+            const desc = document.getElementById('trans-desc').value; const val = parseFloat(document.getElementById('trans-value').value);
+            const date = document.getElementById('trans-date').value; const details = document.getElementById('trans-details').value; const type = document.getElementById('trans-type').value;
+            const link = document.getElementById('trans-img-link').value; const file = document.getElementById('trans-file').files[0];
             
-            if(!desc||!val) return alert("Preencha dados");
+            if(!desc || !val) return alert("Preencha dados");
             
             const save = (imgSrc) => {
-                if(type==='expense'&&val>window.data.wallet) return alert("Saldo insuficiente");
-                if(type==='expense') window.data.wallet-=val; else window.data.wallet+=val;
-                window.data.history.unshift({id:Date.now(), desc, value:val, date, img:imgSrc, details, type});
+                if(type === 'expense' && val > window.data.wallet) return alert("Saldo insuficiente");
+                if(type === 'expense') window.data.wallet -= val; else window.data.wallet += val;
+                window.data.history.unshift({id: Date.now(), desc, value: val, date: new Date().toISOString(), img: imgSrc, details, type});
                 saveDataToFirebase(); closeModal('transaction-modal'); playSound(type==='expense'?'paper':'coin');
             };
             
@@ -310,7 +327,7 @@
         };
 
         window.addAsset = () => {
-            const n=document.getElementById('asset-name').value; const link=document.getElementById('asset-img-link').value; const file=document.getElementById('asset-file').files[0];
+            const n = document.getElementById('asset-name').value; const link = document.getElementById('asset-img-link').value; const file = document.getElementById('asset-file').files[0];
             if(!n) return;
             const save = (img) => { window.data.assets.push({id:Date.now(), name:n, img}); saveDataToFirebase(); closeModal('asset-modal'); playSound('coin'); };
             if(link) save(link); else if(file) convertFileToBase64(file, save); else save(null);
@@ -318,33 +335,36 @@
 
         // SAQUE
         window.executeWithdraw = () => {
-            const amount=parseFloat(document.getElementById('withdraw-amount').value); const type=document.querySelector('input[name="withdrawType"]:checked').value;
-            if(!amount||amount<=0) return alert("Inválido");
-            if(type==='principal'){
-                if(amount>window.data.principal) return alert("Saldo insuficiente");
-                window.data.principal-=amount;
-                window.data.history.unshift({id:Date.now(), desc:"Resgate Principal", value:amount, date:new Date().toISOString(), type:'income'});
+            const amount = parseFloat(document.getElementById('withdraw-amount').value);
+            const type = document.querySelector('input[name="withdrawType"]:checked').value;
+            if (!amount || amount <= 0) return alert("Inválido");
+            if (type === 'principal') {
+                if (amount > window.data.principal) return alert("Saldo insuficiente");
+                window.data.principal -= amount;
+                window.data.history.unshift({id: Date.now(), desc: "Resgate Principal", details: "Retirada do montante investido.", value: amount, date: new Date().toISOString(), type: 'income'});
             } else {
-                if(amount>window.data.yieldBalance) return alert("Rendimento insuficiente");
-                window.data.yieldBalance-=amount;
-                window.data.history.unshift({id:Date.now(), desc:"Saque Dividendos", value:amount, date:new Date().toISOString(), type:'income'});
+                if (amount > window.data.yieldBalance) return alert("Rendimento insuficiente");
+                window.data.yieldBalance -= amount;
+                window.data.history.unshift({id: Date.now(), desc: "Saque Dividendos", details: "Lucro transferido.", value: amount, date: new Date().toISOString(), type: 'income'});
             }
-            window.data.wallet+=amount; saveDataToFirebase(); closeModal('withdraw-modal'); playSound('coin');
+            window.data.wallet += amount; saveDataToFirebase(); closeModal('withdraw-modal'); playSound('coin');
         };
 
         // MODAIS & UTIL
-        window.addInvestment=()=>{ const s=document.getElementById('invest-source').value; const v=parseFloat(document.getElementById('invest-value').value); if(!v)return; if(s==='wallet'){if(v>window.data.wallet)return alert('Saldo insuficiente'); window.data.wallet-=v;} window.data.principal+=v; window.data.history.unshift({id:Date.now(), desc:"Aporte", value:v, date:new Date().toISOString(), type:'investment'}); saveDataToFirebase(); closeModal('invest-modal'); playSound('coin'); };
-        window.endOfDay=()=>{ const d=window.data.habits.filter(h=>h.done).length; if(confirm('Encerrar dia?')){ window.data.history.unshift({id:Date.now(), desc:`Dia Encerrado (${d}/${window.data.habits.length})`, value:0, date:new Date().toISOString(), type:'ritual'}); window.data.habits.forEach(h=>h.done=false); saveDataToFirebase(); } };
-        window.openScriptModal=()=>{
-            const scenarios=[
+        window.addInvestment = () => { const s = document.getElementById('invest-source').value; const v = parseFloat(document.getElementById('invest-value').value); if(!v) return; if(s==='wallet'){if(v>window.data.wallet)return alert('Saldo insuficiente'); window.data.wallet-=v;} window.data.principal+=v; window.data.history.unshift({id:Date.now(), desc:"Aporte", value:v, date:new Date().toISOString(), type:'investment'}); saveDataToFirebase(); closeModal('invest-modal'); playSound('coin'); };
+        window.endOfDay = () => { const d = window.data.habits.filter(h=>h.done).length; if(confirm('Encerrar dia?')){ window.data.history.unshift({id:Date.now(), desc:`Dia Encerrado (${d}/${window.data.habits.length})`, value:0, date:new Date().toISOString(), type:'ritual'}); window.data.habits.forEach(h=>h.done=false); saveDataToFirebase(); } };
+        
+        window.openScriptModal = () => {
+            const scenarios = [
                 {t:"A Compra do iPhone", txt:`Acordo e olho para a mesa de cabeceira. Lá está ele: o iPhone Pro Max titânio natural. Pego-o na mão e sinto a textura fria e premium do metal. A tela acende instantaneamente com o Face ID. Não é apenas um telefone, é um símbolo de que posso ter o melhor sem olhar o preço. Abro o app do banco e vejo a notificação de R$ 27.000 recebidos de rendimento. Sorrio. A fluidez da tela de 120Hz é tão suave quanto a minha vida agora.`},
                 {t:"A SUV Branca na Garagem", txt:`Desço para a garagem e o cheiro de carro novo ainda está no ar. A minha SUV branca, imponente, brilha sob a luz. Destravo a porta e o som sólido do fechamento me passa segurança. Sento no banco de couro que abraça minhas costas. Ligo o motor — silencioso, potente. O painel digital acende. Olho para o lado e vejo a cadeirinha de Levy instalada com segurança máxima. Sinto gratidão. Esse carro não é sobre status, é sobre proteger quem eu amo e ter conforto em cada quilômetro.`},
                 {t:"As Chaves do Apartamento", txt:`O dia da entrega das chaves. Entro no apartamento vazio e o eco dos meus passos é música. O cheiro de tinta fresca, o piso impecável. Caminho até a varanda e a vista é definitiva: liberdade. Não pago aluguel a ninguém. Esse metro quadrado é meu. Imagino onde ficará o sofá, a TV, o quarto de Levy. Sinto o metal frio das chaves na minha mão e uma onda de alívio percorre minha espinha. Acabou a ansiedade. Eu tenho um lar.`},
                 {t:"Dívida Zero: A Leveza", txt:`Abro minha planilha financeira e todas as células de "Dívida" estão vazias ou verdes. O cartão da Roseane? Quitado. O financiamento? Liquidado. Não devo nada a ninguém. Sinto meus ombros mais leves, como se tivesse tirado uma mochila de pedras. O dinheiro que entra agora é 100% meu. Respiro fundo e sinto o ar entrar mais fácil nos pulmões. A escravidão acabou. Eu sou o senhor do meu destino financeiro.`},
                 {t:"O PC Gamer dos Sonhos", txt:`Entro no meu escritório climatizado. As luzes RGB do gabinete iluminam o ambiente suavemente. Aperto o botão de ligar e o boot é instantâneo. Meu PC Gamer, montado peça por peça com o que há de melhor. A placa de vídeo renderiza a realidade em 4K. Sento na cadeira ergonômica e coloco o headset. O mundo lá fora pausa. Aqui, tenho potência de sobra para trabalhar, criar e jogar com Levy. É minha ferramenta de criação de riqueza e meu portal de diversão.`}
             ];
-            const r=scenarios[Math.floor(Math.random()*scenarios.length)];
-            document.getElementById('script-title').innerText=r.t; document.getElementById('dynamic-script-content').innerHTML=`<p>${r.txt}</p>`;
+            const r = scenarios[Math.floor(Math.random()*scenarios.length)];
+            document.getElementById('script-title').innerText = r.t; 
+            document.getElementById('dynamic-script-content').innerHTML = `<p>${r.txt}</p>`;
             document.getElementById('script-modal').classList.remove('hidden');
         };
 
@@ -355,9 +375,8 @@
         window.renderHistory=()=>{const c=document.getElementById('history-container');c.innerHTML='';window.data.history.forEach(i=>{let cl,sn,ic;if(i.type==='expense'){cl='text-red-400';sn='- ';ic='fa-arrow-trend-down';}else if(i.type==='income'){cl='text-emerald-400';sn='+ ';ic='fa-arrow-trend-up';}else{cl='text-gold';sn='⬆ ';ic='fa-vault';}const dt=new Date(i.date).toLocaleDateString();const img=i.img?`<div class="w-full h-72 bg-black/50 overflow-hidden relative border-y border-white/5"><img src="${i.img}" class="w-full h-full object-contain" loading="lazy"></div>`:'';c.innerHTML+=`<div class="relative pl-8 group"><div class="absolute left-0 top-0 bottom-0 w-px bg-zinc-800 group-hover:bg-zinc-700 transition"></div><div class="absolute -left-[5px] top-6 w-2.5 h-2.5 rounded-full ${i.type==='expense'?'bg-red-500':(i.type==='ritual'?'bg-purple-500':'bg-emerald-500')} ring-4 ring-[#050505]"></div><div class="glass rounded-2xl overflow-hidden border border-white/5 hover:border-white/10 transition"><div onclick="toggleDetails(${i.id})" class="p-5 cursor-pointer flex justify-between items-start gap-4"><div class="flex-1"><div class="flex items-center gap-2 mb-1"><span class="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">${dt}</span><i class="fa-solid ${ic} text-[10px] text-zinc-600"></i></div><h4 class="text-white font-bold text-lg leading-tight">${i.desc}</h4></div><div class="text-right"><p class="${cl} font-bold text-xl">${sn}${i.type!=='ritual'?'R$ '+i.value.toLocaleString('pt-BR'):''}</p><i id="arrow-${i.id}" class="fa-solid fa-chevron-down text-zinc-600 text-xs arrow-rotate mt-2"></i></div></div>${img}<div id="details-${i.id}" class="details-content bg-black/40"><div class="p-5 text-sm text-zinc-400 border-t border-white/5"><p class="leading-relaxed italic">${i.details||''}</p><div class="mt-4 text-right"><button onclick="deleteTrans(${i.id})" class="text-xs text-red-500 hover:text-white transition"><i class="fa-solid fa-trash"></i> Apagar</button></div></div></div></div></div>`;});};
 
         const afformations=["Por que é natural ter R$ 3 milhões?","Por que Levy se sente seguro comigo?","Por que minha vida é tão abundante?"];
-        window.rotateAfformation=()=>{const el=document.getElementById('afformation-display');if(!el)return;el.innerText=`"${afformations[Math.floor(Math.random()*afformations.length)]}"`;el.classList.remove('afformation-anim');void el.offsetWidth;el.classList.add('afformation-anim');}; window.rotateSlide=()=>{const s=document.querySelectorAll('.bg-slide');const a=document.querySelector('.bg-slide.active');if(!a)return;a.classList.remove('active');let n=a.nextElementSibling;if(!n||!n.classList.contains('bg-slide'))n=s[0];n.classList.add('active');}; window.toggleDetails=(id)=>{document.getElementById(`details-${id}`).classList.toggle('open');document.getElementById(`arrow-${id}`).classList.toggle('open');}; window.toggleCinema=()=>{const el=document.getElementById('cinema-mode');el.classList.toggle('hidden');if(el.classList.contains('hidden')){if(document.exitFullscreen)document.exitFullscreen();}else{if(document.documentElement.requestFullscreen)document.documentElement.requestFullscreen();}}; window.openWithdrawModal=()=>{document.getElementById('withdraw-modal').classList.remove('hidden')}; window.openInvestModal=()=>{document.getElementById('invest-modal').classList.remove('hidden')}; window.openAssetModal=()=>{document.getElementById('asset-modal').classList.remove('hidden')}; window.openConfigModal=()=>{document.getElementById('config-modal').classList.remove('hidden')}; window.openTransactionModal=(t)=>{document.getElementById('transaction-modal').classList.remove('hidden');document.getElementById('trans-type').value=t;document.getElementById('modal-title').innerText=t==='expense'?'💸 Desfrutar':'✨ Manifestar';document.getElementById('trans-date').value=new Date().toISOString().split('T')[0];}; window.closeModal=(id)=>{document.getElementById(id).classList.add('hidden');if(id==='transaction-modal'){document.getElementById('trans-desc').value='';document.getElementById('trans-value').value='';document.getElementById('trans-img').value='';document.getElementById('trans-file').value='';}else{document.getElementById('invest-value').value='';}};
+        window.rotateAfformation=()=>{const el=document.getElementById('afformation-display');if(!el)return;el.innerText=`"${afformations[Math.floor(Math.random()*afformations.length)]}"`;el.classList.remove('afformation-anim');void el.offsetWidth;el.classList.add('afformation-anim');}; window.rotateSlide=()=>{const s=document.querySelectorAll('.bg-slide');const a=document.querySelector('.bg-slide.active');if(!a)return;a.classList.remove('active');let n=a.nextElementSibling;if(!n||!n.classList.contains('bg-slide'))n=s[0];n.classList.add('active');}; window.toggleDetails=(id)=>{document.getElementById(`details-${id}`).classList.toggle('open');document.getElementById(`arrow-${id}`).classList.toggle('open');}; window.toggleCinema=()=>{const el=document.getElementById('cinema-mode');el.classList.toggle('hidden');if(el.classList.contains('hidden')){if(document.exitFullscreen)document.exitFullscreen();}else{if(document.documentElement.requestFullscreen)document.documentElement.requestFullscreen();}}; window.openWithdrawModal=()=>{document.getElementById('withdraw-modal').classList.remove('hidden')}; window.openInvestModal=()=>{document.getElementById('invest-modal').classList.remove('hidden')}; window.openAssetModal=()=>{document.getElementById('asset-modal').classList.remove('hidden')}; window.openConfigModal=()=>{document.getElementById('config-modal').classList.remove('hidden')}; window.openTransactionModal=(t)=>{document.getElementById('transaction-modal').classList.remove('hidden');document.getElementById('trans-type').value=t;document.getElementById('modal-title').innerText=t==='expense'?'💸 Desfrutar':'✨ Manifestar';document.getElementById('trans-date').value=new Date().toISOString().split('T')[0];}; window.closeModal=(id)=>{document.getElementById(id).classList.add('hidden');if(id==='transaction-modal'){document.getElementById('trans-desc').value='';document.getElementById('trans-value').value='';document.getElementById('trans-img-link').value='';document.getElementById('trans-file').value='';}else{document.getElementById('invest-value').value='';}};
         
-        function animateValue(id, start, end, duration) { const obj = document.getElementById(id); let startTimestamp = null; const step = (timestamp) => { if (!startTimestamp) startTimestamp = timestamp; const progress = Math.min((timestamp - startTimestamp) / duration, 1); obj.innerHTML = Math.floor(progress * (end - start) + start).toLocaleString('pt-BR',{minimumFractionDigits:2}); if (progress < 1) window.requestAnimationFrame(step); }; window.requestAnimationFrame(step); }
         const audioCtx=new(window.AudioContext||window.webkitAudioContext)(); function playSound(t){if(audioCtx.state==='suspended')audioCtx.resume();const o=audioCtx.createOscillator();const g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);if(t==='coin'){o.type='sine';o.frequency.setValueAtTime(1200,audioCtx.currentTime);o.frequency.exponentialRampToValueAtTime(2000,audioCtx.currentTime+0.1);g.gain.setValueAtTime(0.3,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(0.01,audioCtx.currentTime+0.5);o.start();o.stop(audioCtx.currentTime+0.5);}else{o.type='triangle';o.frequency.setValueAtTime(100,audioCtx.currentTime);g.gain.setValueAtTime(0.2,audioCtx.currentTime);g.gain.linearRampToValueAtTime(0.01,audioCtx.currentTime+0.15);o.start();o.stop(audioCtx.currentTime+0.15);}}
     </script>
 </body>
