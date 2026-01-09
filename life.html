@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LIFE OS | Cloud Master</title>
+    <title>LIFE OS | Painel Oficial</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
@@ -22,6 +22,13 @@
         .glass { background: rgba(10, 10, 10, 0.6); backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7); }
         .input-invisible { background: transparent; border: none; border-bottom: 1px dashed #444; color: inherit; outline: none; text-align: right; transition: all 0.3s; }
         .input-invisible:focus { border-bottom: 1px solid #FFD700; color: #FFD700; }
+        
+        /* Blur de Privacidade */
+        .blur-value { filter: blur(5px); user-select: none; transition: filter 0.3s; }
+        .blur-value:hover { filter: blur(3px); }
+        .visible-value { filter: blur(0); }
+
+        /* Animações e Slides */
         @keyframes fadeInOut { 0% { opacity: 0; transform: translateY(5px); } 10% { opacity: 1; transform: translateY(0); } 90% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-5px); } }
         .afformation-anim { animation: fadeInOut 10s infinite; }
         .slide { position: absolute; inset: 0; opacity: 0; transition: opacity 2s ease-in-out; background-size: cover; background-position: center; }
@@ -40,15 +47,15 @@
     <div id="auth-gate" class="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-center p-4">
         <div class="text-center space-y-6 max-w-sm w-full">
             <h1 class="text-4xl font-cinzel text-gold animate-pulse">ACESSO RESTRITO</h1>
-            <p class="text-zinc-500 text-xs tracking-[0.3em] uppercase">Sistema de Prosperidade Pessoal</p>
-            <input type="password" id="password-input" placeholder="Senha Mestra" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-center text-white focus:border-gold outline-none transition">
+            <input type="password" id="password-input" placeholder="Senha" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-center text-white focus:border-gold outline-none transition">
             <button onclick="checkPassword()" class="w-full bg-gold-gradient text-black font-bold py-3 rounded-xl hover:scale-105 transition">Entrar</button>
-            <p id="auth-error" class="text-red-500 text-xs hidden">Acesso Negado.</p>
+            <p id="auth-error" class="text-red-500 text-xs hidden">Senha incorreta</p>
         </div>
     </div>
 
-    <div id="loading-screen" class="fixed inset-0 z-[190] bg-black/90 hidden flex items-center justify-center">
-        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gold"></div>
+    <div id="loading-screen" class="fixed inset-0 z-[190] bg-black/95 hidden flex flex-col items-center justify-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gold mb-4"></div>
+        <p class="text-gold text-xs tracking-widest uppercase">Sincronizando Banco de Dados...</p>
     </div>
 
     <div id="app-content" class="hidden">
@@ -56,11 +63,11 @@
         <div id="script-modal" class="fixed inset-0 bg-black/95 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-xl">
             <div class="max-w-3xl w-full h-[80vh] bg-zinc-900/50 border border-gold/20 rounded-2xl relative flex flex-col">
                 <button onclick="closeModal('script-modal')" class="absolute top-4 right-4 text-zinc-500 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
-                <div class="p-8 border-b border-white/5 flex justify-between items-center bg-black/40 rounded-t-2xl"><div><h2 class="text-2xl font-cinzel text-gold">O Roteiro da Verdade</h2></div></div>
+                <div class="p-8 border-b border-white/5 bg-black/40 rounded-t-2xl"><h2 class="text-2xl font-cinzel text-gold">O Roteiro da Verdade</h2></div>
                 <div class="p-8 overflow-y-auto leading-relaxed text-zinc-300 font-light text-lg space-y-6">
                     <p>Hoje, 21 de maio de 2026, eu acordo e a primeira coisa que sinto é o silêncio. Não há pressa. Eu olho para o meu saldo e os <strong class="text-white">R$ 3.000.000</strong> continuam lá, intocáveis, rendendo a minha liberdade.</p>
                     <p>A minha manhã é dedicada ao que importa. Tomo café com Levy, sem interrupções. Hoje é quarta-feira, dia de natação. Eu estou lá, na borda da piscina, vendo-o nadar. Ele olha para mim e sorri, porque sabe que eu estou ali. <em class="text-emerald-400">Não estou no celular, estou presente.</em></p>
-                    <p>À noite, o ritual repete-se na Capoeira. A casa da Mainha está finalmente como ela sonhou. O dinheiro agora é cuidado e amor.</p>
+                    <p>À noite, o ritual repete-se na Capoeira. A casa da Mainha está finalmente como ela sonhou.</p>
                     <p>Eu não trabalho por necessidade, eu crio por prazer. Sou um pai presente, um filho dedicado e um homem em paz. <strong>Felizão.</strong></p>
                 </div>
             </div>
@@ -69,10 +76,9 @@
         <div id="cinema-mode" class="fixed inset-0 z-[100] hidden flex flex-col items-center justify-center text-center p-4 bg-black">
             <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?q=80&w=2070&auto=format&fit=crop')"></div>
             <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1611974765270-ca12586343bb?q=80&w=2070&auto=format&fit=crop')"></div>
-            <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop')"></div>
             <div class="relative z-10 space-y-8 max-w-4xl">
                 <p class="text-gold tracking-[0.5em] text-xs uppercase font-cinzel opacity-80">Realidade Confirmada</p>
-                <h1 class="text-7xl md:text-9xl font-bold text-white font-cinzel drop-shadow-2xl">R$ <span id="cinema-value">3.000.000</span></h1>
+                <h1 class="text-7xl md:text-9xl font-bold text-white font-cinzel drop-shadow-2xl">R$ <span id="cinema-value">...</span></h1>
                 <div id="cinema-afformation" class="text-zinc-300 text-2xl font-light italic transition-opacity duration-1000"></div>
                 <button onclick="toggleCinema()" class="mt-20 text-[10px] border border-white/10 text-white/30 hover:text-white px-6 py-2 rounded-full uppercase tracking-widest">Voltar</button>
             </div>
@@ -90,7 +96,10 @@
                 </div>
             </div>
             <div class="flex gap-3">
-                <button onclick="openScriptModal()" class="bg-gold-gradient text-black px-4 py-2 rounded-lg text-xs font-bold hover:scale-105 transition shadow-[0_0_15px_rgba(255,215,0,0.3)] flex items-center gap-2"><i class="fa-solid fa-book-open"></i> Ler Roteiro</button>
+                <button onclick="togglePrivacy()" class="glass hover:bg-white/10 text-white px-4 py-2 rounded-lg text-lg transition border border-white/10" title="Ocultar/Mostrar Valores">
+                    <i id="privacy-icon" class="fa-solid fa-eye-slash"></i>
+                </button>
+                <button onclick="openScriptModal()" class="bg-gold-gradient text-black px-4 py-2 rounded-lg text-xs font-bold hover:scale-105 transition flex items-center gap-2"><i class="fa-solid fa-book-open"></i> Ler Roteiro</button>
                 <button onclick="toggleCinema()" class="glass hover:bg-white/10 text-white px-4 py-2 rounded-lg text-xs transition border border-white/10"><i class="fa-solid fa-film"></i></button>
             </div>
         </header>
@@ -100,23 +109,39 @@
                 <div class="glass rounded-3xl p-0 relative overflow-hidden border-t-4 border-gold">
                     <div class="bg-gradient-to-r from-zinc-900 to-black p-6 border-b border-white/5 flex justify-between items-center">
                         <div class="flex items-center gap-3"><i class="fa-solid fa-vault text-gold text-2xl"></i><div><h2 class="text-gold text-sm font-bold tracking-widest uppercase">Cofre Automático</h2><p class="text-[10px] text-zinc-500">Juros Compostos Diários (Selic)</p></div></div>
-                        <span class="bg-emerald-900/30 text-emerald-400 text-[10px] px-2 py-1 rounded border border-emerald-500/20 animate-pulse">CLOUD SYNC</span>
+                        <span class="bg-emerald-900/30 text-emerald-400 text-[10px] px-2 py-1 rounded border border-emerald-500/20 animate-pulse">ONLINE</span>
                     </div>
                     <div class="p-8 text-center">
-                        <div class="text-5xl font-bold text-white font-cinzel mb-1">R$ <span id="display-principal">...</span></div>
-                        <p class="text-xs text-zinc-500 mb-8">Patrimônio em Crescimento Contínuo</p>
+                        <div class="text-5xl font-bold text-white font-cinzel mb-2 flex justify-center">
+                            <span class="text-2xl mr-2 mt-2">R$</span>
+                            <span id="display-principal" class="blur-value">...</span>
+                        </div>
+                        <p class="text-xs text-zinc-500 mb-6">Patrimônio Principal</p>
+
+                        <div class="bg-white/5 p-4 rounded-xl border border-white/5 mb-6 flex justify-between items-center">
+                            <div class="text-left">
+                                <p class="text-[10px] text-zinc-400 uppercase">Rendimento Mensal</p>
+                                <p class="text-emerald-400 font-bold text-lg">+ R$ <span id="yield-preview">...</span></p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-[10px] text-zinc-400 uppercase">Crescimento</p>
+                                <p class="text-gold font-bold text-xs">+0.9% a.m.</p>
+                            </div>
+                        </div>
+
                         <div class="grid grid-cols-2 gap-4">
                             <button onclick="openInvestModal()" class="bg-gold-gradient text-black font-bold py-3.5 rounded-xl text-xs hover:scale-[1.02] flex items-center justify-center gap-2"><i class="fa-solid fa-plus"></i> NOVO APORTE</button>
                             <button onclick="openWithdrawModal()" class="bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3.5 rounded-xl text-xs transition border border-zinc-600 flex items-center justify-center gap-2"><i class="fa-solid fa-money-bill-transfer"></i> SACAR PARTE</button>
                         </div>
                     </div>
                 </div>
+
                 <div class="glass rounded-3xl p-6 border-l-4 border-emerald-500 relative">
                     <div class="flex justify-between items-start mb-6">
                         <div><h2 class="text-emerald-400 font-bold flex items-center gap-2"><i class="fa-solid fa-wallet"></i> Carteira Livre</h2><p class="text-[10px] text-zinc-500 mt-1">Para desfrute e contas.</p></div>
                         <button onclick="openConfigModal()" class="text-zinc-600 hover:text-white"><i class="fa-solid fa-gear"></i></button>
                     </div>
-                    <div class="text-3xl font-bold text-white mb-6">R$ <span id="wallet-balance">...</span></div>
+                    <div class="text-3xl font-bold text-white mb-6 blur-value" id="wallet-balance">...</div>
                     <div class="bg-emerald-900/20 p-3 rounded-lg border border-emerald-500/20 mb-6 flex items-center gap-3">
                         <i class="fa-solid fa-hourglass-half text-emerald-400 text-lg"></i>
                         <div><p class="text-[10px] text-emerald-200 uppercase font-bold">Tempo de Liberdade</p><p id="freedom-time" class="text-white text-sm font-bold">Calculando...</p></div>
@@ -126,12 +151,14 @@
                         <button onclick="openTransactionModal('income')" class="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 py-3 rounded-xl text-xs font-bold transition">Entrada Extra</button>
                     </div>
                 </div>
+
                 <div class="glass rounded-3xl p-6">
                     <div class="flex justify-between items-center mb-4"><h2 class="text-zinc-300 text-sm font-bold uppercase tracking-widest">Rituais de Identidade</h2><button onclick="endOfDay()" class="text-[10px] text-zinc-400 hover:text-white transition"><i class="fa-solid fa-moon"></i> Encerrar Dia</button></div>
                     <div id="habits-list" class="space-y-2"></div>
                     <div class="mt-4 flex gap-2"><input type="text" id="new-habit-text" placeholder="Novo ritual..." class="bg-zinc-900/50 text-xs p-2 rounded w-full border border-zinc-700 outline-none focus:border-gold"><button onclick="addHabit()" class="bg-white/10 text-white px-3 rounded hover:bg-white/20">+</button></div>
                 </div>
             </div>
+
             <div class="md:col-span-7 space-y-6">
                 <div class="glass rounded-3xl p-6">
                     <div class="flex justify-between items-center mb-4"><h2 class="text-gold text-sm font-bold uppercase tracking-widest flex items-center gap-2"><i class="fa-solid fa-gem"></i> Galeria de Posse</h2><button onclick="openAssetModal()" class="text-[10px] bg-gold-gradient text-black px-2 py-1 rounded font-bold hover:brightness-110">+ Adicionar</button></div>
@@ -140,7 +167,7 @@
                 <div class="glass rounded-3xl p-6 min-h-[600px] relative">
                      <div class="flex items-center gap-3 mb-6 relative z-10 bg-[#0a0a0a] w-fit pr-4"><h2 class="text-xl font-bold text-white font-cinzel">DIÁRIO DE GRATIDÃO</h2></div>
                      <div id="history-container" class="space-y-8 relative z-10"></div>
-                     <div id="empty-history" class="text-center mt-20 hidden"><p class="text-zinc-500 text-sm">Carregando sua história...</p></div>
+                     <div id="empty-history" class="text-center mt-20 hidden"><p class="text-zinc-500 text-sm">Carregando dados da nuvem...</p></div>
                 </div>
             </div>
         </div>
@@ -156,7 +183,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // 🔥 SUAS CREDENCIAIS REAIS 🔥
+        // 🔥 CHAVES REAIS DO SEU PROJETO 🔥
         const firebaseConfig = {
             apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
             authDomain: "painel-financeiro-borges.firebaseapp.com",
@@ -171,7 +198,8 @@
         const db = getFirestore(app);
         const docRef = doc(db, "life_os", "main_data");
 
-        // --- VARIÁVEIS GLOBAIS ---
+        // --- VARIÁVEIS & ESTADO ---
+        let isPrivate = true; // Começa oculto
         window.data = {
             principal: 3000000,
             wallet: 0,
@@ -184,11 +212,10 @@
                 { id: 3, text: "Casa da Mainha (Cuidado)", done: false },
                 { id: 4, text: "Inglês (30min)", done: false }
             ],
-            mood: "Felizão 😍",
             lastLogin: new Date().toISOString()
         };
 
-        // --- SISTEMA DE SENHA ---
+        // --- SISTEMA DE SENHA E INICIALIZAÇÃO ---
         window.checkPassword = async () => {
             const input = document.getElementById('password-input').value;
             const error = document.getElementById('auth-error');
@@ -202,13 +229,10 @@
                 await loadDataFromFirebase();
                 
                 document.getElementById('loading-screen').classList.add('hidden');
-                
-                // Inicia Ciclos
                 setInterval(rotateAfformation, 10000); rotateAfformation();
                 setInterval(rotateSlide, 8000);
             } else {
                 error.classList.remove('hidden');
-                error.innerText = "Senha Incorreta.";
             }
         };
 
@@ -217,17 +241,15 @@
             try {
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
-                    const cloudData = docSnap.data();
-                    window.data = { ...window.data, ...cloudData }; // Merge
-                    checkCompoundInterest(); // Verifica juros baseados no Cloud Time
+                    window.data = { ...window.data, ...docSnap.data() };
+                    checkCompoundInterest(); // Verifica juros
                 } else {
-                    // Primeiro acesso: Cria documento
-                    saveDataToFirebase();
+                    saveDataToFirebase(); // Cria banco inicial
                 }
                 updateUI();
             } catch (e) {
-                console.error("Erro ao carregar:", e);
-                alert("Erro ao conectar no banco de dados. Verifique a internet.");
+                console.error("Erro Firebase:", e);
+                alert("Erro ao conectar no banco. Verifique sua internet.");
             }
         }
 
@@ -236,12 +258,10 @@
                 window.data.lastLogin = new Date().toISOString();
                 await setDoc(docRef, window.data);
                 updateUI();
-            } catch (e) {
-                console.error("Erro ao salvar:", e);
-            }
+            } catch (e) { console.error("Erro Salvar:", e); }
         }
 
-        // --- MOTOR DE JUROS (Auto-Compounding Cloud) ---
+        // --- MOTOR DE JUROS ---
         function checkCompoundInterest() {
             const lastDate = new Date(window.data.lastLogin);
             const now = new Date();
@@ -256,25 +276,43 @@
                     window.data.history.unshift({
                         id: Date.now(),
                         desc: "Rendimento Automático",
-                        details: `O sistema calculou ${diffDays} dias de juros compostos enquanto você vivia.`,
+                        details: `O sistema calculou ${diffDays} dias de juros enquanto você vivia.`,
                         value: interest,
                         date: now.toISOString(),
                         type: 'investment'
                     });
-                    alert(`💰 Bem-vindo de volta! Seu dinheiro rendeu: R$ ${interest.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`);
                     saveDataToFirebase();
                 }
             }
         }
 
-        // --- FUNÇÕES UI & LÓGICA (Adaptadas para usar window.data e salvar no Firebase) ---
+        // --- UI & LOGIC ---
         
+        window.togglePrivacy = () => {
+            isPrivate = !isPrivate;
+            const icon = document.getElementById('privacy-icon');
+            if (isPrivate) {
+                icon.className = 'fa-solid fa-eye-slash';
+                document.getElementById('display-principal').classList.add('blur-value');
+                document.getElementById('wallet-balance').classList.add('blur-value');
+            } else {
+                icon.className = 'fa-solid fa-eye';
+                document.getElementById('display-principal').classList.remove('blur-value');
+                document.getElementById('wallet-balance').classList.remove('blur-value');
+            }
+        };
+
         function updateUI() {
+            // Valores
             document.getElementById('display-principal').innerText = window.data.principal.toLocaleString('pt-BR');
             document.getElementById('cinema-value').innerText = window.data.principal.toLocaleString('pt-BR');
             document.getElementById('wallet-balance').innerText = window.data.wallet.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+            
+            // Rendimento Mensal (0.9%)
+            const yieldVal = window.data.principal * 0.009;
+            document.getElementById('yield-preview').innerText = yieldVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+
             document.getElementById('monthly-cost').value = window.data.monthlyCost;
-            document.getElementById('status-mood').value = window.data.mood;
             
             // Calculadora Liberdade
             const monthsFree = window.data.wallet / window.data.monthlyCost;
@@ -285,46 +323,36 @@
             renderHabits(); renderHistory(); renderAssets();
         }
 
-        // Expondo funções para o HTML (Necessário pq é type=module)
+        // Funções Exportadas
         window.saveConfig = () => { window.data.monthlyCost = parseFloat(document.getElementById('monthly-cost').value); saveDataToFirebase(); closeModal('config-modal'); };
         
         window.executeWithdraw = () => {
             const amount = parseFloat(document.getElementById('withdraw-amount').value);
-            if (!amount || amount > window.data.principal) return alert("Inválido");
+            if (!amount || amount > window.data.principal) return alert("Saldo insuficiente");
             window.data.principal -= amount;
             window.data.wallet += amount;
             window.data.history.unshift({id: Date.now(), desc: "Resgate de Lucro", details: "Transferência para Carteira Livre.", value: amount, date: new Date().toISOString(), type: 'income'});
-            saveDataToFirebase(); closeModal('withdraw-modal'); playSound('coin');
+            saveDataToFirebase(); closeModal('withdraw-modal');
         };
 
         window.addTransaction = () => {
-            const desc = document.getElementById('trans-desc').value;
-            const val = parseFloat(document.getElementById('trans-value').value);
-            const date = document.getElementById('trans-date').value;
-            const img = document.getElementById('trans-img').value;
-            const details = document.getElementById('trans-details').value;
-            const type = document.getElementById('trans-type').value;
-            
+            const desc = document.getElementById('trans-desc').value; const val = parseFloat(document.getElementById('trans-value').value);
+            const date = document.getElementById('trans-date').value; const img = document.getElementById('trans-img').value;
+            const details = document.getElementById('trans-details').value; const type = document.getElementById('trans-type').value;
             if(!desc || !val) return alert("Preencha dados");
             if(type === 'expense' && val > window.data.wallet) return alert("Saldo insuficiente");
-            
             if(type === 'expense') window.data.wallet -= val; else window.data.wallet += val;
             window.data.history.unshift({id: Date.now(), desc, value: val, date, img, details, type});
-            saveDataToFirebase(); closeModal('transaction-modal'); playSound(type==='expense'?'paper':'coin');
+            saveDataToFirebase(); closeModal('transaction-modal');
         };
 
         window.addInvestment = () => {
-            const source = document.getElementById('invest-source').value;
-            const val = parseFloat(document.getElementById('invest-value').value);
-            const details = document.getElementById('invest-details').value;
+            const source = document.getElementById('invest-source').value; const val = parseFloat(document.getElementById('invest-value').value); const details = document.getElementById('invest-details').value;
             if(!val) return;
-            if(source === 'wallet') {
-                if(val > window.data.wallet) return alert("Saldo insuficiente");
-                window.data.wallet -= val;
-            }
+            if(source === 'wallet') { if(val > window.data.wallet) return alert("Saldo insuficiente"); window.data.wallet -= val; }
             window.data.principal += val;
             window.data.history.unshift({id: Date.now(), desc: "Aporte no Tesouro", value: val, date: new Date().toISOString(), type: 'investment', details: details || (source==='wallet'?"Reinvestimento":"Aporte Novo")});
-            saveDataToFirebase(); closeModal('invest-modal'); playSound('coin');
+            saveDataToFirebase(); closeModal('invest-modal');
         };
 
         window.endOfDay = () => {
@@ -333,19 +361,18 @@
             if(confirm(`Encerrar dia?`)) {
                 window.data.history.unshift({id:Date.now(), desc:`Dia Encerrado`, details:`Rituais cumpridos (${done}/${window.data.habits.length}):\n• ${habitsDoneText}`, value:0, date:new Date().toISOString(), type:'ritual'});
                 window.data.habits.forEach(h=>h.done=false);
-                saveDataToFirebase(); playSound('coin');
+                saveDataToFirebase();
             }
         };
 
         window.toggleHabit = (i) => { window.data.habits[i].done = !window.data.habits[i].done; saveDataToFirebase(); };
         window.addHabit = () => { const t=document.getElementById('new-habit-text').value; if(t) { window.data.habits.push({id:Date.now(), text:t, done:false}); document.getElementById('new-habit-text').value=''; saveDataToFirebase(); } };
         window.removeHabit = (i) => { window.data.habits.splice(i,1); saveDataToFirebase(); };
-        
         window.addAsset = () => { const n=document.getElementById('asset-name').value; const i=document.getElementById('asset-img').value; if(n){ window.data.assets.push({id:Date.now(), name:n, img:i}); saveDataToFirebase(); closeModal('asset-modal'); }};
         window.deleteAsset = (id) => { if(confirm('Remover?')) { window.data.assets = window.data.assets.filter(a=>a.id!==id); saveDataToFirebase(); }};
         window.deleteTrans = (id) => { if(confirm('Remover?')) { const item = window.data.history.find(x=>x.id===id); if(item.type==='expense') window.data.wallet+=item.value; else if(item.type==='income') window.data.wallet-=item.value; else if(item.type==='investment'){ window.data.principal-=item.value; if(item.desc.includes('Reinvestimento')) window.data.wallet+=item.value; } window.data.history = window.data.history.filter(x=>x.id!==id); saveDataToFirebase(); }};
 
-        // --- RENDERIZADORES ---
+        // Renderizadores
         window.renderHabits = () => { const l=document.getElementById('habits-list'); l.innerHTML=''; window.data.habits.forEach((h,i)=>{ l.innerHTML+=`<div class="flex items-center justify-between group p-2 bg-white/5 rounded-xl hover:bg-white/10 transition"><label class="flex items-center gap-3 cursor-pointer w-full"><input type="checkbox" ${h.done?'checked':''} onchange="toggleHabit(${i})" class="w-5 h-5 accent-emerald-500 rounded border-zinc-700"><span class="text-sm text-zinc-300 ${h.done?'line-through opacity-50':''}">${h.text}</span></label><button onclick="removeHabit(${i})" class="text-zinc-600 hover:text-red-500 opacity-0 group-hover:opacity-100 px-2"><i class="fa-solid fa-trash"></i></button></div>` }); };
         window.renderAssets = () => { const l=document.getElementById('assets-list'); if(window.data.assets.length===0){l.innerHTML=`<div class="min-w-[140px] h-[180px] rounded-xl bg-zinc-800/50 border border-dashed border-zinc-700 flex flex-col items-center justify-center text-zinc-500 text-xs"><i class="fa-solid fa-image text-2xl mb-2 opacity-30"></i>Visualizar</div>`;return;} l.innerHTML=''; window.data.assets.forEach(a=>{ const bg=a.img?`background-image:url('${a.img}');background-size:cover;`:'background:#333'; l.innerHTML+=`<div class="min-w-[140px] h-[180px] rounded-xl relative overflow-hidden group shadow-lg border border-white/10" style="${bg}"><div class="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent"></div><div class="absolute bottom-3 left-3"><p class="text-white font-bold text-xs shadow-black drop-shadow-md">${a.name}</p></div><button onclick="deleteAsset(${a.id})" class="absolute top-2 right-2 text-white/50 hover:text-red-500 opacity-0 group-hover:opacity-100"><i class="fa-solid fa-trash"></i></button></div>`; }); };
         window.renderHistory = () => { 
@@ -362,13 +389,12 @@
             });
         };
 
-        // --- UTILITÁRIOS ---
+        // Utils
         const afformations = ["Por que é tão natural para mim ter R$ 3 milhões?", "Por que Levy se sente tão seguro com a minha presença?", "Como consegui equilibrar o sucesso com minha paz?", "Por que cuidar da casa da Mainha me traz tanta alegria?", "Por que meu inglês flui tão facilmente hoje?"];
-        window.rotateAfformation = () => { const el=document.getElementById('afformation-display'); const r=afformations[Math.floor(Math.random()*afformations.length)]; el.classList.remove('afformation-anim'); void el.offsetWidth; el.innerText=`"${r}"`; el.classList.add('afformation-anim'); const c=document.getElementById('cinema-afformation'); if(c) c.innerText=`"${r}"`; };
-        window.rotateSlide = () => { const s=document.querySelectorAll('.slide'); const a=document.querySelector('.slide.active'); a.classList.remove('active'); let n=a.nextElementSibling; if(!n||!n.classList.contains('slide')) n=s[0]; n.classList.add('active'); };
+        window.rotateAfformation = () => { const el=document.getElementById('afformation-display'); if(!el)return; const r=afformations[Math.floor(Math.random()*afformations.length)]; el.classList.remove('afformation-anim'); void el.offsetWidth; el.innerText=`"${r}"`; el.classList.add('afformation-anim'); const c=document.getElementById('cinema-afformation'); if(c) c.innerText=`"${r}"`; };
+        window.rotateSlide = () => { const s=document.querySelectorAll('.slide'); const a=document.querySelector('.slide.active'); if(!a)return; a.classList.remove('active'); let n=a.nextElementSibling; if(!n||!n.classList.contains('slide')) n=s[0]; n.classList.add('active'); };
         window.toggleDetails = (id) => { document.getElementById(`details-${id}`).classList.toggle('open'); document.getElementById(`arrow-${id}`).classList.toggle('open'); };
         
-        // Modais
         window.openScriptModal=()=>{document.getElementById('script-modal').classList.remove('hidden')};
         window.toggleCinema=()=>{const el=document.getElementById('cinema-mode'); if(el.classList.contains('hidden')){el.classList.remove('hidden');if(document.documentElement.requestFullscreen)document.documentElement.requestFullscreen();}else{el.classList.add('hidden');if(document.exitFullscreen)document.exitFullscreen();}};
         window.openWithdrawModal=()=>{document.getElementById('withdraw-modal').classList.remove('hidden')};
@@ -377,10 +403,6 @@
         window.openConfigModal=()=>{document.getElementById('config-modal').classList.remove('hidden')};
         window.openTransactionModal=(t)=>{document.getElementById('transaction-modal').classList.remove('hidden'); document.getElementById('trans-type').value=t; document.getElementById('modal-title').innerText=t==='expense'?'💸 Desfrutar':'✨ Manifestar'; document.getElementById('trans-date').value=new Date().toISOString().split('T')[0];};
         window.closeModal=(id)=>{document.getElementById(id).classList.add('hidden'); if(id==='transaction-modal'){ document.getElementById('trans-desc').value=''; document.getElementById('trans-value').value=''; document.getElementById('trans-img').value=''; document.getElementById('trans-details').value=''; } else { document.getElementById('invest-value').value=''; }};
-        
-        // Sons
-        const audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-        function playSound(t){ if(audioCtx.state==='suspended')audioCtx.resume(); const o=audioCtx.createOscillator(); const g=audioCtx.createGain(); o.connect(g); g.connect(audioCtx.destination); if(t==='coin'){o.type='sine';o.frequency.setValueAtTime(1200,audioCtx.currentTime);o.frequency.exponentialRampToValueAtTime(2000,audioCtx.currentTime+0.1);g.gain.setValueAtTime(0.3,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(0.01,audioCtx.currentTime+0.5);o.start();o.stop(audioCtx.currentTime+0.5);}else{o.type='triangle';o.frequency.setValueAtTime(100,audioCtx.currentTime);g.gain.setValueAtTime(0.2,audioCtx.currentTime);g.gain.linearRampToValueAtTime(0.01,audioCtx.currentTime+0.15);o.start();o.stop(audioCtx.currentTime+0.15);}}
     </script>
 </body>
 </html>
