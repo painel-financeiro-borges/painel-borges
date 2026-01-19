@@ -127,14 +127,20 @@
 
                     <div class="mb-3" id="areaInputChecklist" style="display:none;">
                         <div class="input-group mb-2">
-                            <input type="text" id="newCheckItem" class="form-control" placeholder="Novo item...">
+                            <select id="newCheckPriority" class="form-select" style="max-width: 100px;">
+                                <option value="low">🟢</option>
+                                <option value="medium">🟡</option>
+                                <option value="urgent">🔴</option>
+                            </select>
+                            <input type="text" id="newCheckItem" class="form-control" placeholder="Item...">
                             <button class="btn btn-outline-secondary" onclick="addTempItem()"><i class="fas fa-plus"></i></button>
                         </div>
+                        <small class="text-muted d-block mb-2">Arraste para reordenar:</small>
                         <div id="tempChecklistList" class="checklist-container">
                             </div>
                     </div>
 
-                    <label class="small text-muted">Cor</label>
+                    <label class="small text-muted">Cor do Card</label>
                     <div class="d-flex gap-2 mb-4">
                         <div class="color-dot bg-grad-1 selected" onclick="selectSubColor(this, 'bg-grad-1')"></div>
                         <div class="color-dot bg-grad-2" onclick="selectSubColor(this, 'bg-grad-2')"></div>
