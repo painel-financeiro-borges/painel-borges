@@ -73,9 +73,25 @@ function initProjects() {
             card.innerHTML = `<div class="d-flex w-100 justify-content-between"><span class="badge bg-white text-dark opacity-75">${data.type}</span><i class="fas fa-pen" style="opacity:0.6; cursor:pointer; padding:5px;" onclick="editProject('${data.id}', '${data.title}', '${data.type}', '${data.color}')"></i></div><h4 class="fw-bold text-start mt-2">${data.title}</h4><div class="mt-auto text-end w-100 opacity-75 small"><i class="fas fa-arrow-right"></i></div>`;
             targetGrid.appendChild(card);
         });
+        
+        // CONFIGURAÇÃO MOBILE CORRIGIDA: delay + threshold
         ['Profissional', 'Pessoal', 'Ideia'].forEach(type => {
             const gridEl = document.getElementById(`grid-${type}`);
-            if(gridEl) { new Sortable(gridEl, { group: 'projects', animation: 150, ghostClass: 'sortable-ghost', onEnd: async function(evt) { const newType = evt.to.getAttribute('data-type'); const projId = evt.item.getAttribute('data-id'); if (evt.from !== evt.to) { await updateDoc(doc(db, `users/${currentUser.uid}/projects`, projId), { type: newType }); } updateProjectOrder(evt.to); } }); }
+            if(gridEl) { 
+                new Sortable(gridEl, { 
+                    group: 'projects', 
+                    animation: 150, 
+                    ghostClass: 'sortable-ghost', 
+                    delay: 200, // Espera 200ms para ativar drag
+                    delayOnTouchOnly: true,
+                    touchStartThreshold: 10, // Se mover > 10px antes do delay, é scroll
+                    onEnd: async function(evt) { 
+                        const newType = evt.to.getAttribute('data-type'); const projId = evt.item.getAttribute('data-id'); 
+                        if (evt.from !== evt.to) { await updateDoc(doc(db, `users/${currentUser.uid}/projects`, projId), { type: newType }); } 
+                        updateProjectOrder(evt.to); 
+                    } 
+                }); 
+            }
         });
     });
 }
@@ -113,20 +129,16 @@ const subCardModal = new bootstrap.Modal(document.getElementById('subCardModal')
 window.toggleSubCardInputs = () => { const type = document.getElementById('subCardType').value; document.getElementById('areaInputText').style.display = (type === 'checklist') ? 'none' : 'block'; document.getElementById('areaInputChecklist').style.display = (type === 'checklist') ? 'block' : 'none'; };
 document.getElementById('subCardType').onchange = window.toggleSubCardInputs;
 
-// --- LÓGICA DO CHECKLIST ARRASTÁVEL ---
 window.renderTempChecklist = () => {
     const container = document.getElementById('tempChecklistList');
     container.innerHTML = '';
     tempChecklistItems.forEach((item, index) => {
         const div = document.createElement('div');
-        // Adiciona classe de cor baseada na prioridade
         div.className = `checklist-item cl-${item.priority || 'low'} ${item.done ? 'done' : ''}`;
         div.innerHTML = `<input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleTempItem(${index})"><span>${item.text}</span><i class="fas fa-times text-danger" style="cursor:pointer" onclick="removeTempItem(${index})"></i>`;
         container.appendChild(div);
     });
 };
-
-// Adiciona com prioridade
 window.addTempItem = () => {
     const input = document.getElementById('newCheckItem');
     const priority = document.getElementById('newCheckPriority').value;
@@ -135,41 +147,23 @@ window.addTempItem = () => {
     input.value = '';
     renderTempChecklist();
 };
-
 window.removeTempItem = (index) => { tempChecklistItems.splice(index, 1); renderTempChecklist(); };
 window.toggleTempItem = (index) => { tempChecklistItems[index].done = !tempChecklistItems[index].done; renderTempChecklist(); };
 
 window.openSubCardModal = () => { 
     document.getElementById('subCardId').value = ''; document.getElementById('subCardTitle').value = ''; document.getElementById('subCardContent').value = ''; document.getElementById('subCardType').value = 'checklist'; 
     tempChecklistItems = []; renderTempChecklist(); toggleSubCardInputs(); document.getElementById('btnDelSubCard').style.display = 'none'; 
-    
-    // Inicia Sortable na lista do modal
-    initSubCardSortable();
-    subCardModal.show(); 
+    initSubCardSortable(); subCardModal.show(); 
 };
-
 window.editSubCard = (id, data) => { 
     document.getElementById('subCardId').value = id; document.getElementById('subCardTitle').value = data.title; document.getElementById('subCardContent').value = data.content || ''; document.getElementById('subCardType').value = data.type; document.getElementById('subCardColor').value = data.color; 
     tempChecklistItems = data.items || []; renderTempChecklist(); toggleSubCardInputs(); document.getElementById('btnDelSubCard').style.display = 'block'; 
-    initSubCardSortable();
-    subCardModal.show(); 
+    initSubCardSortable(); subCardModal.show(); 
 };
-
-// Torna a lista arrastável
 function initSubCardSortable() {
     const el = document.getElementById('tempChecklistList');
-    if(el) {
-        new Sortable(el, {
-            animation: 150,
-            onEnd: function(evt) {
-                // Reordena o array baseado no movimento
-                const item = tempChecklistItems.splice(evt.oldIndex, 1)[0];
-                tempChecklistItems.splice(evt.newIndex, 0, item);
-            }
-        });
-    }
+    if(el) { new Sortable(el, { animation: 150, onEnd: function(evt) { const item = tempChecklistItems.splice(evt.oldIndex, 1)[0]; tempChecklistItems.splice(evt.newIndex, 0, item); } }); }
 }
-
 window.selectSubColor = (el, color) => { document.querySelectorAll('#subCardModal .color-dot').forEach(d => d.classList.remove('selected')); el.classList.add('selected'); document.getElementById('subCardColor').value = color; };
 document.getElementById('btnSaveSubCard').onclick = async () => { const id = document.getElementById('subCardId').value; const title = document.getElementById('subCardTitle').value; const content = document.getElementById('subCardContent').value; const type = document.getElementById('subCardType').value; const color = document.getElementById('subCardColor').value; if(!title) return; const data = { title, content, type, color, items: tempChecklistItems, projectId: activeProjectId, updatedAt: new Date() }; if(id) await updateDoc(doc(db, `users/${currentUser.uid}/subcards`, id), data); else { data.createdAt = new Date(); await addDoc(collection(db, `users/${currentUser.uid}/subcards`), data); } subCardModal.hide(); };
 document.getElementById('btnDelSubCard').onclick = async () => { if(confirm("Excluir?")) { await deleteDoc(doc(db, `users/${currentUser.uid}/subcards`, document.getElementById('subCardId').value)); subCardModal.hide(); } };
