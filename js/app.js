@@ -1,8 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, query, where, onSnapshot, doc, updateDoc, deleteDoc, orderBy } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, query, where, onSnapshot, doc, updateDoc, deleteDoc, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-// --- 1. CONFIGURAÇÃO FIREBASE ---
 const firebaseConfig = {
     apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
     authDomain: "painel-financeiro-borges.firebaseapp.com",
@@ -19,7 +18,6 @@ const db = getFirestore(app);
 let currentUser = null;
 let activeProjectId = null;
 
-// --- 2. AUTH E UI ---
 const ui = {
     loginScreen: document.getElementById('loginScreen'),
     loading: document.getElementById('loadingOverlay'),
@@ -32,10 +30,13 @@ const ui = {
         back: document.getElementById('backBtn'),
         title: document.getElementById('pageTitle'),
         user: document.getElementById('userEmail')
+    },
+    sections: {
+        resources: document.getElementById('area-resources'),
+        kanban: document.getElementById('area-kanban')
     }
 };
 
-// Login/Logout
 document.getElementById('btnLogin').onclick = async () => {
     try { ui.loading.style.display = 'flex'; await signInWithPopup(auth, new GoogleAuthProvider()); } 
     catch (e) { document.getElementById('authError').innerText = e.message; ui.loading.style.display = 'none'; }
@@ -57,23 +58,30 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
-// --- 3. NAVEGAÇÃO ---
-window.navigate = (target, title = 'Hub', extra = null) => {
+// --- NAVEGAÇÃO E MODOS ---
+window.navigate = (target, title = 'Painel Borges', extra = null) => {
     Object.values(ui.views).forEach(el => el.style.display = 'none');
     ui.nav.back.style.display = 'none';
     
     if (target === 'home') {
         ui.views.projects.style.display = 'block';
-        ui.nav.title.innerHTML = '<i class="fas fa-cube text-primary me-2"></i>Hub';
+        ui.nav.title.innerHTML = '<i class="fas fa-cube text-primary me-2"></i>Painel Borges';
         activeProjectId = null;
     } 
     else if (target === 'kanban') {
         ui.views.kanban.style.display = 'block';
         ui.nav.back.style.display = 'block';
         ui.nav.title.innerText = title;
-        activeProjectId = extra;
-        initKanban(extra);     // Carrega Tarefas
-        initSubCards(extra);   // Carrega Recursos (Cards Híbridos)
+        activeProjectId = extra.id;
+        
+        // Carrega dados e configura visualização
+        initKanban(extra.id);
+        initSubCards(extra.id);
+        
+        // Define o modo salvo ou padrão
+        const savedMode = extra.viewMode || 'hybrid';
+        document.getElementById('viewModeSelector').value = savedMode;
+        applyViewMode(savedMode);
     }
     else if (target === 'iframe') {
         ui.views.iframe.src = extra;
@@ -95,9 +103,27 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     };
 });
 
-// --- 4. PROJETOS ---
+// Lógica de Visualização (Híbrido/Cards/Kanban)
+document.getElementById('viewModeSelector').onchange = async (e) => {
+    const mode = e.target.value;
+    applyViewMode(mode);
+    if(activeProjectId) {
+        await updateDoc(doc(db, `users/${currentUser.uid}/projects`, activeProjectId), { viewMode: mode });
+    }
+};
+
+function applyViewMode(mode) {
+    const { resources, kanban } = ui.sections;
+    if(mode === 'hybrid') { resources.style.display = 'block'; kanban.style.display = 'block'; }
+    else if(mode === 'cards') { resources.style.display = 'block'; kanban.style.display = 'none'; }
+    else if(mode === 'kanban') { resources.style.display = 'none'; kanban.style.display = 'block'; }
+}
+
+// --- PROJETOS (COM DRAG & DROP REAL) ---
 function initProjects() {
-    const q = query(collection(db, `users/${currentUser.uid}/projects`), orderBy('createdAt', 'desc'));
+    // Ordena por 'position' para manter a organização do usuário
+    const q = query(collection(db, `users/${currentUser.uid}/projects`), orderBy('position', 'asc'));
+    
     onSnapshot(q, (snap) => {
         const grid = document.getElementById('projectsGrid');
         grid.innerHTML = '';
@@ -107,33 +133,60 @@ function initProjects() {
             const data = docSnap.data();
             const card = document.createElement('button');
             card.className = `project-card ${data.color}`;
-            card.onclick = () => window.navigate('kanban', data.title, docSnap.id);
+            card.setAttribute('data-id', docSnap.id); // Importante para o Drag&Drop
+            
+            // Dados para abrir o projeto
+            const projData = { id: docSnap.id, viewMode: data.viewMode };
+            
+            card.onclick = () => window.navigate('kanban', data.title, projData);
             card.innerHTML = `
                 <div class="d-flex w-100 justify-content-between">
-                    <span class="badge bg-white text-dark opacity-75">Projeto</span>
-                    <i class="fas fa-pen" style="opacity:0.6" onclick="event.stopPropagation(); editProject('${docSnap.id}', '${data.title}', '${data.color}')"></i>
+                    <span class="badge bg-white text-dark opacity-75">${data.type || 'Geral'}</span>
+                    <i class="fas fa-pen" style="opacity:0.6" onclick="event.stopPropagation(); editProject('${docSnap.id}', '${data.title}', '${data.type}', '${data.color}')"></i>
                 </div>
                 <h4 class="fw-bold text-start mt-2">${data.title}</h4>
                 <div class="mt-auto text-end w-100 opacity-75 small"><i class="fas fa-arrow-right"></i></div>
             `;
             grid.appendChild(card);
         });
+
+        // Ativa Sortable no Grid de Projetos
+        new Sortable(grid, {
+            animation: 150,
+            delay: 200, // Delay para mobile não confundir scroll com drag
+            delayOnTouchOnly: true,
+            onEnd: function() {
+                updateProjectOrder();
+            }
+        });
     });
+}
+
+// Salva a nova ordem dos projetos no banco
+async function updateProjectOrder() {
+    const grid = document.getElementById('projectsGrid');
+    const cards = grid.querySelectorAll('.project-card');
+    const batch = writeBatch(db);
+
+    cards.forEach((card, index) => {
+        const id = card.getAttribute('data-id');
+        const ref = doc(db, `users/${currentUser.uid}/projects`, id);
+        batch.update(ref, { position: index });
+    });
+
+    await batch.commit();
 }
 
 // Criar/Editar Projeto
 const projModal = new bootstrap.Modal(document.getElementById('projectModal'));
-window.openSubCardModal = () => { // Função Global para botão "+ Novo Card"
-    document.getElementById('subCardId').value = '';
-    document.getElementById('subCardTitle').value = '';
-    document.getElementById('subCardContent').value = '';
-    document.getElementById('btnDelSubCard').style.display = 'none';
-    new bootstrap.Modal(document.getElementById('subCardModal')).show();
-};
 
 document.getElementById('fabBtn').onclick = () => {
-    if(activeProjectId) openTaskModal(); // Se no projeto, cria Tarefa Checklist
-    else {
+    if(activeProjectId) {
+        // Se estiver vendo só cards, abre modal de cards. Senão, abre tarefa.
+        const currentMode = document.getElementById('viewModeSelector').value;
+        if(currentMode === 'cards') openSubCardModal();
+        else openTaskModal();
+    } else {
         document.getElementById('projId').value = '';
         document.getElementById('projTitle').value = '';
         document.getElementById('btnDelProj').style.display = 'none';
@@ -141,9 +194,10 @@ document.getElementById('fabBtn').onclick = () => {
     }
 };
 
-window.editProject = (id, title, color) => {
+window.editProject = (id, title, type, color) => {
     document.getElementById('projId').value = id;
     document.getElementById('projTitle').value = title;
+    document.getElementById('projType').value = type || 'Profissional';
     document.getElementById('selectedColor').value = color;
     document.getElementById('btnDelProj').style.display = 'block';
     document.querySelectorAll('.color-dot').forEach(d => d.classList.toggle('selected', d.classList.contains(color)));
@@ -159,11 +213,21 @@ window.selectColor = (el, color) => {
 document.getElementById('btnSaveProj').onclick = async () => {
     const id = document.getElementById('projId').value;
     const title = document.getElementById('projTitle').value;
+    const type = document.getElementById('projType').value;
     const color = document.getElementById('selectedColor').value;
+    
     if(!title) return;
-    const data = { title, color, updatedAt: new Date() };
+    
+    // Position padrão: coloca no final (usando timestamp como fallback inicial)
+    const data = { title, type, color, updatedAt: new Date() };
+    
     if(id) await updateDoc(doc(db, `users/${currentUser.uid}/projects`, id), data);
-    else { data.createdAt = new Date(); await addDoc(collection(db, `users/${currentUser.uid}/projects`), data); }
+    else { 
+        data.createdAt = new Date(); 
+        data.position = 9999; // Joga pro final
+        data.viewMode = 'hybrid'; // Padrão
+        await addDoc(collection(db, `users/${currentUser.uid}/projects`), data); 
+    }
     projModal.hide();
 };
 
@@ -174,7 +238,7 @@ document.getElementById('btnDelProj').onclick = async () => {
     }
 };
 
-// --- 5. SUB-CARDS (RECURSOS) ---
+// --- SUB-CARDS e TAREFAS (Igual anterior, só mantendo a lógica) ---
 let subCardUnsub = null;
 function initSubCards(projectId) {
     if(subCardUnsub) subCardUnsub();
@@ -182,22 +246,30 @@ function initSubCards(projectId) {
     subCardUnsub = onSnapshot(q, (snap) => {
         const grid = document.getElementById('subCardsGrid');
         grid.innerHTML = '';
-        if(snap.empty) { grid.innerHTML = '<div class="text-muted small text-center w-100 py-3" style="grid-column: span 2;">Sem cards ainda.</div>'; return; }
+        if(snap.empty) { grid.innerHTML = '<div class="text-muted small text-center w-100 py-3" style="grid-column: span 2;">Sem recursos ainda.</div>'; return; }
         snap.forEach(docSnap => {
             const data = docSnap.data();
             const el = document.createElement('div');
             el.className = `sub-card ${data.color || 'bg-grad-1'}`;
             const icon = data.type === 'link' ? 'fa-link' : 'fa-align-left';
             el.innerHTML = `<i class="fas ${icon} sub-card-icon"></i><div class="sub-card-title">${data.title}</div><small class="opacity-75 mt-2" style="font-size:0.7rem">${data.type === 'link' ? 'Abrir Link' : 'Ver Texto'}</small>`;
-            el.onclick = () => {
-                if(data.type === 'link' && !confirm("Editar card? (Cancelar abre link)")) window.open(data.content, '_blank');
-                else editSubCard(docSnap.id, data);
-            };
+            el.onclick = () => { if(data.type === 'link' && !confirm("Editar card?")) window.open(data.content, '_blank'); else editSubCard(docSnap.id, data); };
             grid.appendChild(el);
         });
     });
 }
+// ... (Funções editSubCard, selectSubColor, btnSaveSubCard, btnDelSubCard são iguais ao anterior, omiti para brevidade mas estão no seu arquivo anterior) ...
+// Adicione aqui as funções do SubCard se não tiver (window.openSubCardModal, etc.)
+// Estou repetindo apenas o necessário para funcionar:
 
+const subCardModal = new bootstrap.Modal(document.getElementById('subCardModal'));
+window.openSubCardModal = () => {
+    document.getElementById('subCardId').value = '';
+    document.getElementById('subCardTitle').value = '';
+    document.getElementById('subCardContent').value = '';
+    document.getElementById('btnDelSubCard').style.display = 'none';
+    subCardModal.show();
+};
 window.editSubCard = (id, data) => {
     document.getElementById('subCardId').value = id;
     document.getElementById('subCardTitle').value = data.title;
@@ -205,15 +277,13 @@ window.editSubCard = (id, data) => {
     document.getElementById('subCardType').value = data.type;
     document.getElementById('subCardColor').value = data.color;
     document.getElementById('btnDelSubCard').style.display = 'block';
-    new bootstrap.Modal(document.getElementById('subCardModal')).show();
+    subCardModal.show();
 };
-
 window.selectSubColor = (el, color) => {
     document.querySelectorAll('#subCardModal .color-dot').forEach(d => d.classList.remove('selected'));
     el.classList.add('selected');
     document.getElementById('subCardColor').value = color;
 };
-
 document.getElementById('btnSaveSubCard').onclick = async () => {
     const id = document.getElementById('subCardId').value;
     const title = document.getElementById('subCardTitle').value;
@@ -224,17 +294,16 @@ document.getElementById('btnSaveSubCard').onclick = async () => {
     const data = { title, content, type, color, projectId: activeProjectId, updatedAt: new Date() };
     if(id) await updateDoc(doc(db, `users/${currentUser.uid}/subcards`, id), data);
     else { data.createdAt = new Date(); await addDoc(collection(db, `users/${currentUser.uid}/subcards`), data); }
-    bootstrap.Modal.getInstance(document.getElementById('subCardModal')).hide();
+    subCardModal.hide();
 };
-
 document.getElementById('btnDelSubCard').onclick = async () => {
     if(confirm("Excluir card?")) {
         await deleteDoc(doc(db, `users/${currentUser.uid}/subcards`, document.getElementById('subCardId').value));
-        bootstrap.Modal.getInstance(document.getElementById('subCardModal')).hide();
+        subCardModal.hide();
     }
 };
 
-// --- 6. TAREFAS (CHECKLIST) ---
+// KANBAN
 let kanbanUnsub = null;
 function initKanban(projectId) {
     if(kanbanUnsub) kanbanUnsub();
@@ -258,7 +327,6 @@ function initKanban(projectId) {
         Object.keys(counters).forEach(key => { const h = document.querySelector(`.kanban-header.${key} .count-badge`); if(h) h.innerText = counters[key]; });
     });
 }
-
 ['urgent', 'medium', 'low', 'none'].forEach(p => {
     new Sortable(document.getElementById(`col-${p}`), {
         group: 'kanban', animation: 150, delay: 100, delayOnTouchOnly: true,
@@ -274,7 +342,6 @@ window.openTaskModal = () => {
     document.getElementById('btnDelTask').style.display = 'none';
     taskModal.show();
 };
-
 window.editTask = (id, data) => {
     document.getElementById('taskId').value = id;
     document.getElementById('taskTitle').value = data.title;
@@ -283,7 +350,6 @@ window.editTask = (id, data) => {
     document.getElementById('btnDelTask').style.display = 'block';
     taskModal.show();
 };
-
 document.getElementById('btnSaveTask').onclick = async () => {
     const id = document.getElementById('taskId').value;
     const title = document.getElementById('taskTitle').value;
@@ -295,18 +361,15 @@ document.getElementById('btnSaveTask').onclick = async () => {
     else { data.createdAt = new Date(); await addDoc(collection(db, `users/${currentUser.uid}/tasks`), data); }
     taskModal.hide();
 };
-
 document.getElementById('btnDelTask').onclick = async () => {
     await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, document.getElementById('taskId').value), { deleted: true });
     taskModal.hide();
 };
 
-// --- 7. EXTRAS ---
 document.getElementById('taskSearch').onkeyup = (e) => {
     const term = e.target.value.toLowerCase();
     document.querySelectorAll('.task-card').forEach(card => card.style.display = card.innerText.toLowerCase().includes(term) ? 'block' : 'none');
 };
-
 document.getElementById('btnTrash').onclick = () => {
     const list = document.getElementById('trashList');
     list.innerHTML = '<div class="text-center p-3"><div class="spinner-border"></div></div>';
@@ -321,10 +384,8 @@ document.getElementById('btnTrash').onclick = () => {
         });
     });
 };
-
 window.restore = async (id) => await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, id), { deleted: false });
 window.nuke = async (id) => { if(confirm("Excluir para sempre?")) await deleteDoc(doc(db, `users/${currentUser.uid}/tasks`, id)); };
-
 document.getElementById('themeToggle').onclick = () => {
     document.body.classList.toggle('dark-mode');
     localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
