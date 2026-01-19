@@ -1,152 +1,204 @@
-/* RESET */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont;
-}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Painel Central Borges</title>
 
-/* BASE */
-body {
-  background: linear-gradient(180deg, #020617, #020617);
-  color: #e5e7eb;
-  min-height: 100vh;
-}
+  <!-- Firebase v8 -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
-/* HEADER */
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 24px 40px;
-  border-bottom: 1px solid #1e293b;
-}
+  <!-- Fonte -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
-header h1 {
-  font-size: 20px;
-  font-weight: 600;
-}
+  <!-- SortableJS -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
-#auth-area button {
-  background: #0f172a;
-  color: #fff;
-  border: 1px solid #334155;
-  padding: 10px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
+  <link rel="stylesheet" href="dashboard.css">
+</head>
 
-#auth-area button:hover {
-  background: #1e293b;
-}
+<body>
 
-/* MAIN */
-main {
-  padding: 40px;
-}
+<header>
+  <h1>🧠 Painel Central Borges</h1>
 
-/* DASHBOARD GRID */
-.cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 24px;
-}
+  <div id="auth-area">
+    <button id="loginBtn" onclick="loginGoogle()">Entrar com Google</button>
+    <button id="logoutBtn" onclick="logout()" style="display:none;">Sair</button>
+  </div>
+</header>
 
-/* CARD */
-.card {
-  background: linear-gradient(180deg, #020617, #020617);
-  border: 1px solid #1e293b;
-  border-radius: 16px;
-  padding: 28px;
-  cursor: pointer;
-  transition: all 0.25s ease;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
-}
+<main id="app" style="display:none;">
 
-.card:hover {
-  transform: translateY(-6px);
-  border-color: #38bdf8;
-}
+  <!-- DASHBOARD -->
+  <section class="cards">
+    <div class="card" onclick="location.href='life.html'">
+      <span>🧠</span><div class="card-title">Vida</div>
+    </div>
 
-.card span {
-  font-size: 28px;
-  display: block;
-  margin-bottom: 12px;
-}
+    <div class="card" onclick="location.href='index.html'">
+      <span>💰</span><div class="card-title">Financeiro</div>
+    </div>
 
-.card-title {
-  font-size: 16px;
-  font-weight: 500;
-}
+    <div class="card" onclick="abrirChecklists()">
+      <span>✅</span><div class="card-title">Checklists</div>
+    </div>
+  </section>
 
-/* CHECKLIST */
-#checklists-section {
-  margin-top: 40px;
-}
+  <!-- CHECKLIST KANBAN -->
+  <section id="checklists-section" style="display:none;">
 
-#checklists-section h2 {
-  margin-bottom: 24px;
-}
+    <h2>✅ Checklist Organizado</h2>
 
-/* ITEM */
-.item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: #020617;
-  border: 1px solid #1e293b;
-  border-radius: 12px;
-  padding: 12px 16px;
-  margin-bottom: 12px;
-}
+    <div class="kanban">
 
-.item input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  color: #fff;
-  font-size: 14px;
-  border-bottom: 1px solid transparent;
-}
+      <div class="column">
+        <h3>🔴 Urgente</h3>
+        <div class="list" data-priority="high"></div>
+      </div>
 
-.item input:focus {
-  outline: none;
-  border-bottom: 1px solid #38bdf8;
-}
+      <div class="column">
+        <h3>🟡 Médio</h3>
+        <div class="list" data-priority="medium"></div>
+      </div>
 
-/* PRIORIDADES */
-.priority-high { border-left: 6px solid #ef4444; }
-.priority-medium { border-left: 6px solid #facc15; }
-.priority-low { border-left: 6px solid #22c55e; }
-.priority-none { border-left: 6px solid #64748b; }
+      <div class="column">
+        <h3>🟢 Baixo</h3>
+        <div class="list" data-priority="low"></div>
+      </div>
 
-/* NOVO ITEM */
-.novo-item {
-  display: flex;
-  gap: 12px;
-  margin-top: 20px;
-}
+      <div class="column">
+        <h3>⚪ Sem prioridade</h3>
+        <div class="list" data-priority="none"></div>
+      </div>
 
-.novo-item input,
-.novo-item select {
-  background: #020617;
-  border: 1px solid #334155;
-  border-radius: 8px;
-  padding: 10px;
-  color: #fff;
-}
+    </div>
 
-.novo-item button {
-  background: #38bdf8;
-  color: #020617;
-  border: none;
-  border-radius: 8px;
-  padding: 10px 18px;
-  cursor: pointer;
-  font-weight: 500;
-}
+    <div class="novo-item">
+      <input id="novo-item-texto" placeholder="Novo item">
+      <select id="novo-item-prioridade">
+        <option value="none">Sem prioridade</option>
+        <option value="high">Urgente</option>
+        <option value="medium">Médio</option>
+        <option value="low">Baixo</option>
+      </select>
+      <button onclick="criarItem()">Adicionar</button>
+    </div>
 
-.novo-item button:hover {
-  opacity: 0.9;
-}
+  </section>
+
+</main>
+
+<script>
+  // Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
+    authDomain: "painel-financeiro-borges.firebaseapp.com",
+    projectId: "painel-financeiro-borges",
+    storageBucket: "painel-financeiro-borges.firebasestorage.app",
+    messagingSenderId: "354997627208",
+    appId: "1:354997627208:web:90604d0a7dcd45b6e4eb7d"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+  let uid = null;
+
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      uid = user.uid;
+      loginBtn.style.display = "none";
+      logoutBtn.style.display = "inline-block";
+      app.style.display = "block";
+      carregarItens();
+      ativarDrag();
+    }
+  });
+
+  function loginGoogle() {
+    auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+  }
+
+  function logout() {
+    auth.signOut();
+  }
+
+  function abrirChecklists() {
+    document.querySelector(".cards").style.display = "none";
+    document.getElementById("checklists-section").style.display = "block";
+  }
+
+  function criarItem() {
+    const texto = novoItemTexto.value;
+    const prioridade = novoItemPrioridade.value;
+    if (!texto) return;
+
+    db.collection("users").doc(uid)
+      .collection("checklist")
+      .add({
+        text: texto,
+        priority: prioridade,
+        position: Date.now(),
+        deleted: false
+      })
+      .then(() => {
+        novoItemTexto.value = "";
+        carregarItens();
+      });
+  }
+
+  function carregarItens() {
+    document.querySelectorAll(".list").forEach(l => l.innerHTML = "");
+
+    db.collection("users").doc(uid)
+      .collection("checklist")
+      .where("deleted", "==", false)
+      .get()
+      .then(snapshot => {
+        snapshot.forEach(doc => {
+          const item = doc.data();
+          const div = document.createElement("div");
+          div.className = "item";
+          div.dataset.id = doc.id;
+          div.innerHTML = `
+            <input value="${item.text}" onchange="editarItem('${doc.id}', this.value)">
+            <button onclick="excluirItem('${doc.id}')">🗑️</button>
+          `;
+          document.querySelector(`.list[data-priority="${item.priority}"]`)
+            .appendChild(div);
+        });
+      });
+  }
+
+  function editarItem(id, texto) {
+    db.collection("users").doc(uid).collection("checklist")
+      .doc(id).update({ text: texto });
+  }
+
+  function excluirItem(id) {
+    db.collection("users").doc(uid).collection("checklist")
+      .doc(id).update({ deleted: true }).then(carregarItens);
+  }
+
+  function ativarDrag() {
+    document.querySelectorAll(".list").forEach(list => {
+      new Sortable(list, {
+        group: "kanban",
+        animation: 150,
+        onAdd: evt => {
+          const id = evt.item.dataset.id;
+          const novaPrioridade = evt.to.dataset.priority;
+          db.collection("users").doc(uid)
+            .collection("checklist")
+            .doc(id).update({ priority: novaPrioridade });
+        }
+      });
+    });
+  }
+</script>
+
+</body>
+</html>
