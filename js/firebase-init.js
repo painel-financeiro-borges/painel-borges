@@ -9,7 +9,7 @@ const firebaseConfig = {
   appId: "1:354997627208:web:90604d0a7dcd45b6e4eb7d"
 };
 
-// Inicializa Firebase (modo compat)
+// Inicializa Firebase
 firebase.initializeApp(firebaseConfig);
 
 // Serviços globais
