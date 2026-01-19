@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Painel Borges | Hub Central</title>
+    <title>Painel Borges</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -19,8 +19,8 @@
     <div id="loginScreen">
         <div class="login-card fade-in">
             <h1 class="display-4 mb-2">🚀</h1>
-            <h3 class="mb-4 fw-bold">Central de Comando</h3>
-            <p class="text-muted mb-4">Gerencie Vida, Finanças e Projetos.</p>
+            <h3 class="mb-4 fw-bold">Painel Borges</h3>
+            <p class="text-muted mb-4">Central de Comando Pessoal & Profissional.</p>
             <button id="btnLogin" class="btn btn-dark w-100 py-3 rounded-pill shadow-lg">
                 <i class="fab fa-google me-2"></i> Acessar com Google
             </button>
@@ -33,8 +33,8 @@
             <button id="backBtn" class="btn btn-icon me-2" style="display:none;">
                 <i class="fas fa-arrow-left"></i>
             </button>
-            <span class="navbar-brand mb-0 h1" id="pageTitle">
-                <i class="fas fa-cube text-primary me-2"></i>Hub
+            <span class="navbar-brand mb-0 h1 fw-bold" id="pageTitle">
+                <i class="fas fa-cube text-primary me-2"></i>Painel Borges
             </span>
         </div>
         
@@ -83,44 +83,52 @@
                 <h5 class="fw-bold m-0">Meus Espaços</h5>
                 <span class="badge bg-primary rounded-pill" id="projectCount">0</span>
             </div>
+            <p class="text-muted small mb-2"><i class="fas fa-info-circle"></i> Segure e arraste para organizar (Pessoal esq. / Profissional dir.)</p>
             <div id="projectsGrid" class="project-grid"></div>
         </section>
 
         <section id="view-kanban" style="display:none;" class="fade-in pb-5">
             
-            <div class="d-flex justify-content-between align-items-center mb-3 mt-2">
-                <h6 class="fw-bold text-muted m-0"><i class="fas fa-layer-group me-2"></i>Recursos & Copys</h6>
-                <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="openSubCardModal()">
-                    <i class="fas fa-plus me-1"></i> Novo Card
+            <div class="d-flex justify-content-between align-items-center mb-3 p-2 bg-white rounded shadow-sm border">
+                <select id="viewModeSelector" class="form-select form-select-sm border-0 fw-bold text-primary" style="width: auto;">
+                    <option value="hybrid">👁️ Modo Híbrido (Tudo)</option>
+                    <option value="cards">🃏 Só Cards (Recursos)</option>
+                    <option value="kanban">✅ Só Checklist</option>
+                </select>
+                <button class="btn btn-sm btn-primary rounded-circle" onclick="openSubCardModal()" id="btnAddResource" title="Novo Recurso">
+                    <i class="fas fa-plus"></i>
                 </button>
             </div>
 
-            <div id="subCardsGrid" class="sub-card-grid mb-4">
-                </div>
-
-            <hr class="border-secondary opacity-10 my-4">
-
-            <div class="search-bar-container mb-3">
-                <i class="fas fa-search text-muted"></i>
-                <input type="text" id="taskSearch" placeholder="Buscar tarefas...">
+            <div id="area-resources">
+                <h6 class="fw-bold text-muted mb-2 small ps-1">RECURSOS & COPYS</h6>
+                <div id="subCardsGrid" class="sub-card-grid mb-4"></div>
+                <hr class="border-secondary opacity-10 my-4">
             </div>
 
-            <div class="kanban-board">
-                <div class="kanban-col-wrapper">
-                    <div class="kanban-header urgent"><span>🔥 Urgente</span><span class="count-badge">0</span></div>
-                    <div id="col-urgent" class="kanban-col" data-priority="urgent"></div>
+            <div id="area-kanban">
+                <div class="search-bar-container mb-3">
+                    <i class="fas fa-search text-muted"></i>
+                    <input type="text" id="taskSearch" placeholder="Buscar tarefas...">
                 </div>
-                <div class="kanban-col-wrapper">
-                    <div class="kanban-header medium"><span>⚠️ Atenção</span><span class="count-badge">0</span></div>
-                    <div id="col-medium" class="kanban-col" data-priority="medium"></div>
-                </div>
-                <div class="kanban-col-wrapper">
-                    <div class="kanban-header low"><span>✅ Normal</span><span class="count-badge">0</span></div>
-                    <div id="col-low" class="kanban-col" data-priority="low"></div>
-                </div>
-                <div class="kanban-col-wrapper">
-                    <div class="kanban-header none"><span>📁 Arquivo</span><span class="count-badge">0</span></div>
-                    <div id="col-none" class="kanban-col" data-priority="none"></div>
+
+                <div class="kanban-board">
+                    <div class="kanban-col-wrapper">
+                        <div class="kanban-header urgent"><span>🔥 Urgente</span><span class="count-badge">0</span></div>
+                        <div id="col-urgent" class="kanban-col" data-priority="urgent"></div>
+                    </div>
+                    <div class="kanban-col-wrapper">
+                        <div class="kanban-header medium"><span>⚠️ Atenção</span><span class="count-badge">0</span></div>
+                        <div id="col-medium" class="kanban-col" data-priority="medium"></div>
+                    </div>
+                    <div class="kanban-col-wrapper">
+                        <div class="kanban-header low"><span>✅ Normal</span><span class="count-badge">0</span></div>
+                        <div id="col-low" class="kanban-col" data-priority="low"></div>
+                    </div>
+                    <div class="kanban-col-wrapper">
+                        <div class="kanban-header none"><span>📁 Arquivo</span><span class="count-badge">0</span></div>
+                        <div id="col-none" class="kanban-col" data-priority="none"></div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -134,12 +142,23 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow">
                 <div class="modal-body p-4">
-                    <h5 class="fw-bold mb-3">Novo Projeto</h5>
+                    <h5 class="fw-bold mb-3">Novo Espaço</h5>
                     <input type="hidden" id="projId">
+                    
                     <div class="form-floating mb-3">
                         <input type="text" class="form-control" id="projTitle" placeholder="Nome">
                         <label>Nome do Projeto / Área</label>
                     </div>
+
+                    <div class="form-floating mb-3">
+                        <select class="form-select" id="projType">
+                            <option value="Profissional">💼 Profissional</option>
+                            <option value="Pessoal">🏠 Pessoal</option>
+                            <option value="Ideia">💡 Ideia</option>
+                        </select>
+                        <label>Tipo de Área</label>
+                    </div>
+
                     <label class="small text-muted mb-2">Estilo</label>
                     <div class="d-flex gap-2 mb-4 justify-content-center">
                         <div class="color-dot bg-grad-1 selected" onclick="selectColor(this, 'bg-grad-1')"></div>
@@ -162,17 +181,14 @@
                 <div class="modal-body p-4">
                     <h5 class="fw-bold mb-3">Novo Card de Recurso</h5>
                     <input type="hidden" id="subCardId">
-                    
                     <div class="mb-3">
-                        <label class="small text-muted">Título do Card</label>
+                        <label class="small text-muted">Título</label>
                         <input type="text" id="subCardTitle" class="form-control fw-bold" placeholder="Ex: Copy Vendas">
                     </div>
-
                     <div class="mb-3">
-                        <label class="small text-muted">Conteúdo (Link ou Texto)</label>
+                        <label class="small text-muted">Conteúdo</label>
                         <textarea id="subCardContent" class="form-control" rows="5" placeholder="Cole aqui o link ou o texto..."></textarea>
                     </div>
-
                     <div class="mb-3">
                         <label class="small text-muted">Tipo</label>
                         <select id="subCardType" class="form-select">
@@ -180,8 +196,7 @@
                             <option value="link">🔗 Link / URL</option>
                         </select>
                     </div>
-
-                    <label class="small text-muted mb-2">Cor do Card</label>
+                    <label class="small text-muted mb-2">Cor</label>
                     <div class="d-flex gap-2 mb-4">
                         <div class="color-dot bg-grad-1 selected" onclick="selectSubColor(this, 'bg-grad-1')"></div>
                         <div class="color-dot bg-grad-2" onclick="selectSubColor(this, 'bg-grad-2')"></div>
@@ -189,7 +204,6 @@
                         <div class="color-dot bg-grad-4" onclick="selectSubColor(this, 'bg-grad-4')"></div>
                     </div>
                     <input type="hidden" id="subCardColor" value="bg-grad-1">
-
                     <div class="d-flex gap-2">
                         <button class="btn btn-light w-100" id="btnDelSubCard" style="display:none"><i class="fas fa-trash text-danger"></i></button>
                         <button type="button" class="btn btn-primary w-100" id="btnSaveSubCard">Salvar</button>
@@ -204,7 +218,7 @@
             <div class="modal-content border-0 shadow">
                 <div class="modal-body p-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="fw-bold m-0">Item do Checklist</h5>
+                        <h5 class="fw-bold m-0">Item Checklist</h5>
                         <select id="taskPriority" class="form-select form-select-sm w-auto border-0 bg-light fw-bold text-primary">
                             <option value="urgent">🔥 Urgente</option>
                             <option value="medium">⚠️ Atenção</option>
@@ -214,7 +228,7 @@
                     </div>
                     <input type="hidden" id="taskId">
                     <input type="text" id="taskTitle" class="form-control form-control-lg border-0 px-0 fw-bold mb-2" placeholder="O que precisa ser feito?">
-                    <textarea id="taskDesc" class="form-control border-0 px-0 text-muted" rows="4" placeholder="Detalhes da tarefa..."></textarea>
+                    <textarea id="taskDesc" class="form-control border-0 px-0 text-muted" rows="4" placeholder="Detalhes..."></textarea>
                     <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
                         <button class="btn btn-light text-danger" id="btnDelTask"><i class="fas fa-trash"></i></button>
                         <button class="btn btn-primary px-4 rounded-pill" id="btnSaveTask">Salvar</button>
