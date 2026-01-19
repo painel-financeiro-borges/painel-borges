@@ -7,6 +7,7 @@ const loginBtn = document.getElementById("loginBtn");
 const logoutBtn = document.getElementById("logoutBtn");
 const loginToggleBtn = document.getElementById("loginToggleBtn");
 
+// LOGIN
 loginBtn.addEventListener("click", () => {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
@@ -20,11 +21,12 @@ loginBtn.addEventListener("click", () => {
     .catch(err => alert(err.message));
 });
 
+// LOGOUT
 logoutBtn.addEventListener("click", () => {
   auth.signOut();
 });
 
-// Alternância correta de estado
+// CONTROLE DE ESTADO
 auth.onAuthStateChanged(user => {
   if (user) {
     loginScreen.style.display = "none";
@@ -35,6 +37,15 @@ auth.onAuthStateChanged(user => {
     dashboard.style.display = "none";
     loginScreen.style.display = "flex";
     logoutBtn.style.display = "none";
+    loginToggleBtn.style.display = "inline-block";
+  }
+});
+
+// BOTÃO ENTRAR (quando deslogado)
+loginToggleBtn.addEventListener("click", () => {
+  loginScreen.style.display = "flex";
+  dashboard.style.display = "none";
+});    logoutBtn.style.display = "none";
     loginToggleBtn.style.display = "inline-block";
   }
 });
