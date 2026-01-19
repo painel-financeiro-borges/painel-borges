@@ -1,40 +1,102 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Dashboard Central</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- CSS -->
-  <link rel="stylesheet" href="css/dashboard.css">
+  <!-- Firebase v8 (compatível com seu projeto atual) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
-  <!-- Firebase (COMPAT) -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <link rel="stylesheet" href="dashboard.css">
 </head>
 
 <body>
 
-  <!-- LOGIN SCREEN -->
-  <section id="login-screen">
-    <h1>🔐 Acesso ao Painel Central</h1>
+<header>
+  <h1>🧠 Painel Central Borges</h1>
 
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Senha">
+  <div id="auth-area">
+    <button id="loginBtn" onclick="loginGoogle()">Entrar com Google</button>
+    <button id="logoutBtn" onclick="logout()" style="display:none;">Sair</button>
+  </div>
+</header>
 
-    <button id="loginBtn">Entrar</button>
+<main id="app" style="display:none;">
+
+  <section class="cards">
+    <div class="card" onclick="location.href='life.html'">🧠 Vida</div>
+    <div class="card" onclick="location.href='index.html'">💰 Financeiro</div>
+    <div class="card">🚀 Projetos</div>
+    <div class="card" onclick="abrirChecklists()">✅ Checklists</div>
+    <div class="card">📦 Arquivo Central</div>
   </section>
 
-  <!-- DASHBOARD -->
-  <section id="dashboard" style="display:none;">
+  <!-- CHECKLIST -->
+  <section id="checklists-section" style="display:none;">
+    <h2>✅ Checklists</h2>
 
-    <header>
-      <h1>🧠 Painel Central</h1>
+    <div id="checklists-container"></div>
 
-      <div class="auth-actions">
-        <button id="loginToggleBtn" style="display:none;">Entrar</button>
-        <button id="logoutBtn">Sair</button>
+    <div class="novo-item">
+      <input id="novo-item-texto" placeholder="Novo item">
+      <select id="novo-item-prioridade">
+        <option value="none">Sem prioridade</option>
+        <option value="high">Urgente</option>
+        <option value="medium">Médio</option>
+        <option value="low">Baixo</option>
+      </select>
+      <button onclick="criarItem()">Adicionar</button>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  // Firebase config (SEU APP ATUAL)
+  const firebaseConfig = {
+    apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
+    authDomain: "painel-financeiro-borges.firebaseapp.com",
+    projectId: "painel-financeiro-borges",
+    storageBucket: "painel-financeiro-borges.firebasestorage.app",
+    messagingSenderId: "354997627208",
+    appId: "1:354997627208:web:90604d0a7dcd45b6e4eb7d"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  // LOGIN GOOGLE
+  function loginGoogle() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider);
+  }
+
+  function logout() {
+    auth.signOut();
+  }
+
+  // CONTROLE DE SESSÃO
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      document.getElementById("loginBtn").style.display = "none";
+      document.getElementById("logoutBtn").style.display = "inline-block";
+      document.getElementById("app").style.display = "block";
+    } else {
+      document.getElementById("loginBtn").style.display = "inline-block";
+      document.getElementById("logoutBtn").style.display = "none";
+      document.getElementById("app").style.display = "none";
+    }
+  });
+</script>
+
+<script src="js/checklist.js"></script>
+
+</body>
+</html>        <button id="logoutBtn">Sair</button>
       </div>
     </header>
 
