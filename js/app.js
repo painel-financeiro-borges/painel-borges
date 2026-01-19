@@ -17,6 +17,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 let currentUser = null;
 let activeProjectId = null;
+let tempChecklistItems = []; // Armazena itens temporariamente
 
 const ui = {
     loginScreen: document.getElementById('loginScreen'),
@@ -131,16 +132,13 @@ function initProjects() {
                 const spacer = document.createElement('div');
                 spacer.className = 'spacer-card';
                 spacer.setAttribute('data-id', data.id);
-                // Spacer com Botão de Excluir
                 spacer.innerHTML = `
                     <i class="fas fa-arrows-alt spacer-icon"></i>
                     <div class="spacer-delete" title="Excluir"><i class="fas fa-times"></i></div>
                 `;
-                // Clique no botão X para apagar
-                const delBtn = spacer.querySelector('.spacer-delete');
-                delBtn.onclick = async (e) => {
+                spacer.querySelector('.spacer-delete').onclick = async (e) => {
                     e.stopPropagation();
-                    if(confirm("Remover espaço vazio?")) await deleteDoc(doc(db, `users/${currentUser.uid}/projects`, data.id));
+                    if(confirm("Remover espaço?")) await deleteDoc(doc(db, `users/${currentUser.uid}/projects`, data.id));
                 };
                 targetGrid.appendChild(spacer);
                 return;
@@ -199,14 +197,12 @@ document.getElementById('fabBtn').onclick = () => {
     }
 };
 
-// ... (Funções editProject, selectColor, btnSaveProj, btnDelProj mantidas iguais) ...
-// Estou simplificando para caber na resposta, mas você deve manter as funções de edição de projeto como estavam.
 window.editProject = (id, title, type, color) => { document.getElementById('projId').value = id; document.getElementById('projTitle').value = title; document.getElementById('projType').value = type; document.getElementById('selectedColor').value = color; document.getElementById('btnDelProj').style.display = 'block'; document.querySelectorAll('.color-dot').forEach(d => d.classList.toggle('selected', d.classList.contains(color))); projModal.show(); };
 window.selectColor = (el, color) => { document.querySelectorAll('#projectModal .color-dot').forEach(d => d.classList.remove('selected')); el.classList.add('selected'); document.getElementById('selectedColor').value = color; };
 document.getElementById('btnSaveProj').onclick = async () => { const id = document.getElementById('projId').value; const title = document.getElementById('projTitle').value; const type = document.getElementById('projType').value; const color = document.getElementById('selectedColor').value; if(!title) return; const data = { title, type, color, updatedAt: new Date(), isSpacer: false }; if(id) await updateDoc(doc(db, `users/${currentUser.uid}/projects`, id), data); else { data.createdAt = new Date(); data.position = 9999; data.viewMode = 'hybrid'; await addDoc(collection(db, `users/${currentUser.uid}/projects`), data); } projModal.hide(); };
 document.getElementById('btnDelProj').onclick = async () => { if(confirm("Apagar?")) { await deleteDoc(doc(db, `users/${currentUser.uid}/projects`, document.getElementById('projId').value)); projModal.hide(); } };
 
-// ... (SubCards logic mantida) ...
+// --- SUB-CARDS (COM LÓGICA DE CHECKLIST) ---
 let subCardUnsub = null;
 function initSubCards(projectId) {
     if(subCardUnsub) subCardUnsub();
@@ -219,21 +215,119 @@ function initSubCards(projectId) {
             const data = docSnap.data();
             const el = document.createElement('div');
             el.className = `sub-card ${data.color || 'bg-grad-1'}`;
-            const icon = data.type === 'link' ? 'fa-link' : 'fa-align-left';
-            el.innerHTML = `<i class="fas ${icon} sub-card-icon"></i><div class="sub-card-title">${data.title}</div><small class="opacity-75 mt-2" style="font-size:0.7rem">${data.type === 'link' ? 'Abrir Link' : 'Ver Texto'}</small>`;
-            el.onclick = () => { if(data.type === 'link' && !confirm("Editar?")) window.open(data.content, '_blank'); else editSubCard(docSnap.id, data); };
+            
+            let icon = 'fa-align-left';
+            if (data.type === 'link') icon = 'fa-link';
+            if (data.type === 'checklist') icon = 'fa-tasks';
+
+            el.innerHTML = `<i class="fas ${icon} sub-card-icon"></i><div class="sub-card-title">${data.title}</div><small class="opacity-75 mt-2" style="font-size:0.7rem">${data.type.toUpperCase()}</small>`;
+            
+            el.onclick = () => { 
+                if(data.type === 'link' && !confirm("Editar? (OK = Editar, Cancel = Abrir)")) window.open(data.content, '_blank'); 
+                else editSubCard(docSnap.id, data); 
+            };
             grid.appendChild(el);
         });
     });
 }
+
 const subCardModal = new bootstrap.Modal(document.getElementById('subCardModal'));
-window.openSubCardModal = () => { document.getElementById('subCardId').value = ''; document.getElementById('subCardTitle').value = ''; document.getElementById('subCardContent').value = ''; document.getElementById('btnDelSubCard').style.display = 'none'; subCardModal.show(); };
-window.editSubCard = (id, data) => { document.getElementById('subCardId').value = id; document.getElementById('subCardTitle').value = data.title; document.getElementById('subCardContent').value = data.content; document.getElementById('subCardType').value = data.type; document.getElementById('subCardColor').value = data.color; document.getElementById('btnDelSubCard').style.display = 'block'; subCardModal.show(); };
+
+// Helper para alternar inputs
+window.toggleSubCardInputs = () => {
+    const type = document.getElementById('subCardType').value;
+    document.getElementById('areaInputText').style.display = (type === 'checklist') ? 'none' : 'block';
+    document.getElementById('areaInputChecklist').style.display = (type === 'checklist') ? 'block' : 'none';
+};
+document.getElementById('subCardType').onchange = window.toggleSubCardInputs;
+
+// Helper para Renderizar Lista no Modal
+window.renderTempChecklist = () => {
+    const container = document.getElementById('tempChecklistList');
+    container.innerHTML = '';
+    tempChecklistItems.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = `checklist-item ${item.done ? 'done' : ''}`;
+        div.innerHTML = `
+            <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleTempItem(${index})">
+            <span>${item.text}</span>
+            <i class="fas fa-times text-danger" style="cursor:pointer" onclick="removeTempItem(${index})"></i>
+        `;
+        container.appendChild(div);
+    });
+};
+
+window.addTempItem = () => {
+    const input = document.getElementById('newCheckItem');
+    if(!input.value.trim()) return;
+    tempChecklistItems.push({ text: input.value, done: false });
+    input.value = '';
+    renderTempChecklist();
+};
+
+window.removeTempItem = (index) => {
+    tempChecklistItems.splice(index, 1);
+    renderTempChecklist();
+};
+
+window.toggleTempItem = (index) => {
+    tempChecklistItems[index].done = !tempChecklistItems[index].done;
+    renderTempChecklist();
+};
+
+window.openSubCardModal = () => { 
+    document.getElementById('subCardId').value = ''; 
+    document.getElementById('subCardTitle').value = ''; 
+    document.getElementById('subCardContent').value = ''; 
+    document.getElementById('subCardType').value = 'checklist'; // Padrão
+    tempChecklistItems = [];
+    renderTempChecklist();
+    toggleSubCardInputs();
+    document.getElementById('btnDelSubCard').style.display = 'none'; 
+    subCardModal.show(); 
+};
+
+window.editSubCard = (id, data) => { 
+    document.getElementById('subCardId').value = id; 
+    document.getElementById('subCardTitle').value = data.title; 
+    document.getElementById('subCardContent').value = data.content || ''; 
+    document.getElementById('subCardType').value = data.type; 
+    document.getElementById('subCardColor').value = data.color; 
+    
+    // Se for checklist, carrega itens
+    tempChecklistItems = data.items || [];
+    renderTempChecklist();
+    
+    toggleSubCardInputs();
+    document.getElementById('btnDelSubCard').style.display = 'block'; 
+    subCardModal.show(); 
+};
+
 window.selectSubColor = (el, color) => { document.querySelectorAll('#subCardModal .color-dot').forEach(d => d.classList.remove('selected')); el.classList.add('selected'); document.getElementById('subCardColor').value = color; };
-document.getElementById('btnSaveSubCard').onclick = async () => { const id = document.getElementById('subCardId').value; const title = document.getElementById('subCardTitle').value; const content = document.getElementById('subCardContent').value; const type = document.getElementById('subCardType').value; const color = document.getElementById('subCardColor').value; if(!title) return; const data = { title, content, type, color, projectId: activeProjectId, updatedAt: new Date() }; if(id) await updateDoc(doc(db, `users/${currentUser.uid}/subcards`, id), data); else { data.createdAt = new Date(); await addDoc(collection(db, `users/${currentUser.uid}/subcards`), data); } subCardModal.hide(); };
+
+document.getElementById('btnSaveSubCard').onclick = async () => { 
+    const id = document.getElementById('subCardId').value; 
+    const title = document.getElementById('subCardTitle').value; 
+    const content = document.getElementById('subCardContent').value; 
+    const type = document.getElementById('subCardType').value; 
+    const color = document.getElementById('subCardColor').value; 
+    
+    if(!title) return; 
+    
+    const data = { 
+        title, content, type, color, 
+        items: tempChecklistItems, // Salva os itens da lista
+        projectId: activeProjectId, updatedAt: new Date() 
+    }; 
+    
+    if(id) await updateDoc(doc(db, `users/${currentUser.uid}/subcards`, id), data); 
+    else { data.createdAt = new Date(); await addDoc(collection(db, `users/${currentUser.uid}/subcards`), data); } 
+    subCardModal.hide(); 
+};
+
 document.getElementById('btnDelSubCard').onclick = async () => { if(confirm("Excluir?")) { await deleteDoc(doc(db, `users/${currentUser.uid}/subcards`, document.getElementById('subCardId').value)); subCardModal.hide(); } };
 
-// KANBAN (COM NOMES ATUALIZADOS E SEM ARQUIVO)
+// KANBAN (COM BOTÃO VISÍVEL DE ADICIONAR)
 let kanbanUnsub = null;
 function initKanban(projectId) {
     if(kanbanUnsub) kanbanUnsub();
@@ -245,7 +339,7 @@ function initKanban(projectId) {
             const t = docSnap.data();
             if(t.deleted) return;
             let p = t.priority;
-            if (p === 'none' || !p) p = 'low'; // Padrão vira baixa
+            if (p === 'none' || !p) p = 'low';
             counters[p]++;
             const el = document.createElement('div');
             el.className = `task-card priority-${p}`;
@@ -261,30 +355,11 @@ function initKanban(projectId) {
 }
 ['urgent', 'medium', 'low'].forEach(p => { const el = document.getElementById(`col-${p}`); if(el) { new Sortable(el, { group: 'kanban', animation: 150, delay: 100, delayOnTouchOnly: true, onEnd: async (evt) => await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, evt.item.dataset.id), { priority: evt.to.dataset.priority }) }); } });
 const taskModal = new bootstrap.Modal(document.getElementById('taskModal'));
-
-// FUNÇÃO GLOBAL EXPORTADA PARA O BOTÃO HTML
-window.openTaskModal = () => { 
-    document.getElementById('taskId').value = ''; 
-    document.getElementById('taskTitle').value = ''; 
-    document.getElementById('taskDesc').value = ''; 
-    document.getElementById('taskPriority').value = 'low'; // Padrão
-    document.getElementById('btnDelTask').style.display = 'none'; 
-    taskModal.show(); 
-};
-
-window.editTask = (id, data) => { 
-    document.getElementById('taskId').value = id; 
-    document.getElementById('taskTitle').value = data.title; 
-    document.getElementById('taskDesc').value = data.desc || ''; 
-    let p = data.priority; if(p === 'none') p = 'low';
-    document.getElementById('taskPriority').value = p; 
-    document.getElementById('btnDelTask').style.display = 'block'; 
-    taskModal.show(); 
-};
+window.openTaskModal = () => { document.getElementById('taskId').value = ''; document.getElementById('taskTitle').value = ''; document.getElementById('taskDesc').value = ''; document.getElementById('taskPriority').value = 'low'; document.getElementById('btnDelTask').style.display = 'none'; taskModal.show(); };
+window.editTask = (id, data) => { document.getElementById('taskId').value = id; document.getElementById('taskTitle').value = data.title; document.getElementById('taskDesc').value = data.desc || ''; let p = data.priority; if(p === 'none') p = 'low'; document.getElementById('taskPriority').value = p; document.getElementById('btnDelTask').style.display = 'block'; taskModal.show(); };
 document.getElementById('btnSaveTask').onclick = async () => { const id = document.getElementById('taskId').value; const title = document.getElementById('taskTitle').value; const desc = document.getElementById('taskDesc').value; const priority = document.getElementById('taskPriority').value; if(!title) return; const data = { title, desc, priority, projectId: activeProjectId, deleted: false, updatedAt: new Date() }; if(id) await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, id), data); else { data.createdAt = new Date(); await addDoc(collection(db, `users/${currentUser.uid}/tasks`), data); } taskModal.hide(); };
 document.getElementById('btnDelTask').onclick = async () => { await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, document.getElementById('taskId').value), { deleted: true }); taskModal.hide(); };
 
-// Extras...
 document.getElementById('taskSearch').onkeyup = (e) => { const term = e.target.value.toLowerCase(); document.querySelectorAll('.task-card').forEach(card => card.style.display = card.innerText.toLowerCase().includes(term) ? 'block' : 'none'); };
 document.getElementById('btnTrash').onclick = () => { const list = document.getElementById('trashList'); list.innerHTML = '<div class="text-center p-3"><div class="spinner-border"></div></div>'; new bootstrap.Modal(document.getElementById('trashModal')).show(); const q = query(collection(db, `users/${currentUser.uid}/tasks`), where('deleted', '==', true)); onSnapshot(q, (snap) => { list.innerHTML = ''; if(snap.empty) { list.innerHTML = '<div class="text-center mt-5 text-muted">Lixeira vazia</div>'; return; } snap.forEach(docSnap => { const t = docSnap.data(); list.innerHTML += `<div class="card mb-2 border-0 shadow-sm"><div class="card-body d-flex justify-content-between align-items-center"><div><strong>${t.title}</strong></div><div><button class="btn btn-sm btn-success me-2" onclick="restore('${docSnap.id}')">Restaurar</button><button class="btn btn-sm btn-outline-danger" onclick="nuke('${docSnap.id}')">X</button></div></div></div>`; }); }); };
 window.restore = async (id) => await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, id), { deleted: false });
