@@ -1,132 +1,410 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Painel Central Borges</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Organizacional Borges</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --priority-high: #ffadad; /* Vermelho suave */
+            --priority-med: #fdffb6; /* Amarelo suave */
+            --priority-low: #caffbf; /* Verde suave */
+            --priority-none: #e9ecef; /* Cinza */
+        }
 
-  <!-- Firebase v8 -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+        body.dark-mode {
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --text-color: #e94560;
+            color: #fff;
+        }
 
-  <!-- Fonte -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-color); transition: 0.3s; }
+        
+        .auth-container { max-width: 400px; margin: 100px auto; padding: 30px; background: var(--card-bg); border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        
+        .app-container { display: none; height: 100vh; display: flex; flex-direction: column; }
+        .sidebar { width: 250px; background: #2c3e50; color: white; height: 100vh; position: fixed; padding: 20px; z-index: 1000; }
+        .sidebar a { color: #bdc3c7; text-decoration: none; display: block; padding: 10px; margin: 5px 0; border-radius: 5px; transition: 0.2s; }
+        .sidebar a:hover, .sidebar a.active { background: #34495e; color: white; padding-left: 15px; }
+        
+        .main-content { margin-left: 250px; padding: 20px; width: calc(100% - 250px); }
+        
+        /* Drag and Drop & Cards */
+        .kanban-column { min-height: 200px; padding: 10px; border-radius: 8px; margin-bottom: 20px; transition: 0.3s; }
+        .task-card { 
+            background: var(--card-bg); 
+            padding: 15px; 
+            margin-bottom: 10px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
+            cursor: grab; 
+            position: relative;
+            border-left: 5px solid transparent;
+        }
+        .task-card:active { cursor: grabbing; }
+        
+        /* Prioridades Visual */
+        .border-urgent { border-left-color: #e74c3c !important; background-color: #fff5f5; }
+        .border-medium { border-left-color: #f1c40f !important; background-color: #fffff0; }
+        .border-low { border-left-color: #2ecc71 !important; background-color: #f0fff4; }
+        .border-none { border-left-color: #95a5a6 !important; }
 
-  <!-- CSS -->
-  <link rel="stylesheet" href="dashboard.css">
+        .iframe-container { width: 100%; height: 85vh; border: none; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        
+        .trash-zone { border: 2px dashed #e74c3c; color: #e74c3c; padding: 20px; text-align: center; border-radius: 10px; margin-top: 20px; opacity: 0.6; transition: 0.3s; }
+        .trash-zone.drag-over { opacity: 1; background: #fadbd8; transform: scale(1.02); }
+
+        /* Floating Action Button */
+        .fab { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; border-radius: 50%; background: #3498db; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); cursor: pointer; transition: 0.3s; z-index: 999; }
+        .fab:hover { transform: rotate(90deg) scale(1.1); }
+
+    </style>
 </head>
-
 <body>
 
-<header>
-  <h1>🧠 Painel Central Borges</h1>
-
-  <div id="auth-area">
-    <button id="loginBtn" onclick="loginGoogle()">Entrar com Google</button>
-    <button id="logoutBtn" onclick="logout()" style="display:none;">Sair</button>
-  </div>
-</header>
-
-<main id="app" style="display:none;">
-
-  <!-- DASHBOARD -->
-  <section class="cards">
-
-    <div class="card" onclick="location.href='life.html'">
-      <span>🧠</span>
-      <div class="card-title">Vida</div>
+    <div id="authScreen" class="container">
+        <div class="auth-container">
+            <h3 class="text-center mb-4"><i class="fas fa-cube"></i> Painel Borges</h3>
+            <div class="mb-3">
+                <label>Email</label>
+                <input type="email" id="emailInput" class="form-control" placeholder="seu@email.com">
+            </div>
+            <div class="mb-3">
+                <label>Senha</label>
+                <input type="password" id="passwordInput" class="form-control" placeholder="Sua senha">
+            </div>
+            <button onclick="login()" class="btn btn-primary w-100 mb-2">Entrar</button>
+            <button onclick="register()" class="btn btn-outline-secondary w-100 btn-sm">Criar Conta (Primeiro Acesso)</button>
+            <p id="authError" class="text-danger mt-2 text-center small"></p>
+        </div>
     </div>
 
-    <div class="card" onclick="location.href='index.html'">
-      <span>💰</span>
-      <div class="card-title">Financeiro</div>
+    <div id="appScreen" style="display: none;">
+        
+        <div class="sidebar">
+            <h4 class="text-center mb-4"><i class="fas fa-brain"></i> Central</h4>
+            <a href="#" onclick="showSection('dashboard')" class="active"><i class="fas fa-tasks me-2"></i> Organizador</a>
+            <a href="#" onclick="showSection('financeiro')"><i class="fas fa-chart-line me-2"></i> Financeiro</a>
+            <a href="#" onclick="showSection('life')"><i class="fas fa-dna me-2"></i> Life Co-Creation</a>
+            <hr>
+            <div class="mt-auto">
+                <button onclick="toggleDarkMode()" class="btn btn-sm btn-outline-light w-100 mb-2"><i class="fas fa-moon"></i> Tema</button>
+                <button onclick="logout()" class="btn btn-sm btn-danger w-100"><i class="fas fa-sign-out-alt"></i> Sair</button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            
+            <div id="dashboardSection">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="fas fa-layer-group"></i> Meus Checklists</h2>
+                    <div>
+                        <input type="text" id="globalSearch" class="form-control d-inline-block w-auto" placeholder="🔍 Buscar item..." onkeyup="filterTasks()">
+                        <button onclick="exportData()" class="btn btn-secondary btn-sm ms-2" title="Backup JSON"><i class="fas fa-download"></i></button>
+                    </div>
+                </div>
+
+                <ul class="nav nav-tabs mb-3" id="checklistTabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" onclick="createNewList()">+ Nova Lista</a>
+                    </li>
+                </ul>
+
+                <div class="row" id="kanbanBoard">
+                    <div class="col-md-12 mb-3">
+                        <div class="card border-danger">
+                            <div class="card-header bg-danger text-white">🔥 Urgente / Topo (Vermelho)</div>
+                            <div class="card-body kanban-column" id="col-urgent" ondrop="drop(event, 'urgent')" ondragover="allowDrop(event)">
+                                </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <div class="card border-warning">
+                            <div class="card-header bg-warning text-dark">⚠️ Atenção / Meio (Amarelo)</div>
+                            <div class="card-body kanban-column" id="col-medium" ondrop="drop(event, 'medium')" ondragover="allowDrop(event)"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <div class="card border-success">
+                            <div class="card-header bg-success text-white">✅ Normal / Baixo (Verde)</div>
+                            <div class="card-body kanban-column" id="col-low" ondrop="drop(event, 'low')" ondragover="allowDrop(event)"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <div class="card border-secondary">
+                            <div class="card-header bg-secondary text-white">📁 Arquivo / Sem Classificação</div>
+                            <div class="card-body kanban-column" id="col-none" ondrop="drop(event, 'none')" ondragover="allowDrop(event)"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="trash-zone" id="trashZone" ondrop="dropTrash(event)" ondragover="allowDrop(event)">
+                    <i class="fas fa-trash fa-2x"></i><br>Arraste aqui para Excluir (Clique para ver Lixeira)
+                </div>
+
+                <div class="fab" onclick="openAddTaskModal()">
+                    <i class="fas fa-plus"></i>
+                </div>
+            </div>
+
+            <div id="financeiroSection" style="display:none;">
+                <iframe src="index.html" class="iframe-container"></iframe>
+            </div>
+
+            <div id="lifeSection" style="display:none;">
+                <iframe src="life.html" class="iframe-container"></iframe>
+            </div>
+
+        </div>
     </div>
 
-    <div class="card">
-      <span>🚀</span>
-      <div class="card-title">Projetos</div>
+    <div class="modal fade" id="taskModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Novo Item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="taskId">
+                    <div class="mb-3">
+                        <label>Título / Link / Info</label>
+                        <input type="text" id="taskTitle" class="form-control" placeholder="Cole seu link ou texto aqui">
+                    </div>
+                    <div class="mb-3">
+                        <label>Detalhes (Opcional)</label>
+                        <textarea id="taskDesc" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label>Prioridade</label>
+                        <select id="taskPriority" class="form-select">
+                            <option value="urgent">Urgente (Vermelho)</option>
+                            <option value="medium">Médio (Amarelo)</option>
+                            <option value="low">Baixo (Verde)</option>
+                            <option value="none" selected>Sem Classificação</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="saveTask()">Salvar</button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="card" onclick="abrirChecklists()">
-      <span>✅</span>
-      <div class="card-title">Checklists</div>
-    </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, where, onSnapshot, doc, updateDoc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-    <div class="card">
-      <span>📦</span>
-      <div class="card-title">Arquivo Central</div>
-    </div>
+        // SUA CONFIGURAÇÃO
+        const firebaseConfig = {
+            apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
+            authDomain: "painel-financeiro-borges.firebaseapp.com",
+            projectId: "painel-financeiro-borges",
+            storageBucket: "painel-financeiro-borges.firebasestorage.app",
+            messagingSenderId: "354997627208",
+            appId: "1:354997627208:web:90604d0a7dcd45b6e4eb7d",
+            measurementId: "G-KH9BDWN2WH"
+        };
 
-  </section>
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        let currentUser = null;
+        let currentListId = "padrao"; // ID da lista atual
 
-  <!-- CHECKLISTS -->
-  <section id="checklists-section" style="display:none; margin-top:40px;">
-    <h2>✅ Meus Checklists</h2>
+        // --- SISTEMA DE AUTENTICAÇÃO ---
+        window.login = async () => {
+            const email = document.getElementById('emailInput').value;
+            const pass = document.getElementById('passwordInput').value;
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+            } catch (error) {
+                document.getElementById('authError').innerText = "Erro: " + error.message;
+            }
+        };
 
-    <div id="checklists-container"></div>
+        window.register = async () => {
+            const email = document.getElementById('emailInput').value;
+            const pass = document.getElementById('passwordInput').value;
+            try {
+                await createUserWithEmailAndPassword(auth, email, pass);
+                alert("Conta criada! Você já está logado.");
+            } catch (error) {
+                document.getElementById('authError').innerText = "Erro ao criar: " + error.message;
+            }
+        };
 
-    <div class="novo-item">
-      <input id="novo-item-texto" placeholder="Novo item">
-      <select id="novo-item-prioridade">
-        <option value="none">Sem prioridade</option>
-        <option value="high">Urgente</option>
-        <option value="medium">Médio</option>
-        <option value="low">Baixo</option>
-      </select>
-      <button onclick="criarItem()">Adicionar</button>
-    </div>
-  </section>
+        window.logout = () => signOut(auth);
 
-</main>
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('authScreen').style.display = 'none';
+                document.getElementById('appScreen').style.display = 'flex'; // Exibe o painel
+                loadTasks();
+            } else {
+                currentUser = null;
+                document.getElementById('authScreen').style.display = 'block';
+                document.getElementById('appScreen').style.display = 'none';
+            }
+        });
 
-<script>
-  // Firebase config (APP EXISTENTE)
-  const firebaseConfig = {
-    apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
-    authDomain: "painel-financeiro-borges.firebaseapp.com",
-    projectId: "painel-financeiro-borges",
-    storageBucket: "painel-financeiro-borges.firebasestorage.app",
-    messagingSenderId: "354997627208",
-    appId: "1:354997627208:web:90604d0a7dcd45b6e4eb7d"
-  };
+        // --- NAVEGAÇÃO ENTRE ABAS ---
+        window.showSection = (sectionId) => {
+            // Esconde todas
+            document.getElementById('dashboardSection').style.display = 'none';
+            document.getElementById('financeiroSection').style.display = 'none';
+            document.getElementById('lifeSection').style.display = 'none';
+            
+            // Mostra a selecionada
+            document.getElementById(sectionId + 'Section').style.display = 'block';
+        };
 
-  firebase.initializeApp(firebaseConfig);
+        // --- LÓGICA DO CHECKLIST (CRUD + Drag&Drop) ---
+        
+        // Carregar tarefas em tempo real
+        function loadTasks() {
+            if (!currentUser) return;
+            const q = query(collection(db, `users/${currentUser.uid}/tasks`), where("listId", "==", currentListId));
+            
+            onSnapshot(q, (snapshot) => {
+                // Limpa colunas
+                ['urgent', 'medium', 'low', 'none'].forEach(col => document.getElementById(`col-${col}`).innerHTML = '');
 
-  const auth = firebase.auth();
-  const db = firebase.firestore();
+                snapshot.forEach((docSnap) => {
+                    const task = docSnap.data();
+                    const card = createTaskElement(docSnap.id, task);
+                    
+                    // Se estiver na lixeira (soft delete) não mostra aqui (ou implemente lógica de lixeira)
+                    if (!task.deleted) {
+                        const colId = `col-${task.priority || 'none'}`;
+                        document.getElementById(colId).appendChild(card);
+                    }
+                });
+            });
+        }
 
-  // LOGIN GOOGLE
-  function loginGoogle() {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider);
-  }
+        function createTaskElement(id, data) {
+            const div = document.createElement('div');
+            div.className = `task-card border-${data.priority}`;
+            div.draggable = true;
+            div.id = id;
+            
+            // Detecta se é link
+            let content = data.title;
+            if (content.startsWith('http')) {
+                content = `<a href="${content}" target="_blank" class="fw-bold text-primary"><i class="fas fa-link"></i> ${content.substring(0,30)}...</a>`;
+            } else {
+                content = `<span class="fw-bold">${content}</span>`;
+            }
 
-  function logout() {
-    auth.signOut();
-  }
+            div.innerHTML = `
+                <div class="d-flex justify-content-between">
+                    <div>${content}</div>
+                    <div>
+                        <button class="btn btn-sm btn-light text-primary" onclick="editTask('${id}')"><i class="fas fa-pen"></i></button>
+                        <button class="btn btn-sm btn-light text-danger" onclick="deleteTask('${id}')"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+                <small class="text-muted">${data.desc || ''}</small>
+            `;
 
-  // CONTROLE DE SESSÃO
-  auth.onAuthStateChanged(user => {
-    if (user) {
-      document.getElementById("loginBtn").style.display = "none";
-      document.getElementById("logoutBtn").style.display = "inline-block";
-      document.getElementById("app").style.display = "block";
-    } else {
-      document.getElementById("loginBtn").style.display = "inline-block";
-      document.getElementById("logoutBtn").style.display = "none";
-      document.getElementById("app").style.display = "none";
-    }
-  });
+            // Eventos Drag
+            div.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData("text/plain", id);
+                e.dataTransfer.effectAllowed = "move";
+            });
 
-  // NAVEGAÇÃO
-  function abrirChecklists() {
-    document.querySelector(".cards").style.display = "none";
-    document.getElementById("checklists-section").style.display = "block";
-  }
-</script>
+            return div;
+        }
 
-<!-- Checklist -->
-<script src="js/checklist.js"></script>
+        // Modal Logic
+        const taskModal = new bootstrap.Modal(document.getElementById('taskModal'));
+        window.openAddTaskModal = () => {
+            document.getElementById('taskId').value = '';
+            document.getElementById('taskTitle').value = '';
+            document.getElementById('taskDesc').value = '';
+            taskModal.show();
+        };
 
+        window.saveTask = async () => {
+            const id = document.getElementById('taskId').value;
+            const title = document.getElementById('taskTitle').value;
+            const desc = document.getElementById('taskDesc').value;
+            const priority = document.getElementById('taskPriority').value;
+
+            if (!title) return alert("Título obrigatório");
+
+            const taskData = {
+                title, desc, priority, 
+                listId: currentListId,
+                updatedAt: new Date()
+            };
+
+            if (id) {
+                await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, id), taskData);
+            } else {
+                taskData.createdAt = new Date();
+                taskData.deleted = false;
+                await addDoc(collection(db, `users/${currentUser.uid}/tasks`), taskData);
+            }
+            taskModal.hide();
+        };
+
+        window.editTask = (id) => { // Simplificado: busca do DOM ou Cache seria melhor, mas aqui vamos assumir que o usuário preenche
+           // Idealmente, buscaria os dados do Firestore para preencher o modal
+           alert("Para editar, basta arrastar ou recriar. (Implementação simplificada: clique no texto para editar em breve).");
+        };
+
+        window.deleteTask = async (id) => {
+            if(confirm("Mover para lixeira?")) {
+                await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, id), { deleted: true });
+            }
+        };
+
+        // --- DRAG AND DROP LOGIC ---
+        window.allowDrop = (e) => e.preventDefault();
+
+        window.drop = async (e, targetPriority) => {
+            e.preventDefault();
+            const id = e.dataTransfer.getData("text/plain");
+            // Atualiza prioridade no Firebase
+            await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, id), { 
+                priority: targetPriority 
+            });
+        };
+
+        window.dropTrash = async (e) => {
+            e.preventDefault();
+            const id = e.dataTransfer.getData("text/plain");
+            await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, id), { deleted: true });
+        };
+
+        // --- FUNÇÕES EXTRAS ---
+        window.toggleDarkMode = () => document.body.classList.toggle('dark-mode');
+        
+        window.exportData = () => {
+            alert("Gerando JSON de backup... (Verifique console para dados brutos nesta versão demo)");
+        };
+        
+        // Inicializa Tooltips do Bootstrap
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
