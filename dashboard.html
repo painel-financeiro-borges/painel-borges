@@ -8,7 +8,7 @@
   <!-- CSS -->
   <link rel="stylesheet" href="css/dashboard.css">
 
-  <!-- Firebase -->
+  <!-- Firebase (COMPAT) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -16,28 +16,52 @@
 
 <body>
 
-  <!-- LOGIN -->
+  <!-- LOGIN SCREEN -->
   <section id="login-screen">
-    <h1>🔐 Acesso ao Dashboard</h1>
+    <h1>🔐 Acesso ao Painel Central</h1>
+
     <input type="email" id="email" placeholder="Email">
     <input type="password" id="password" placeholder="Senha">
+
     <button id="loginBtn">Entrar</button>
   </section>
 
   <!-- DASHBOARD -->
   <section id="dashboard" style="display:none;">
+
     <header>
       <h1>🧠 Painel Central</h1>
-      <button id="logoutBtn">Sair</button>
+
+      <div class="auth-actions">
+        <button id="loginToggleBtn" style="display:none;">Entrar</button>
+        <button id="logoutBtn">Sair</button>
+      </div>
     </header>
 
     <main class="cards">
-      <div class="card">🧠 Vida</div>
-      <div class="card">💰 Financeiro</div>
-      <div class="card">🚀 Projetos</div>
-      <div class="card">✅ Checklists</div>
-      <div class="card">📦 Arquivo</div>
+
+      <div class="card" onclick="window.location.href='life.html'">
+        🧠 Vida
+      </div>
+
+      <div class="card" onclick="window.location.href='index.html'">
+        💰 Financeiro
+      </div>
+
+      <div class="card">
+        🚀 Projetos
+      </div>
+
+      <div class="card">
+        ✅ Checklists
+      </div>
+
+      <div class="card">
+        📦 Arquivo / Links
+      </div>
+
     </main>
+
   </section>
 
   <!-- JS -->
