@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Painel Borges 3.0</title>
+    <title>Painel Borges 3.1</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -11,126 +11,91 @@
     
     <style>
         :root {
-            --bg-color: #f4f7fc;
+            --bg-color: #f0f2f5;
             --text-color: #2c3e50;
-            --card-radius: 16px;
+            --header-height: 60px;
         }
 
         body { 
             font-family: 'Outfit', sans-serif; 
             background-color: var(--bg-color); 
             color: var(--text-color);
-            padding-top: 70px; /* Espaço para o header fixo */
+            padding-top: var(--header-height);
             padding-bottom: 80px;
+            overflow-x: hidden;
         }
 
-        /* --- HEADER MOBILE --- */
+        /* --- HEADER --- */
         .navbar-custom {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-            height: 60px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            height: var(--header-height);
         }
-        .navbar-brand { font-weight: 700; font-size: 1.2rem; color: #333; }
 
-        /* --- CARDS DE PROJETO (ESTILO 3D VIBRANTE) --- */
+        /* --- CARDS DE PROJETO (AGRUPADOS) --- */
         .project-grid {
             display: grid;
-            grid-template-columns: 1fr; /* Mobile: 1 coluna */
-            gap: 20px;
-            padding: 15px;
+            /* MOBILE: 2 Colunas lado a lado */
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 15px;
+            padding: 10px;
         }
-        @media(min-width: 768px) { .project-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media(min-width: 768px) { .project-grid { grid-template-columns: repeat(4, 1fr); } }
 
         .project-card {
-            height: 180px;
-            border-radius: var(--card-radius);
-            padding: 20px;
+            min-height: 140px; /* Menor altura */
+            border-radius: 12px;
+            padding: 15px;
             color: white;
             position: relative;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
-            overflow: hidden;
-            border: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            touch-action: none; /* Importante para arrastar no mobile */
+        }
+        
+        .project-actions {
+            position: absolute; top: 10px; right: 10px;
+            z-index: 10;
         }
 
-        .project-card:active { transform: scale(0.98); } /* Efeito de clique */
-        .project-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.25); }
-
-        /* Detalhe 3D no fundo do card */
-        .project-card::after {
-            content: '';
-            position: absolute;
-            top: -50%; left: -50%;
-            width: 200%; height: 200%;
-            background: linear-gradient(to bottom right, rgba(255,255,255,0.3), transparent);
-            transform: rotate(30deg);
-            pointer-events: none;
-        }
-
-        /* Gradientes Vibrantes Aleatórios */
+        /* Cores / Gradientes */
         .bg-grad-1 { background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%); }
         .bg-grad-2 { background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); }
         .bg-grad-3 { background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); }
         .bg-grad-4 { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
         .bg-grad-5 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
 
-        /* --- KANBAN / LISTA DE TAREFAS --- */
+        /* --- KANBAN / TAREFAS --- */
         .task-card {
-            background: white;
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.03);
-            border-left: 5px solid transparent;
-            transition: transform 0.2s;
+            background: white; border-radius: 8px; padding: 12px; margin-bottom: 10px;
+            border-left: 4px solid #ccc; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
-        .task-card:active { transform: scale(0.98); background: #f8f9fa; }
-        
-        .priority-urgent { border-left-color: #ff4757; }
-        .priority-medium { border-left-color: #ffa502; }
-        .priority-low { border-left-color: #2ed573; }
-        .priority-none { border-left-color: #a4b0be; }
+        .priority-urgent { border-left-color: #ff4757; background: #fff5f5; }
+        .priority-medium { border-left-color: #ffa502; background: #fffffa; }
+        .priority-low { border-left-color: #2ed573; background: #f0fff4; }
 
-        /* --- FAB (Botão Flutuante) --- */
-        .fab {
-            position: fixed; bottom: 25px; right: 25px;
-            width: 60px; height: 60px;
-            background: #2f3542; color: white;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 24px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-            z-index: 1000;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .fab:active { transform: scale(0.9); }
-
-        /* --- FRAME CONTAINER (Financeiro/Life) --- */
+        /* --- IFRAME (Financeiro/Life) --- */
         .full-frame {
-            width: 100%; height: calc(100vh - 70px);
-            border: none; display: none;
+            position: fixed; top: var(--header-height); left: 0;
+            width: 100vw; height: calc(100vh - var(--header-height));
+            border: none; background: white; z-index: 50; display: none;
         }
 
-        /* --- TELA DE LOGIN --- */
+        /* --- FAB --- */
+        .fab {
+            position: fixed; bottom: 20px; right: 20px; width: 55px; height: 55px;
+            background: #2c3e50; color: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 24px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 100; cursor: pointer;
+        }
+
+        /* --- LOGIN --- */
         #loginScreen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #fff; z-index: 5000;
-            display: flex; align-items: center; justify-content: center;
-        }
-
-        .category-badge {
-            background: rgba(255,255,255,0.2);
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            width: fit-content;
-            backdrop-filter: blur(4px);
+            background: #fff; z-index: 5000; display: flex; align-items: center; justify-content: center;
         }
     </style>
 </head>
@@ -138,78 +103,74 @@
 
     <div id="loginScreen">
         <div class="text-center p-4">
-            <h1 class="mb-4 fw-bold" style="font-size: 3rem;">🚀</h1>
-            <h2 class="mb-3">Painel Borges</h2>
-            <button onclick="loginGoogle()" class="btn btn-dark btn-lg w-100 rounded-pill shadow">
-                <i class="fab fa-google me-2"></i> Entrar com Google
+            <h1 class="mb-4">🚀</h1>
+            <h3 class="mb-3">Painel Borges</h3>
+            <button onclick="loginGoogle()" class="btn btn-dark w-100 py-2 rounded-pill shadow">
+                Entrar com Google
             </button>
-            <p id="loginError" class="text-danger mt-3"></p>
+            <p id="loginError" class="text-danger mt-3 small"></p>
         </div>
     </div>
 
-    <nav class="navbar navbar-custom fixed-top px-3">
-        <div class="d-flex align-items-center w-100 justify-content-between">
-            <button id="backBtn" class="btn btn-sm btn-light rounded-circle shadow-sm me-2" onclick="goHome()" style="display:none;">
+    <nav class="navbar navbar-custom fixed-top px-3 d-flex justify-content-between">
+        <div class="d-flex align-items-center">
+            <button id="backBtn" class="btn btn-sm btn-light rounded-circle me-2 shadow-sm" onclick="goHome()" style="display:none;">
                 <i class="fas fa-arrow-left"></i>
             </button>
-
-            <span class="navbar-brand flex-grow-1" id="pageTitle"><i class="fas fa-cube text-primary"></i> Central</span>
-            
-            <button class="btn btn-link text-dark" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
-                <i class="fas fa-bars fa-lg"></i>
-            </button>
+            <span class="fw-bold" id="pageTitle">Central</span>
         </div>
+        <button class="btn btn-link text-dark p-0" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
+            <i class="fas fa-bars fa-lg"></i>
+        </button>
     </nav>
 
     <div class="offcanvas offcanvas-end" tabindex="-1" id="sidebarMenu">
         <div class="offcanvas-header">
-            <h5 class="offcanvas-title">Navegação</h5>
+            <h5 class="offcanvas-title">Menu</h5>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
         </div>
         <div class="offcanvas-body">
-            <div class="d-grid gap-2">
-                <button class="btn btn-light text-start" onclick="goHome()"><i class="fas fa-home me-2"></i> Projetos / Início</button>
-                <button class="btn btn-light text-start" onclick="showFrame('dashboard.html')"><i class="fas fa-chart-line me-2"></i> Financeiro</button>
-                <button class="btn btn-light text-start" onclick="showFrame('life.html')"><i class="fas fa-dna me-2"></i> Life Co-Creation</button>
-                <button class="btn btn-light text-start text-danger" onclick="openTrash()"><i class="fas fa-trash me-2"></i> Lixeira Global</button>
-                <hr>
-                <button class="btn btn-outline-danger" onclick="logout()">Sair</button>
-            </div>
+            <button class="btn btn-light w-100 text-start mb-2" onclick="goHome()"><i class="fas fa-th-large me-2"></i> Projetos</button>
+            <button class="btn btn-light w-100 text-start mb-2" onclick="openFrame('dashboard.html')"><i class="fas fa-chart-line me-2"></i> Financeiro</button>
+            <button class="btn btn-light w-100 text-start mb-2" onclick="openFrame('life.html')"><i class="fas fa-dna me-2"></i> Life Co-Creation</button>
+            <button class="btn btn-light w-100 text-start text-danger" onclick="openTrash()"><i class="fas fa-trash me-2"></i> Lixeira</button>
+            <hr>
+            <button class="btn btn-outline-danger w-100" onclick="logout()">Sair</button>
         </div>
     </div>
 
-    <div id="view-projects" class="container mt-3">
-        <h5 class="text-muted mb-3">Meus Projetos & Áreas</h5>
+    <div id="view-projects" class="container mt-2">
         <div id="projectsContainer" class="project-grid">
             </div>
+        <p class="text-center text-muted small mt-3">Segure e arraste para organizar</p>
     </div>
 
-    <div id="view-kanban" class="container mt-3" style="display:none;">
-        <input type="text" id="taskSearch" class="form-control mb-3 rounded-pill" placeholder="🔍 Buscar neste projeto..." onkeyup="filterTasks()">
+    <div id="view-kanban" class="container mt-2" style="display:none;">
+        <input type="text" id="taskSearch" class="form-control mb-3 rounded-pill" placeholder="🔍 Buscar..." onkeyup="filterTasks()">
         
         <div id="kanbanContainer">
             <div class="mb-3">
-                <h6 class="text-danger fw-bold"><i class="fas fa-fire"></i> Urgente</h6>
-                <div id="col-urgent" class="kanban-col min-h-100" data-priority="urgent"></div>
+                <h6 class="text-danger small fw-bold">🔥 URGENTE</h6>
+                <div id="col-urgent" class="kanban-col min-vh-20" data-priority="urgent"></div>
             </div>
             <div class="mb-3">
-                <h6 class="text-warning fw-bold text-dark"><i class="fas fa-exclamation-triangle"></i> Atenção</h6>
-                <div id="col-medium" class="kanban-col min-h-100" data-priority="medium"></div>
+                <h6 class="text-warning small fw-bold text-dark">⚠️ ATENÇÃO</h6>
+                <div id="col-medium" class="kanban-col min-vh-20" data-priority="medium"></div>
             </div>
             <div class="mb-3">
-                <h6 class="text-success fw-bold"><i class="fas fa-check-circle"></i> Normal</h6>
-                <div id="col-low" class="kanban-col min-h-100" data-priority="low"></div>
+                <h6 class="text-success small fw-bold">✅ NORMAL</h6>
+                <div id="col-low" class="kanban-col min-vh-20" data-priority="low"></div>
             </div>
             <div class="mb-3">
-                <h6 class="text-secondary fw-bold"><i class="fas fa-archive"></i> Arquivo</h6>
-                <div id="col-none" class="kanban-col min-h-100" data-priority="none"></div>
+                <h6 class="text-secondary small fw-bold">📁 ARQUIVO</h6>
+                <div id="col-none" class="kanban-col min-vh-20" data-priority="none"></div>
             </div>
         </div>
     </div>
 
-    <iframe id="mainFrame" class="full-frame"></iframe>
+    <iframe id="appFrame" class="full-frame"></iframe>
 
-    <div class="fab" onclick="handleFabClick()">
+    <div class="fab" onclick="handleFab()">
         <i class="fas fa-plus"></i>
     </div>
 
@@ -217,28 +178,29 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Novo Projeto / Card</h5>
+                    <h5 class="modal-title">Projeto</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="text" id="projTitle" class="form-control mb-3" placeholder="Nome do Projeto (ex: Lançamento X)">
+                    <input type="hidden" id="projId">
+                    <input type="text" id="projTitle" class="form-control mb-3" placeholder="Nome do Projeto">
                     <select id="projType" class="form-select mb-3">
                         <option value="Pessoal">Pessoal</option>
                         <option value="Profissional">Profissional</option>
-                        <option value="Ideia">Ideia</option>
                     </select>
-                    <label>Estilo do Card:</label>
-                    <div class="d-flex gap-2 mt-2">
-                        <div class="rounded-circle bg-grad-1" style="width:30px;height:30px;cursor:pointer" onclick="selectColor(1)"></div>
-                        <div class="rounded-circle bg-grad-2" style="width:30px;height:30px;cursor:pointer" onclick="selectColor(2)"></div>
-                        <div class="rounded-circle bg-grad-3" style="width:30px;height:30px;cursor:pointer" onclick="selectColor(3)"></div>
-                        <div class="rounded-circle bg-grad-4" style="width:30px;height:30px;cursor:pointer" onclick="selectColor(4)"></div>
-                        <div class="rounded-circle bg-grad-5" style="width:30px;height:30px;cursor:pointer" onclick="selectColor(5)"></div>
+                    <p class="mb-1">Cor do Card:</p>
+                    <div class="d-flex gap-2">
+                        <div class="rounded-circle bg-grad-1 border" style="width:30px;height:30px;" onclick="setColor('bg-grad-1')"></div>
+                        <div class="rounded-circle bg-grad-2 border" style="width:30px;height:30px;" onclick="setColor('bg-grad-2')"></div>
+                        <div class="rounded-circle bg-grad-3 border" style="width:30px;height:30px;" onclick="setColor('bg-grad-3')"></div>
+                        <div class="rounded-circle bg-grad-4 border" style="width:30px;height:30px;" onclick="setColor('bg-grad-4')"></div>
+                        <div class="rounded-circle bg-grad-5 border" style="width:30px;height:30px;" onclick="setColor('bg-grad-5')"></div>
                     </div>
                     <input type="hidden" id="selectedColor" value="bg-grad-1">
                 </div>
                 <div class="modal-footer">
-                    <button onclick="saveProject()" class="btn btn-primary w-100">Criar Card</button>
+                    <button onclick="deleteProjectBtn()" class="btn btn-outline-danger me-auto" id="btnDelProj" style="display:none;">Excluir</button>
+                    <button onclick="saveProject()" class="btn btn-primary">Salvar</button>
                 </div>
             </div>
         </div>
@@ -248,22 +210,22 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Adicionar Item</h5>
+                    <h5 class="modal-title">Item</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="taskId">
-                    <input type="text" id="taskTitle" class="form-control mb-3" placeholder="Título ou Link">
-                    <textarea id="taskDesc" class="form-control mb-3" placeholder="Descrição, copy, detalhes..." rows="4"></textarea>
+                    <input type="text" id="taskTitle" class="form-control mb-2" placeholder="Título">
+                    <textarea id="taskDesc" class="form-control mb-3" rows="3" placeholder="Descrição..."></textarea>
                     <select id="taskPriority" class="form-select">
                         <option value="urgent">Urgente</option>
                         <option value="medium">Médio</option>
                         <option value="low">Baixo</option>
-                        <option value="none" selected>Sem Classificação</option>
+                        <option value="none">Sem Classificação</option>
                     </select>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-danger me-auto" onclick="deleteTaskBtn()">Excluir</button>
+                    <button onclick="deleteTaskBtn()" class="btn btn-danger">Excluir</button>
                     <button onclick="saveTask()" class="btn btn-primary">Salvar</button>
                 </div>
             </div>
@@ -272,20 +234,19 @@
 
     <div class="modal fade" id="trashModal" tabindex="-1">
         <div class="modal-dialog modal-fullscreen">
-            <div class="modal-content bg-light">
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="fas fa-trash-alt"></i> Lixeira</h5>
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title">Lixeira</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body" id="trashList">
-                    </div>
+                <div class="modal-body" id="trashList"></div>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
-    
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
@@ -304,45 +265,40 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        
         let currentUser = null;
         let activeProjectId = null;
-        let currentView = 'projects'; // projects, kanban, iframe
+        let currentView = 'projects';
 
-        // --- AUTENTICAÇÃO ---
+        // AUTH
         window.loginGoogle = async () => {
-            try { await signInWithPopup(auth, new GoogleAuthProvider()); } 
-            catch (e) { document.getElementById('loginError').innerText = e.message; }
+            try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch(e) { alert(e.message); }
         };
         window.logout = () => signOut(auth);
-
+        
         onAuthStateChanged(auth, (user) => {
-            if (user) {
+            if(user) {
                 currentUser = user;
                 document.getElementById('loginScreen').style.display = 'none';
-                loadProjects();
+                initProjects();
             } else {
                 currentUser = null;
                 document.getElementById('loginScreen').style.display = 'flex';
             }
         });
 
-        // --- NAVEGAÇÃO E UI ---
+        // NAVEGAÇÃO
         window.goHome = () => {
             activeProjectId = null;
             currentView = 'projects';
             document.getElementById('view-projects').style.display = 'block';
             document.getElementById('view-kanban').style.display = 'none';
-            document.getElementById('mainFrame').style.display = 'none';
+            document.getElementById('appFrame').style.display = 'none';
             document.getElementById('backBtn').style.display = 'none';
-            document.getElementById('pageTitle').innerHTML = '<i class="fas fa-cube text-primary"></i> Central';
-            
-            // Fecha menu lateral
-            const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('sidebarMenu'));
-            if(offcanvas) offcanvas.hide();
+            document.getElementById('pageTitle').innerText = 'Central';
+            bootstrap.Offcanvas.getInstance(document.getElementById('sidebarMenu'))?.hide();
         };
 
-        window.openProject = (id, title, colorClass) => {
+        window.openProject = (id, title) => {
             activeProjectId = id;
             currentView = 'kanban';
             document.getElementById('view-projects').style.display = 'none';
@@ -352,126 +308,131 @@
             loadTasks(id);
         };
 
-        window.showFrame = (url) => {
+        window.openFrame = (url) => {
             currentView = 'iframe';
+            const frame = document.getElementById('appFrame');
+            // Verifica e carrega
+            frame.src = url; 
+            frame.style.display = 'block';
             document.getElementById('view-projects').style.display = 'none';
             document.getElementById('view-kanban').style.display = 'none';
-            const frame = document.getElementById('mainFrame');
-            frame.src = url;
-            frame.style.display = 'block';
             document.getElementById('backBtn').style.display = 'block';
-            
-            const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('sidebarMenu'));
-            if(offcanvas) offcanvas.hide();
+            bootstrap.Offcanvas.getInstance(document.getElementById('sidebarMenu'))?.hide();
         };
 
-        window.handleFabClick = () => {
-            if (currentView === 'projects') {
-                new bootstrap.Modal(document.getElementById('projectModal')).show();
-            } else if (currentView === 'kanban') {
-                document.getElementById('taskId').value = '';
-                document.getElementById('taskTitle').value = '';
-                document.getElementById('taskDesc').value = '';
-                new bootstrap.Modal(document.getElementById('taskModal')).show();
-            }
-        };
-
-        // --- LÓGICA DE PROJETOS ---
-        window.selectColor = (num) => document.getElementById('selectedColor').value = `bg-grad-${num}`;
-
-        function loadProjects() {
+        // CRUD PROJETOS
+        function initProjects() {
             const q = query(collection(db, `users/${currentUser.uid}/projects`), orderBy('createdAt', 'desc'));
             onSnapshot(q, (snap) => {
                 const container = document.getElementById('projectsContainer');
                 container.innerHTML = '';
-                snap.forEach(docSnap => {
-                    const data = docSnap.data();
+                snap.forEach(d => {
+                    const data = d.data();
                     const el = document.createElement('div');
                     el.className = `project-card ${data.color}`;
-                    el.onclick = () => window.openProject(docSnap.id, data.title, data.color);
+                    el.setAttribute('data-id', d.id);
+                    el.onclick = (e) => {
+                        if(!e.target.closest('.btn-edit')) window.openProject(d.id, data.title);
+                    };
                     el.innerHTML = `
-                        <div class="category-badge">${data.type}</div>
-                        <h3 class="fw-bold mt-2">${data.title}</h3>
-                        <div class="d-flex justify-content-between align-items-end mt-auto">
-                            <small><i class="fas fa-folder-open"></i> Abrir</small>
-                            <i class="fas fa-chevron-right"></i>
+                        <div class="project-actions">
+                            <button class="btn btn-sm btn-light rounded-circle btn-edit" onclick="editProject('${d.id}', '${data.title}', '${data.type}', '${data.color}')"><i class="fas fa-pencil-alt"></i></button>
                         </div>
+                        <span class="badge bg-white text-dark w-auto" style="width:fit-content">${data.type}</span>
+                        <h5 class="fw-bold mt-2">${data.title}</h5>
+                        <small class="mt-auto"><i class="fas fa-folder-open"></i> Abrir</small>
                     `;
                     container.appendChild(el);
                 });
             });
+
+            // Ativa Drag & Drop nos Projetos
+            new Sortable(document.getElementById('projectsContainer'), {
+                animation: 150, delay: 100, delayOnTouchOnly: true
+            });
         }
 
+        window.handleFab = () => {
+            if(currentView === 'projects') openProjectModal();
+            else if(currentView === 'kanban') openTaskModal();
+        };
+
+        // MODAL PROJETO (CRIAR/EDITAR)
+        window.openProjectModal = () => {
+            document.getElementById('projId').value = '';
+            document.getElementById('projTitle').value = '';
+            document.getElementById('btnDelProj').style.display = 'none';
+            new bootstrap.Modal(document.getElementById('projectModal')).show();
+        };
+
+        window.editProject = (id, title, type, color) => {
+            document.getElementById('projId').value = id;
+            document.getElementById('projTitle').value = title;
+            document.getElementById('projType').value = type;
+            document.getElementById('selectedColor').value = color;
+            document.getElementById('btnDelProj').style.display = 'block';
+            new bootstrap.Modal(document.getElementById('projectModal')).show();
+        };
+
+        window.setColor = (c) => document.getElementById('selectedColor').value = c;
+
         window.saveProject = async () => {
+            const id = document.getElementById('projId').value;
             const title = document.getElementById('projTitle').value;
             const type = document.getElementById('projType').value;
             const color = document.getElementById('selectedColor').value;
             
-            if(!title) return alert("Dê um nome ao projeto!");
+            if(!title) return;
 
-            await addDoc(collection(db, `users/${currentUser.uid}/projects`), {
-                title, type, color, createdAt: new Date()
-            });
+            const data = { title, type, color, updatedAt: new Date() };
+
+            if(id) {
+                await updateDoc(doc(db, `users/${currentUser.uid}/projects`, id), data);
+            } else {
+                data.createdAt = new Date();
+                await addDoc(collection(db, `users/${currentUser.uid}/projects`), data);
+            }
             bootstrap.Modal.getInstance(document.getElementById('projectModal')).hide();
         };
 
-        // --- LÓGICA DE TAREFAS (KANBAN) ---
-        let taskUnsubscribe = null;
+        window.deleteProjectBtn = async () => {
+            const id = document.getElementById('projId').value;
+            if(confirm('Excluir projeto e todas as tarefas dele?')) {
+                await deleteDoc(doc(db, `users/${currentUser.uid}/projects`, id));
+                bootstrap.Modal.getInstance(document.getElementById('projectModal')).hide();
+                // (Opcional: Excluir subtarefas manualmente ou via Cloud Functions)
+            }
+        };
 
-        function loadTasks(projectId) {
-            if(taskUnsubscribe) taskUnsubscribe(); // Para listener anterior
-            
-            const q = query(collection(db, `users/${currentUser.uid}/tasks`), where('projectId', '==', projectId));
-            
-            taskUnsubscribe = onSnapshot(q, (snap) => {
-                // Limpa colunas
+        // CRUD TAREFAS
+        function loadTasks(projId) {
+            const q = query(collection(db, `users/${currentUser.uid}/tasks`), where('projectId', '==', projId));
+            onSnapshot(q, (snap) => {
                 document.querySelectorAll('.kanban-col').forEach(c => c.innerHTML = '');
-                
-                snap.forEach(docSnap => {
-                    const t = docSnap.data();
+                snap.forEach(d => {
+                    const t = d.data();
                     if(t.deleted) return;
-
-                    const card = document.createElement('div');
-                    card.className = `task-card priority-${t.priority}`;
-                    card.setAttribute('data-id', docSnap.id);
                     
-                    // Renderiza Link se for http
-                    const titleDisplay = t.title.startsWith('http') 
-                        ? `<a href="${t.title}" target="_blank" class="fw-bold text-decoration-none text-break">${t.title.substring(0,30)}... <i class="fas fa-external-link-alt"></i></a>` 
-                        : `<span class="fw-bold">${t.title}</span>`;
-
-                    card.innerHTML = `
-                        <div onclick="editTask('${docSnap.id}', '${t.title}', '${t.desc}', '${t.priority}')">
-                            ${titleDisplay}
-                            ${t.desc ? `<p class="small text-muted mt-1 text-truncate">${t.desc}</p>` : ''}
+                    const el = document.createElement('div');
+                    el.className = `task-card priority-${t.priority}`;
+                    el.setAttribute('data-id', d.id);
+                    el.innerHTML = `
+                        <div class="d-flex justify-content-between">
+                            <strong>${t.title}</strong>
+                            <i class="fas fa-pen text-muted ms-2" onclick="editTask('${d.id}', '${t.title}', '${t.desc}', '${t.priority}')"></i>
                         </div>
+                        ${t.desc ? `<small class="text-muted text-truncate d-block">${t.desc}</small>` : ''}
                     `;
-                    
-                    const col = document.getElementById(`col-${t.priority}`);
-                    if(col) col.appendChild(card);
+                    document.getElementById(`col-${t.priority}`).appendChild(el);
                 });
             });
         }
 
-        window.saveTask = async () => {
-            const id = document.getElementById('taskId').value;
-            const title = document.getElementById('taskTitle').value;
-            const desc = document.getElementById('taskDesc').value;
-            const priority = document.getElementById('taskPriority').value;
-
-            if(!title) return alert("Título obrigatório");
-
-            const data = {
-                title, desc, priority, projectId: activeProjectId, deleted: false, updatedAt: new Date()
-            };
-
-            if(id) {
-                await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, id), data);
-            } else {
-                data.createdAt = new Date();
-                await addDoc(collection(db, `users/${currentUser.uid}/tasks`), data);
-            }
-            bootstrap.Modal.getInstance(document.getElementById('taskModal')).hide();
+        window.openTaskModal = () => {
+            document.getElementById('taskId').value = '';
+            document.getElementById('taskTitle').value = '';
+            document.getElementById('taskDesc').value = '';
+            new bootstrap.Modal(document.getElementById('taskModal')).show();
         };
 
         window.editTask = (id, title, desc, priority) => {
@@ -482,63 +443,57 @@
             new bootstrap.Modal(document.getElementById('taskModal')).show();
         };
 
-        window.deleteTaskBtn = async () => {
+        window.saveTask = async () => {
             const id = document.getElementById('taskId').value;
-            if(id && confirm("Mover para Lixeira?")) {
-                await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, id), { deleted: true });
-                bootstrap.Modal.getInstance(document.getElementById('taskModal')).hide();
+            const title = document.getElementById('taskTitle').value;
+            const desc = document.getElementById('taskDesc').value;
+            const priority = document.getElementById('taskPriority').value;
+
+            const data = { title, desc, priority, projectId: activeProjectId, deleted: false, updatedAt: new Date() };
+
+            if(id) await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, id), data);
+            else {
+                data.createdAt = new Date();
+                await addDoc(collection(db, `users/${currentUser.uid}/tasks`), data);
             }
+            bootstrap.Modal.getInstance(document.getElementById('taskModal')).hide();
         };
 
-        // --- ARRASTAR E SOLTAR ---
-        ['urgent', 'medium', 'low', 'none'].forEach(p => {
+        window.deleteTaskBtn = async () => {
+            const id = document.getElementById('taskId').value;
+            await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, id), { deleted: true });
+            bootstrap.Modal.getInstance(document.getElementById('taskModal')).hide();
+        };
+
+        // ARRASTAR TAREFAS
+        ['urgent','medium','low','none'].forEach(p => {
             new Sortable(document.getElementById(`col-${p}`), {
-                group: 'shared', animation: 150, delay: 150, delayOnTouchOnly: true,
+                group: 'tasks', animation: 150, delay: 100, delayOnTouchOnly: true,
                 onEnd: async (evt) => {
-                    const id = evt.item.getAttribute('data-id');
-                    const newP = evt.to.getAttribute('data-priority');
-                    await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, id), { priority: newP });
+                    await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, evt.item.getAttribute('data-id')), {
+                        priority: evt.to.getAttribute('data-priority')
+                    });
                 }
             });
         });
 
-        // --- LIXEIRA ---
-        window.openTrash = async () => {
-            const trashList = document.getElementById('trashList');
-            trashList.innerHTML = '<p class="text-center">Carregando...</p>';
+        // LIXEIRA
+        window.openTrash = () => {
             new bootstrap.Modal(document.getElementById('trashModal')).show();
-
             const q = query(collection(db, `users/${currentUser.uid}/tasks`), where('deleted', '==', true));
-            // Snapshot único (não precisa ser realtime na lixeira)
             onSnapshot(q, (snap) => {
-                trashList.innerHTML = '';
-                if(snap.empty) {
-                    trashList.innerHTML = '<div class="text-center text-muted mt-5"><i class="fas fa-trash fa-3x mb-3"></i><br>Lixeira vazia</div>';
-                    return;
-                }
-                snap.forEach(docSnap => {
-                    const t = docSnap.data();
-                    const div = document.createElement('div');
-                    div.className = 'card mb-2 p-3 border-danger';
-                    div.innerHTML = `
-                        <div class="d-flex justify-content-between align-items-center">
-                            <strong>${t.title}</strong>
-                            <div>
-                                <button class="btn btn-sm btn-success" onclick="restoreTask('${docSnap.id}')">Restaurar</button>
-                                <button class="btn btn-sm btn-outline-danger" onclick="permDelete('${docSnap.id}')">X</button>
-                            </div>
-                        </div>
-                    `;
-                    trashList.appendChild(div);
+                const list = document.getElementById('trashList');
+                list.innerHTML = '';
+                snap.forEach(d => {
+                    const t = d.data();
+                    list.innerHTML += `<div class="p-2 border-bottom d-flex justify-content-between">
+                        <span>${t.title}</span>
+                        <button class="btn btn-sm btn-success" onclick="restore('${d.id}')">Restaurar</button>
+                    </div>`;
                 });
             });
         };
-
-        window.restoreTask = async (id) => await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, id), { deleted: false });
-        window.permDelete = async (id) => {
-            if(confirm("Excluir permanentemente? Não tem volta.")) await deleteDoc(doc(db, `users/${currentUser.uid}/tasks`, id));
-        };
-
+        window.restore = async (id) => await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, id), { deleted: false });
     </script>
 </body>
 </html>
