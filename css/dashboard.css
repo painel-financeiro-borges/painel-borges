@@ -1,4 +1,4 @@
-/* ... (Mantém o mesmo código do início até as classes de cores) ... */
+/* ... (Mantém tudo até o final) ... */
 :root { --bg-color: #f4f6f8; --text-primary: #2c3e50; --card-bg: #ffffff; --header-height: 60px; --radius: 16px; --shadow: 0 10px 30px rgba(0,0,0,0.08); }
 body.dark-mode { --bg-color: #1a1a2e; --text-primary: #e0e0e0; --card-bg: #16213e; }
 body { font-family: 'Outfit', sans-serif; background-color: var(--bg-color); color: var(--text-primary); padding-top: var(--header-height); transition: background-color 0.3s; overflow-x: hidden; }
@@ -52,10 +52,19 @@ body.dark-mode .spacer-card { border-color: rgba(255,255,255,0.2); background: r
 .color-dot.selected { border-color: #333; transform: scale(1.1); }
 .full-frame { position: fixed; top: var(--header-height); left: 0; width: 100%; height: calc(100% - var(--header-height)); border: none; background: #fff; z-index: 50; display: none; }
 
-/* CSS NOVO: ITEM DO CHECKLIST NO MODAL */
+/* CSS NOVO: CHECKLIST COM PRIORIDADE */
 .checklist-item {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 8px; border-bottom: 1px solid #eee;
+    padding: 10px; border-bottom: 1px solid #eee;
+    background: #fff; margin-bottom: 5px; border-radius: 5px;
+    border-left: 4px solid transparent;
+    cursor: grab; /* Mãozinha para arrastar */
 }
-.checklist-item span { flex-grow: 1; margin-left: 10px; cursor: pointer; }
+.checklist-item:active { cursor: grabbing; }
+.checklist-item span { flex-grow: 1; margin-left: 10px; }
 .checklist-item.done span { text-decoration: line-through; opacity: 0.6; }
+
+/* Cores da borda do item */
+.cl-urgent { border-left-color: #d32f2f; }
+.cl-medium { border-left-color: #f57c00; }
+.cl-low { border-left-color: #388e3c; }
