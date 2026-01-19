@@ -1,204 +1,131 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <title>Painel Central Borges</title>
+:root {
+    --bg-color: #f4f6f8;
+    --text-primary: #2c3e50;
+    --card-bg: #ffffff;
+    --header-height: 60px;
+    --radius: 16px;
+    --shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
 
-  <!-- Firebase v8 -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+body.dark-mode {
+    --bg-color: #1a1a2e;
+    --text-primary: #e0e0e0;
+    --card-bg: #16213e;
+}
 
-  <!-- Fonte -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+body {
+    font-family: 'Outfit', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    padding-top: var(--header-height);
+    transition: background-color 0.3s;
+    overflow-x: hidden;
+}
 
-  <!-- SortableJS -->
-  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+/* --- UTILITÁRIOS --- */
+.glass-effect {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+body.dark-mode .glass-effect {
+    background: rgba(26, 26, 46, 0.9);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
 
-  <link rel="stylesheet" href="dashboard.css">
-</head>
+.fade-in { animation: fadeIn 0.4s ease-in; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-<body>
+/* --- LOGIN --- */
+#loginScreen {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: var(--bg-color); z-index: 9999;
+    display: flex; align-items: center; justify-content: center;
+}
+.login-card { text-align: center; max-width: 400px; padding: 20px; }
+#loadingOverlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5); z-index: 10000;
+    display: none; align-items: center; justify-content: center;
+}
 
-<header>
-  <h1>🧠 Painel Central Borges</h1>
+/* --- PROJETOS (GRID) --- */
+.project-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Mobile: 2 colunas */
+    gap: 15px;
+    padding: 15px 0;
+}
+@media(min-width: 768px) { .project-grid { grid-template-columns: repeat(4, 1fr); } }
 
-  <div id="auth-area">
-    <button id="loginBtn" onclick="loginGoogle()">Entrar com Google</button>
-    <button id="logoutBtn" onclick="logout()" style="display:none;">Sair</button>
-  </div>
-</header>
+.project-card {
+    height: 160px;
+    border-radius: var(--radius);
+    padding: 20px;
+    color: white;
+    position: relative;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    transition: transform 0.2s;
+    display: flex; flex-direction: column; justify-content: space-between;
+    overflow: hidden;
+    border: none;
+}
+.project-card:active { transform: scale(0.96); }
+.project-card::before {
+    content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.1), rgba(0,0,0,0.2));
+}
 
-<main id="app" style="display:none;">
+/* Cores dos Projetos */
+.bg-grad-1 { background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%); }
+.bg-grad-2 { background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); }
+.bg-grad-3 { background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); }
+.bg-grad-4 { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+.bg-grad-dark { background: linear-gradient(135deg, #434343 0%, #000000 100%); }
 
-  <!-- DASHBOARD -->
-  <section class="cards">
-    <div class="card" onclick="location.href='life.html'">
-      <span>🧠</span><div class="card-title">Vida</div>
-    </div>
+/* --- KANBAN --- */
+.kanban-col-wrapper { margin-bottom: 20px; }
+.kanban-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 12px; border-radius: 8px; margin-bottom: 10px;
+    font-weight: 600; font-size: 0.9rem;
+}
+.kanban-header.urgent { background: #ffebee; color: #d32f2f; }
+.kanban-header.medium { background: #fff8e1; color: #f57c00; }
+.kanban-header.low { background: #e8f5e9; color: #388e3c; }
+.kanban-header.none { background: #eceff1; color: #546e7a; }
 
-    <div class="card" onclick="location.href='index.html'">
-      <span>💰</span><div class="card-title">Financeiro</div>
-    </div>
+.task-card {
+    background: var(--card-bg);
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+    border-left: 4px solid transparent;
+}
+.task-card.priority-urgent { border-left-color: #d32f2f; }
+.task-card.priority-medium { border-left-color: #f57c00; }
+.task-card.priority-low { border-left-color: #388e3c; }
 
-    <div class="card" onclick="abrirChecklists()">
-      <span>✅</span><div class="card-title">Checklists</div>
-    </div>
-  </section>
+/* --- FAB --- */
+.fab {
+    position: fixed; bottom: 25px; right: 25px;
+    width: 60px; height: 60px;
+    border-radius: 50%; border: none;
+    background: #2c3e50; color: white;
+    font-size: 24px; cursor: pointer; z-index: 99;
+    transition: transform 0.2s;
+}
+.fab:active { transform: rotate(45deg); }
 
-  <!-- CHECKLIST KANBAN -->
-  <section id="checklists-section" style="display:none;">
+/* --- MODAL COLOR PICKER --- */
+.color-dot { width: 35px; height: 35px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+.color-dot.selected { border-color: #333; transform: scale(1.1); }
 
-    <h2>✅ Checklist Organizado</h2>
-
-    <div class="kanban">
-
-      <div class="column">
-        <h3>🔴 Urgente</h3>
-        <div class="list" data-priority="high"></div>
-      </div>
-
-      <div class="column">
-        <h3>🟡 Médio</h3>
-        <div class="list" data-priority="medium"></div>
-      </div>
-
-      <div class="column">
-        <h3>🟢 Baixo</h3>
-        <div class="list" data-priority="low"></div>
-      </div>
-
-      <div class="column">
-        <h3>⚪ Sem prioridade</h3>
-        <div class="list" data-priority="none"></div>
-      </div>
-
-    </div>
-
-    <div class="novo-item">
-      <input id="novo-item-texto" placeholder="Novo item">
-      <select id="novo-item-prioridade">
-        <option value="none">Sem prioridade</option>
-        <option value="high">Urgente</option>
-        <option value="medium">Médio</option>
-        <option value="low">Baixo</option>
-      </select>
-      <button onclick="criarItem()">Adicionar</button>
-    </div>
-
-  </section>
-
-</main>
-
-<script>
-  // Firebase
-  const firebaseConfig = {
-    apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
-    authDomain: "painel-financeiro-borges.firebaseapp.com",
-    projectId: "painel-financeiro-borges",
-    storageBucket: "painel-financeiro-borges.firebasestorage.app",
-    messagingSenderId: "354997627208",
-    appId: "1:354997627208:web:90604d0a7dcd45b6e4eb7d"
-  };
-
-  firebase.initializeApp(firebaseConfig);
-
-  const auth = firebase.auth();
-  const db = firebase.firestore();
-  let uid = null;
-
-  auth.onAuthStateChanged(user => {
-    if (user) {
-      uid = user.uid;
-      loginBtn.style.display = "none";
-      logoutBtn.style.display = "inline-block";
-      app.style.display = "block";
-      carregarItens();
-      ativarDrag();
-    }
-  });
-
-  function loginGoogle() {
-    auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
-  }
-
-  function logout() {
-    auth.signOut();
-  }
-
-  function abrirChecklists() {
-    document.querySelector(".cards").style.display = "none";
-    document.getElementById("checklists-section").style.display = "block";
-  }
-
-  function criarItem() {
-    const texto = novoItemTexto.value;
-    const prioridade = novoItemPrioridade.value;
-    if (!texto) return;
-
-    db.collection("users").doc(uid)
-      .collection("checklist")
-      .add({
-        text: texto,
-        priority: prioridade,
-        position: Date.now(),
-        deleted: false
-      })
-      .then(() => {
-        novoItemTexto.value = "";
-        carregarItens();
-      });
-  }
-
-  function carregarItens() {
-    document.querySelectorAll(".list").forEach(l => l.innerHTML = "");
-
-    db.collection("users").doc(uid)
-      .collection("checklist")
-      .where("deleted", "==", false)
-      .get()
-      .then(snapshot => {
-        snapshot.forEach(doc => {
-          const item = doc.data();
-          const div = document.createElement("div");
-          div.className = "item";
-          div.dataset.id = doc.id;
-          div.innerHTML = `
-            <input value="${item.text}" onchange="editarItem('${doc.id}', this.value)">
-            <button onclick="excluirItem('${doc.id}')">🗑️</button>
-          `;
-          document.querySelector(`.list[data-priority="${item.priority}"]`)
-            .appendChild(div);
-        });
-      });
-  }
-
-  function editarItem(id, texto) {
-    db.collection("users").doc(uid).collection("checklist")
-      .doc(id).update({ text: texto });
-  }
-
-  function excluirItem(id) {
-    db.collection("users").doc(uid).collection("checklist")
-      .doc(id).update({ deleted: true }).then(carregarItens);
-  }
-
-  function ativarDrag() {
-    document.querySelectorAll(".list").forEach(list => {
-      new Sortable(list, {
-        group: "kanban",
-        animation: 150,
-        onAdd: evt => {
-          const id = evt.item.dataset.id;
-          const novaPrioridade = evt.to.dataset.priority;
-          db.collection("users").doc(uid)
-            .collection("checklist")
-            .doc(id).update({ priority: novaPrioridade });
-        }
-      });
-    });
-  }
-</script>
-
-</body>
-</html>
+/* --- IFRAME --- */
+.full-frame {
+    position: fixed; top: var(--header-height); left: 0;
+    width: 100%; height: calc(100% - var(--header-height));
+    border: none; background: #fff; z-index: 50; display: none;
+}
