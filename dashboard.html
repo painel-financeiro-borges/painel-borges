@@ -2,13 +2,17 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Dashboard Central</title>
+  <title>Painel Central Borges</title>
 
-  <!-- Firebase v8 (compatível com seu projeto atual) -->
+  <!-- Firebase v8 -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
+  <!-- Fonte -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- CSS -->
   <link rel="stylesheet" href="dashboard.css">
 </head>
 
@@ -25,17 +29,39 @@
 
 <main id="app" style="display:none;">
 
+  <!-- DASHBOARD -->
   <section class="cards">
-    <div class="card" onclick="location.href='life.html'">🧠 Vida</div>
-    <div class="card" onclick="location.href='index.html'">💰 Financeiro</div>
-    <div class="card">🚀 Projetos</div>
-    <div class="card" onclick="abrirChecklists()">✅ Checklists</div>
-    <div class="card">📦 Arquivo Central</div>
+
+    <div class="card" onclick="location.href='life.html'">
+      <span>🧠</span>
+      <div class="card-title">Vida</div>
+    </div>
+
+    <div class="card" onclick="location.href='index.html'">
+      <span>💰</span>
+      <div class="card-title">Financeiro</div>
+    </div>
+
+    <div class="card">
+      <span>🚀</span>
+      <div class="card-title">Projetos</div>
+    </div>
+
+    <div class="card" onclick="abrirChecklists()">
+      <span>✅</span>
+      <div class="card-title">Checklists</div>
+    </div>
+
+    <div class="card">
+      <span>📦</span>
+      <div class="card-title">Arquivo Central</div>
+    </div>
+
   </section>
 
-  <!-- CHECKLIST -->
-  <section id="checklists-section" style="display:none;">
-    <h2>✅ Checklists</h2>
+  <!-- CHECKLISTS -->
+  <section id="checklists-section" style="display:none; margin-top:40px;">
+    <h2>✅ Meus Checklists</h2>
 
     <div id="checklists-container"></div>
 
@@ -54,7 +80,7 @@
 </main>
 
 <script>
-  // Firebase config (SEU APP ATUAL)
+  // Firebase config (APP EXISTENTE)
   const firebaseConfig = {
     apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
     authDomain: "painel-financeiro-borges.firebaseapp.com",
@@ -91,45 +117,16 @@
       document.getElementById("app").style.display = "none";
     }
   });
+
+  // NAVEGAÇÃO
+  function abrirChecklists() {
+    document.querySelector(".cards").style.display = "none";
+    document.getElementById("checklists-section").style.display = "block";
+  }
 </script>
 
+<!-- Checklist -->
 <script src="js/checklist.js"></script>
-
-</body>
-</html>        <button id="logoutBtn">Sair</button>
-      </div>
-    </header>
-
-    <main class="cards">
-
-      <div class="card" onclick="window.location.href='life.html'">
-        🧠 Vida
-      </div>
-
-      <div class="card" onclick="window.location.href='index.html'">
-        💰 Financeiro
-      </div>
-
-      <div class="card">
-        🚀 Projetos
-      </div>
-
-      <div class="card">
-        ✅ Checklists
-      </div>
-
-      <div class="card">
-        📦 Arquivo / Links
-      </div>
-
-    </main>
-
-  </section>
-
-  <!-- JS -->
-  <script src="js/firebase-init.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/app.js"></script>
 
 </body>
 </html>
