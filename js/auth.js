@@ -5,6 +5,7 @@ const dashboard = document.getElementById("dashboard");
 
 const loginBtn = document.getElementById("loginBtn");
 const logoutBtn = document.getElementById("logoutBtn");
+const loginToggleBtn = document.getElementById("loginToggleBtn");
 
 loginBtn.addEventListener("click", () => {
   const email = document.getElementById("email").value;
@@ -16,25 +17,33 @@ loginBtn.addEventListener("click", () => {
   }
 
   auth.signInWithEmailAndPassword(email, password)
-    .then(() => {
-      console.log("Login realizado");
-    })
-    .catch(err => {
-      alert("Erro no login: " + err.message);
-    });
+    .catch(err => alert(err.message));
 });
 
 logoutBtn.addEventListener("click", () => {
   auth.signOut();
 });
 
-// Observador de sessão
+// Alternância correta de estado
 auth.onAuthStateChanged(user => {
   if (user) {
     loginScreen.style.display = "none";
     dashboard.style.display = "block";
+    logoutBtn.style.display = "inline-block";
+    loginToggleBtn.style.display = "none";
   } else {
     dashboard.style.display = "none";
+    loginScreen.style.display = "flex";
+    logoutBtn.style.display = "none";
+    loginToggleBtn.style.display = "inline-block";
+  }
+});
+
+// Botão "Entrar" visível quando deslogado
+loginToggleBtn.addEventListener("click", () => {
+  loginScreen.style.display = "flex";
+  dashboard.style.display = "none";
+});    dashboard.style.display = "none";
     loginScreen.style.display = "block";
   }
 });
