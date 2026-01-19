@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dashboard Central</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/dashboard.css">
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+
+<body>
+
+  <!-- LOGIN -->
+  <section id="login-screen">
+    <h1>🔐 Acesso ao Dashboard</h1>
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Senha">
+    <button id="loginBtn">Entrar</button>
+  </section>
+
+  <!-- DASHBOARD -->
+  <section id="dashboard" style="display:none;">
+    <header>
+      <h1>🧠 Painel Central</h1>
+      <button id="logoutBtn">Sair</button>
+    </header>
+
+    <main class="cards">
+      <div class="card">🧠 Vida</div>
+      <div class="card">💰 Financeiro</div>
+      <div class="card">🚀 Projetos</div>
+      <div class="card">✅ Checklists</div>
+      <div class="card">📦 Arquivo</div>
+    </main>
+  </section>
+
+  <!-- JS -->
+  <script src="js/firebase-init.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>
