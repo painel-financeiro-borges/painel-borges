@@ -1,17 +1,17 @@
 // js/firebase-init.js
 
 const firebaseConfig = {
-  apiKey: "SUA_API_KEY",
-  authDomain: "SEU_AUTH_DOMAIN",
-  projectId: "SEU_PROJECT_ID",
-  storageBucket: "SEU_STORAGE_BUCKET",
-  messagingSenderId: "SEU_SENDER_ID",
-  appId: "SEU_APP_ID"
+  apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
+  authDomain: "painel-financeiro-borges.firebaseapp.com",
+  projectId: "painel-financeiro-borges",
+  storageBucket: "painel-financeiro-borges.appspot.com",
+  messagingSenderId: "354997627208",
+  appId: "1:354997627208:web:90604d0a7dcd45b6e4eb7d"
 };
 
-// Inicializa Firebase
+// Inicializa Firebase (modo compat)
 firebase.initializeApp(firebaseConfig);
 
-// Serviços
+// Serviços globais
 const auth = firebase.auth();
 const db = firebase.firestore();
