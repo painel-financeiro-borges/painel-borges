@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, query, where, onSnapshot, doc, updateDoc, deleteDoc, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, query, where, onSnapshot, doc, updateDoc, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
@@ -58,7 +58,6 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
-// NAVEGAÇÃO
 window.navigate = (target, title = 'Painel Org. Borges', extra = null) => {
     Object.values(ui.views).forEach(el => el.style.display = 'none');
     ui.nav.back.style.display = 'none';
@@ -110,93 +109,83 @@ function applyViewMode(mode) {
     else if(mode === 'kanban') { resources.style.display = 'none'; kanban.style.display = 'block'; }
 }
 
-// --- LÓGICA DE PROJETOS E ESPAÇOS VAZIOS ---
-
-// 1. Criar Espaço Vazio
 window.addSpacer = async (blockType) => {
     await addDoc(collection(db, `users/${currentUser.uid}/projects`), {
         title: "Spacer",
-        type: blockType, // Pessoal, Profissional...
+        type: blockType,
         isSpacer: true,
-        createdAt: new Date(),
-        position: 9999
+        position: 99999,
+        createdAt: new Date()
     });
 };
 
-// 2. Renderizar (Projetos + Spacers)
 function initProjects() {
-    const q = query(collection(db, `users/${currentUser.uid}/projects`), orderBy('position', 'asc'));
+    const q = query(collection(db, `users/${currentUser.uid}/projects`));
     
     onSnapshot(q, (snap) => {
-        ['Profissional', 'Pessoal', 'Ideia'].forEach(type => document.getElementById(`grid-${type}`).innerHTML = '');
+        ['Profissional', 'Pessoal', 'Ideia'].forEach(type => {
+            const el = document.getElementById(`grid-${type}`);
+            if(el) el.innerHTML = '';
+        });
 
-        snap.forEach(docSnap => {
-            const data = docSnap.data();
-            
-            // SE FOR SPACER (Card Vazio)
-            if (data.isSpacer) {
+        let items = [];
+        snap.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
+        items.sort((a, b) => (a.position || 0) - (b.position || 0));
+
+        items.forEach(data => {
+            const targetGrid = document.getElementById(`grid-${data.type}`) || document.getElementById('grid-Ideia');
+            if(!targetGrid) return;
+
+            if(data.isSpacer) {
                 const spacer = document.createElement('div');
                 spacer.className = 'spacer-card';
-                spacer.setAttribute('data-id', docSnap.id);
+                spacer.setAttribute('data-id', data.id);
                 spacer.innerHTML = `<i class="fas fa-arrows-alt spacer-icon"></i>`;
-                
-                // Duplo clique para apagar o espaço vazio
-                spacer.ondblclick = async () => {
-                    if(confirm("Remover este espaço vazio?")) await deleteDoc(doc(db, `users/${currentUser.uid}/projects`, docSnap.id));
-                };
-
-                const targetGrid = document.getElementById(`grid-${data.type}`) || document.getElementById('grid-Ideia');
+                spacer.ondblclick = async () => { if(confirm("Remover espaço?")) await deleteDoc(doc(db, `users/${currentUser.uid}/projects`, data.id)); };
                 targetGrid.appendChild(spacer);
                 return;
             }
 
-            // SE FOR PROJETO REAL
             const card = document.createElement('div');
             card.className = `project-card ${data.color}`;
-            card.setAttribute('data-id', docSnap.id);
-            
+            card.setAttribute('data-id', data.id);
             card.addEventListener('click', (e) => {
-                if(!e.target.closest('.fa-pen')) window.navigate('kanban', data.title, { id: docSnap.id, viewMode: data.viewMode });
+                if(!e.target.closest('.fa-pen')) window.navigate('kanban', data.title, { id: data.id, viewMode: data.viewMode });
             });
 
             card.innerHTML = `
                 <div class="d-flex w-100 justify-content-between">
                     <span class="badge bg-white text-dark opacity-75">${data.type}</span>
-                    <i class="fas fa-pen" style="opacity:0.6; cursor:pointer; padding:5px;" onclick="editProject('${docSnap.id}', '${data.title}', '${data.type}', '${data.color}')"></i>
+                    <i class="fas fa-pen" style="opacity:0.6; cursor:pointer; padding:5px;" onclick="editProject('${data.id}', '${data.title}', '${data.type}', '${data.color}')"></i>
                 </div>
                 <h4 class="fw-bold text-start mt-2">${data.title}</h4>
                 <div class="mt-auto text-end w-100 opacity-75 small"><i class="fas fa-arrow-right"></i></div>
             `;
-            
-            const targetGrid = document.getElementById(`grid-${data.type}`) || document.getElementById('grid-Ideia');
             targetGrid.appendChild(card);
         });
 
-        // Drag & Drop
         ['Profissional', 'Pessoal', 'Ideia'].forEach(type => {
             const gridEl = document.getElementById(`grid-${type}`);
-            new Sortable(gridEl, {
-                group: 'projects', 
-                animation: 150,
-                delay: 150,
-                delayOnTouchOnly: true,
-                onEnd: async function(evt) {
-                    const itemEl = evt.item;
-                    const newType = evt.to.getAttribute('data-type');
-                    const projId = itemEl.getAttribute('data-id');
-                    
-                    if (evt.from !== evt.to) {
-                        await updateDoc(doc(db, `users/${currentUser.uid}/projects`, projId), { type: newType });
+            if(gridEl) {
+                new Sortable(gridEl, {
+                    group: 'projects',
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+                    onEnd: async function(evt) {
+                        const itemEl = evt.item;
+                        const newType = evt.to.getAttribute('data-type');
+                        const projId = itemEl.getAttribute('data-id');
+                        if (evt.from !== evt.to) { await updateDoc(doc(db, `users/${currentUser.uid}/projects`, projId), { type: newType }); }
+                        updateProjectOrder(evt.to); 
                     }
-                    updateProjectOrder(evt.to); 
-                }
-            });
+                });
+            }
         });
     });
 }
 
 async function updateProjectOrder(gridEl) {
-    const cards = gridEl.children; // Pega filhos diretos (projetos e spacers)
+    const cards = gridEl.children;
     const batch = writeBatch(db);
     Array.from(cards).forEach((card, index) => {
         const id = card.getAttribute('data-id');
@@ -206,7 +195,6 @@ async function updateProjectOrder(gridEl) {
     await batch.commit();
 }
 
-// Modal Projeto
 const projModal = new bootstrap.Modal(document.getElementById('projectModal'));
 document.getElementById('fabBtn').onclick = () => {
     if(activeProjectId) {
@@ -247,9 +235,6 @@ document.getElementById('btnSaveProj').onclick = async () => {
 };
 document.getElementById('btnDelProj').onclick = async () => { if(confirm("Apagar?")) { await deleteDoc(doc(db, `users/${currentUser.uid}/projects`, document.getElementById('projId').value)); projModal.hide(); } };
 
-// --- RESTO DO CÓDIGO (SubCards, Kanban, Extras) ---
-// Mantido igual ao anterior, apenas para garantir que não falte nada:
-
 let subCardUnsub = null;
 function initSubCards(projectId) {
     if(subCardUnsub) subCardUnsub();
@@ -276,39 +261,84 @@ window.selectSubColor = (el, color) => { document.querySelectorAll('#subCardModa
 document.getElementById('btnSaveSubCard').onclick = async () => { const id = document.getElementById('subCardId').value; const title = document.getElementById('subCardTitle').value; const content = document.getElementById('subCardContent').value; const type = document.getElementById('subCardType').value; const color = document.getElementById('subCardColor').value; if(!title) return; const data = { title, content, type, color, projectId: activeProjectId, updatedAt: new Date() }; if(id) await updateDoc(doc(db, `users/${currentUser.uid}/subcards`, id), data); else { data.createdAt = new Date(); await addDoc(collection(db, `users/${currentUser.uid}/subcards`), data); } subCardModal.hide(); };
 document.getElementById('btnDelSubCard').onclick = async () => { if(confirm("Excluir?")) { await deleteDoc(doc(db, `users/${currentUser.uid}/subcards`, document.getElementById('subCardId').value)); subCardModal.hide(); } };
 
+// KANBAN ATUALIZADO (SEM ARQUIVO, COM NOMES NOVOS)
 let kanbanUnsub = null;
 function initKanban(projectId) {
     if(kanbanUnsub) kanbanUnsub();
     const q = query(collection(db, `users/${currentUser.uid}/tasks`), where('projectId', '==', projectId));
     kanbanUnsub = onSnapshot(q, (snap) => {
-        document.querySelectorAll('.kanban-col').forEach(c => c.innerHTML = '');
-        const counters = { urgent:0, medium:0, low:0, none:0 };
+        // Limpa apenas as colunas que existem no HTML novo
+        ['urgent', 'medium', 'low'].forEach(id => {
+            const col = document.getElementById(`col-${id}`);
+            if(col) col.innerHTML = '';
+        });
+        
+        const counters = { urgent:0, medium:0, low:0 };
+        
         snap.forEach(docSnap => {
             const t = docSnap.data();
             if(t.deleted) return;
-            counters[t.priority || 'none']++;
+            
+            // Corrige dados antigos: se for 'none' ou sem prioridade, vira 'low'
+            let p = t.priority;
+            if (p === 'none' || !p) p = 'low';
+
+            counters[p]++;
+            
             const el = document.createElement('div');
-            el.className = `task-card priority-${t.priority}`;
+            el.className = `task-card priority-${p}`;
             el.dataset.id = docSnap.id;
             el.onclick = () => editTask(docSnap.id, t);
+            
             let content = t.title.includes('http') ? `<a href="${t.title}" target="_blank" onclick="event.stopPropagation()" class="fw-bold text-decoration-none">Link <i class="fas fa-external-link-alt small"></i></a>` : `<span class="fw-bold">${t.title}</span>`;
             el.innerHTML = `<div>${content}</div>${t.desc ? `<small class="text-muted text-truncate d-block mt-1">${t.desc}</small>` : ''}`;
-            const col = document.getElementById(`col-${t.priority}`);
+            
+            const col = document.getElementById(`col-${p}`);
             if(col) col.appendChild(el);
         });
+        
+        // Atualiza contadores
         Object.keys(counters).forEach(key => { const h = document.querySelector(`.kanban-header.${key} .count-badge`); if(h) h.innerText = counters[key]; });
     });
 }
-['urgent', 'medium', 'low', 'none'].forEach(p => {
-    new Sortable(document.getElementById(`col-${p}`), {
-        group: 'kanban', animation: 150, delay: 100, delayOnTouchOnly: true,
-        onEnd: async (evt) => await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, evt.item.dataset.id), { priority: evt.to.dataset.priority })
-    });
+
+// Drag & Drop apenas para as 3 colunas
+['urgent', 'medium', 'low'].forEach(p => {
+    const el = document.getElementById(`col-${p}`);
+    if(el) {
+        new Sortable(el, {
+            group: 'kanban', animation: 150, delay: 100, delayOnTouchOnly: true,
+            onEnd: async (evt) => await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, evt.item.dataset.id), { priority: evt.to.dataset.priority })
+        });
+    }
 });
+
 const taskModal = new bootstrap.Modal(document.getElementById('taskModal'));
 window.openTaskModal = () => { document.getElementById('taskId').value = ''; document.getElementById('taskTitle').value = ''; document.getElementById('taskDesc').value = ''; document.getElementById('btnDelTask').style.display = 'none'; taskModal.show(); };
-window.editTask = (id, data) => { document.getElementById('taskId').value = id; document.getElementById('taskTitle').value = data.title; document.getElementById('taskDesc').value = data.desc || ''; document.getElementById('taskPriority').value = data.priority; document.getElementById('btnDelTask').style.display = 'block'; taskModal.show(); };
-document.getElementById('btnSaveTask').onclick = async () => { const id = document.getElementById('taskId').value; const title = document.getElementById('taskTitle').value; const desc = document.getElementById('taskDesc').value; const priority = document.getElementById('taskPriority').value; if(!title) return; const data = { title, desc, priority, projectId: activeProjectId, deleted: false, updatedAt: new Date() }; if(id) await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, id), data); else { data.createdAt = new Date(); await addDoc(collection(db, `users/${currentUser.uid}/tasks`), data); } taskModal.hide(); };
+window.editTask = (id, data) => { 
+    document.getElementById('taskId').value = id; 
+    document.getElementById('taskTitle').value = data.title; 
+    document.getElementById('taskDesc').value = data.desc || ''; 
+    
+    // Se a tarefa antiga tinha prioridade 'none', ao editar vai para 'low'
+    let p = data.priority;
+    if(p === 'none') p = 'low';
+    document.getElementById('taskPriority').value = p; 
+    
+    document.getElementById('btnDelTask').style.display = 'block'; 
+    taskModal.show(); 
+};
+document.getElementById('btnSaveTask').onclick = async () => { 
+    const id = document.getElementById('taskId').value; 
+    const title = document.getElementById('taskTitle').value; 
+    const desc = document.getElementById('taskDesc').value; 
+    const priority = document.getElementById('taskPriority').value; 
+    if(!title) return; 
+    const data = { title, desc, priority, projectId: activeProjectId, deleted: false, updatedAt: new Date() }; 
+    if(id) await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, id), data); 
+    else { data.createdAt = new Date(); await addDoc(collection(db, `users/${currentUser.uid}/tasks`), data); } 
+    taskModal.hide(); 
+};
 document.getElementById('btnDelTask').onclick = async () => { await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, document.getElementById('taskId').value), { deleted: true }); taskModal.hide(); };
 
 document.getElementById('taskSearch').onkeyup = (e) => { const term = e.target.value.toLowerCase(); document.querySelectorAll('.task-card').forEach(card => card.style.display = card.innerText.toLowerCase().includes(term) ? 'block' : 'none'); };
