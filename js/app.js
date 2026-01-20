@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, query, where, onSnapshot, doc, updateDoc, deleteDoc, writeBatch, getDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, query, where, onSnapshot, doc, updateDoc, deleteDoc, writeBatch, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
@@ -53,14 +53,24 @@ function applyViewMode(mode) { const { resources, kanban } = ui.sections; if(mod
 
 window.addSpacer = async (blockType) => { await addDoc(collection(db, `users/${currentUser.uid}/projects`), { title: "Spacer", type: blockType, isSpacer: true, position: 99999, createdAt: new Date() }); };
 
+// --- FUNÇÃO GLOBAL PARA MOVER PARA LIXEIRA ---
 async function moveToTrash(collectionName, docId, data, type) {
     if(!currentUser) return;
     try {
-        await addDoc(collection(db, `users/${currentUser.uid}/trash`), { ...data, originalCollection: collectionName, originalId: docId, itemType: type, deletedAt: new Date() });
-        if(collectionName && docId) { await deleteDoc(doc(db, `users/${currentUser.uid}/${collectionName}`, docId)); }
-    } catch(e) { console.error("Erro lixeira", e); }
+        await addDoc(collection(db, `users/${currentUser.uid}/trash`), {
+            ...data,
+            originalCollection: collectionName || 'none', // Evita erro de null
+            originalId: docId || 'none',
+            itemType: type,
+            deletedAt: new Date()
+        });
+        if(collectionName && docId) {
+            await deleteDoc(doc(db, `users/${currentUser.uid}/${collectionName}`, docId));
+        }
+    } catch(e) { console.error("Erro lixeira", e); alert("Erro ao mover para lixeira: " + e.message); }
 }
 
+// --- ORDENAÇÃO ---
 async function saveOrderFromDom(gridEl, collectionPath) {
     const cards = gridEl.children; const batch = writeBatch(db);
     Array.from(cards).forEach((card, index) => { const id = card.getAttribute('data-id'); if(id) { const ref = doc(db, collectionPath, id); batch.update(ref, { position: index }); } });
@@ -73,19 +83,16 @@ function initProjects() {
         ['Profissional', 'Pessoal', 'Ideia'].forEach(type => document.getElementById(`grid-${type}`).innerHTML = '');
         let items = []; snap.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
         items.sort((a, b) => (a.position || 0) - (b.position || 0));
-        
-        items.forEach((data, index) => {
+        items.forEach(data => {
             const targetGrid = document.getElementById(`grid-${data.type}`) || document.getElementById('grid-Ideia');
             if(!targetGrid) return;
             let card;
             if(data.isSpacer) {
                 card = document.createElement('div'); card.className = 'spacer-card animate-in'; card.setAttribute('data-id', data.id);
-                card.style.animationDelay = `${index * 0.05}s`; // ANIMAÇÃO CASCATA
                 card.innerHTML = `<i class="fas fa-arrows-alt spacer-icon"></i><div class="spacer-delete" title="Excluir"><i class="fas fa-times"></i></div>`;
                 card.querySelector('.spacer-delete').onclick = async (e) => { e.stopPropagation(); if(confirm("Mover para lixeira?")) await moveToTrash('projects', data.id, data, 'Espaço Vazio'); };
             } else {
                 card = document.createElement('div'); card.className = `project-card ${data.color} animate-in`; card.setAttribute('data-id', data.id);
-                card.style.animationDelay = `${index * 0.05}s`; // ANIMAÇÃO CASCATA
                 card.addEventListener('click', (e) => { if(!e.target.closest('.fa-pen')) window.navigate('kanban', data.title, { id: data.id, viewMode: data.viewMode }); });
                 card.innerHTML = `<div class="d-flex w-100 justify-content-between"><span class="badge bg-white text-dark opacity-75">${data.type}</span><i class="fas fa-pen" style="opacity:0.6; cursor:pointer; padding:5px;" onclick="editProject('${data.id}', '${data.title}', '${data.type}', '${data.color}')"></i></div><h4 class="fw-bold text-start mt-2 text-white-force">${data.title}</h4><div class="mt-auto text-end w-100 opacity-75 small"><i class="fas fa-arrow-right"></i></div>`;
             }
@@ -103,7 +110,16 @@ document.getElementById('fabBtn').onclick = () => { if(activeProjectId) { const 
 window.editProject = (id, title, type, color) => { document.getElementById('projId').value = id; document.getElementById('projTitle').value = title; document.getElementById('projType').value = type; document.getElementById('selectedColor').value = color; document.getElementById('btnDelProj').style.display = 'block'; document.querySelectorAll('.color-dot').forEach(d => d.classList.toggle('selected', d.classList.contains(color))); projModal.show(); };
 window.selectColor = (el, color) => { document.querySelectorAll('#projectModal .color-dot').forEach(d => d.classList.remove('selected')); el.classList.add('selected'); document.getElementById('selectedColor').value = color; };
 document.getElementById('btnSaveProj').onclick = async () => { const id = document.getElementById('projId').value; const title = document.getElementById('projTitle').value; const type = document.getElementById('projType').value; const color = document.getElementById('selectedColor').value; if(!title) return; const data = { title, type, color, updatedAt: new Date(), isSpacer: false }; if(id) await updateDoc(doc(db, `users/${currentUser.uid}/projects`, id), data); else { data.createdAt = new Date(); data.position = 9999; data.viewMode = 'hybrid'; await addDoc(collection(db, `users/${currentUser.uid}/projects`), data); } projModal.hide(); };
-document.getElementById('btnDelProj').onclick = async () => { if(confirm("Mover para a lixeira?")) { const id = document.getElementById('projId').value; const docRef = doc(db, `users/${currentUser.uid}/projects`, id); const docSnap = await getDoc(docRef); await moveToTrash('projects', id, docSnap.data(), 'Projeto'); projModal.hide(); } };
+// DELETE PROJETO -> LIXEIRA
+document.getElementById('btnDelProj').onclick = async () => { 
+    if(confirm("Mover para a lixeira?")) { 
+        const id = document.getElementById('projId').value;
+        const docRef = doc(db, `users/${currentUser.uid}/projects`, id);
+        const docSnap = await getDoc(docRef);
+        await moveToTrash('projects', id, docSnap.data(), 'Projeto');
+        projModal.hide(); 
+    } 
+};
 
 window.addSubSpacer = async () => { if (!activeProjectId) return; await addDoc(collection(db, `users/${currentUser.uid}/subcards`), { title: "Spacer", projectId: activeProjectId, isSpacer: true, position: 99999, createdAt: new Date() }); };
 
@@ -116,17 +132,14 @@ function initSubCards(projectId) {
         if(snap.empty) { grid.innerHTML = '<div class="text-muted small text-center w-100 py-3">Sem recursos.</div>'; return; }
         let items = []; snap.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
         items.sort((a, b) => (a.position || 0) - (b.position || 0));
-        
-        items.forEach((data, index) => {
+        items.forEach(data => {
             if(data.isSpacer) {
                 const spacer = document.createElement('div'); spacer.className = 'spacer-card animate-in'; spacer.setAttribute('data-id', data.id);
-                spacer.style.animationDelay = `${index * 0.05}s`;
                 spacer.innerHTML = `<i class="fas fa-arrows-alt spacer-icon"></i><div class="spacer-delete" title="Excluir"><i class="fas fa-times"></i></div>`;
                 spacer.querySelector('.spacer-delete').onclick = async (e) => { e.stopPropagation(); if(confirm("Mover para lixeira?")) await moveToTrash('subcards', data.id, data, 'Espaço Vazio'); };
                 grid.appendChild(spacer); return;
             }
             const el = document.createElement('div'); el.className = `sub-card ${data.color || 'bg-grad-1'} animate-in`; el.setAttribute('data-id', data.id);
-            el.style.animationDelay = `${index * 0.05}s`;
             let icon = 'fa-align-left'; if (data.type === 'link') icon = 'fa-link'; if (data.type === 'checklist') icon = 'fa-tasks';
             el.innerHTML = `<i class="fas ${icon} sub-card-icon"></i><div class="sub-card-title text-white-force">${data.title}</div><small class="opacity-75 mt-2" style="font-size:0.7rem">${data.type.toUpperCase()}</small>`;
             el.onclick = () => { if(data.type === 'link' && !confirm("Editar?")) window.open(data.content, '_blank'); else editSubCard(data.id, data); };
@@ -150,14 +163,30 @@ window.renderTempChecklist = () => {
     });
 };
 window.addTempItem = () => { const input = document.getElementById('newCheckItem'); const priority = document.getElementById('newCheckPriority').value; if(!input.value.trim()) return; tempChecklistItems.push({ text: input.value, done: false, priority: priority }); input.value = ''; renderTempChecklist(); };
-window.removeTempItem = async (index) => { const removedItem = tempChecklistItems[index]; await moveToTrash(null, null, { title: removedItem.text, priority: removedItem.priority, originalCardId: document.getElementById('subCardId').value }, 'Item Lista'); tempChecklistItems.splice(index, 1); renderTempChecklist(); };
+
+// REMOVER ITEM DE CHECKLIST -> LIXEIRA
+window.removeTempItem = async (index) => { 
+    const removedItem = tempChecklistItems[index];
+    await moveToTrash(null, null, { title: removedItem.text, priority: removedItem.priority, originalCardId: document.getElementById('subCardId').value }, 'Item Lista');
+    tempChecklistItems.splice(index, 1); 
+    renderTempChecklist(); 
+};
+
 window.toggleTempItem = (index) => { tempChecklistItems[index].done = !tempChecklistItems[index].done; renderTempChecklist(); };
 window.openSubCardModal = () => { document.getElementById('subCardId').value = ''; document.getElementById('subCardTitle').value = ''; document.getElementById('subCardContent').value = ''; document.getElementById('subCardType').value = 'checklist'; tempChecklistItems = []; renderTempChecklist(); toggleSubCardInputs(); document.getElementById('btnDelSubCard').style.display = 'none'; initSubCardSortable(); subCardModal.show(); };
 window.editSubCard = (id, data) => { document.getElementById('subCardId').value = id; document.getElementById('subCardTitle').value = data.title; document.getElementById('subCardContent').value = data.content || ''; document.getElementById('subCardType').value = data.type; document.getElementById('subCardColor').value = data.color; tempChecklistItems = data.items || []; renderTempChecklist(); toggleSubCardInputs(); document.getElementById('btnDelSubCard').style.display = 'block'; initSubCardSortable(); subCardModal.show(); };
 function initSubCardSortable() { const el = document.getElementById('tempChecklistList'); if(el) { new Sortable(el, { animation: 150, handle: '.checklist-handle', onEnd: function(evt) { const item = tempChecklistItems.splice(evt.oldIndex, 1)[0]; tempChecklistItems.splice(evt.newIndex, 0, item); } }); } }
 window.selectSubColor = (el, color) => { document.querySelectorAll('#subCardModal .color-dot').forEach(d => d.classList.remove('selected')); el.classList.add('selected'); document.getElementById('subCardColor').value = color; };
 document.getElementById('btnSaveSubCard').onclick = async () => { const id = document.getElementById('subCardId').value; const title = document.getElementById('subCardTitle').value; const content = document.getElementById('subCardContent').value; const type = document.getElementById('subCardType').value; const color = document.getElementById('subCardColor').value; if(!title) return; const data = { title, content, type, color, items: tempChecklistItems, projectId: activeProjectId, updatedAt: new Date(), position: 99999 }; if(id) await updateDoc(doc(db, `users/${currentUser.uid}/subcards`, id), data); else { data.createdAt = new Date(); await addDoc(collection(db, `users/${currentUser.uid}/subcards`), data); } subCardModal.hide(); };
-document.getElementById('btnDelSubCard').onclick = async () => { if(confirm("Mover para lixeira?")) { const id = document.getElementById('subCardId').value; const title = document.getElementById('subCardTitle').value; await moveToTrash('subcards', id, { title }, 'Recurso'); subCardModal.hide(); } };
+// DELETE SUB-CARD -> LIXEIRA
+document.getElementById('btnDelSubCard').onclick = async () => { 
+    if(confirm("Mover para lixeira?")) { 
+        const id = document.getElementById('subCardId').value;
+        const title = document.getElementById('subCardTitle').value;
+        await moveToTrash('subcards', id, { title }, 'Recurso');
+        subCardModal.hide(); 
+    } 
+};
 
 let kanbanUnsub = null;
 function initKanban(projectId) {
@@ -178,6 +207,7 @@ function initKanban(projectId) {
     });
 }
 window.toggleTaskDone = async (id, isDone) => { await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, id), { done: isDone }); };
+// DELETE TAREFA -> LIXEIRA
 window.deleteTaskDirect = async (id, title) => { if(confirm("Excluir esta tarefa?")) { await moveToTrash('tasks', id, { title }, 'Tarefa'); } };
 ['urgent', 'medium', 'low'].forEach(p => { const el = document.getElementById(`col-${p}`); if(el) { new Sortable(el, { group: 'kanban', animation: 150, delay: 100, delayOnTouchOnly: true, onEnd: async (evt) => await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, evt.item.dataset.id), { priority: evt.to.dataset.priority }) }); } });
 const taskModal = new bootstrap.Modal(document.getElementById('taskModal'));
@@ -186,19 +216,77 @@ window.editTask = (id, data) => { document.getElementById('taskId').value = id; 
 document.getElementById('btnSaveTask').onclick = async () => { const id = document.getElementById('taskId').value; const title = document.getElementById('taskTitle').value; const desc = document.getElementById('taskDesc').value; const priority = document.getElementById('taskPriority').value; if(!title) return; const data = { title, desc, priority, projectId: activeProjectId, deleted: false, updatedAt: new Date() }; if(id) await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, id), data); else { data.createdAt = new Date(); await addDoc(collection(db, `users/${currentUser.uid}/tasks`), data); } taskModal.hide(); };
 document.getElementById('btnDelTask').onclick = async () => { await deleteTaskDirect(document.getElementById('taskId').value, document.getElementById('taskTitle').value); taskModal.hide(); };
 document.getElementById('taskSearch').onkeyup = (e) => { const term = e.target.value.toLowerCase(); document.querySelectorAll('.task-card').forEach(card => card.style.display = card.innerText.toLowerCase().includes(term) ? 'block' : 'none'); };
+
+// --- LIXEIRA GLOBAL (LÓGICA CORRIGIDA) ---
 document.getElementById('btnTrash').onclick = () => { 
-    const list = document.getElementById('trashList'); list.innerHTML = '<div class="text-center p-3"><div class="spinner-border"></div></div>'; 
+    const list = document.getElementById('trashList'); 
+    list.innerHTML = '<div class="text-center p-3"><div class="spinner-border"></div></div>'; 
     new bootstrap.Modal(document.getElementById('trashModal')).show(); 
     const q = query(collection(db, `users/${currentUser.uid}/trash`), where('deletedAt', '!=', null));
     onSnapshot(collection(db, `users/${currentUser.uid}/trash`), (snap) => { 
-        list.innerHTML = ''; if(snap.empty) { list.innerHTML = '<div class="text-center mt-5 text-muted">Lixeira vazia</div>'; return; } 
+        list.innerHTML = ''; 
+        if(snap.empty) { list.innerHTML = '<div class="text-center mt-5 text-muted">Lixeira vazia</div>'; return; } 
         snap.forEach(docSnap => { 
-            const t = docSnap.data(); 
-            list.innerHTML += `<div class="card mb-2 border-0 shadow-sm"><div class="card-body d-flex justify-content-between align-items-center"><div><span class="badge bg-secondary mb-1">${t.itemType || 'Item'}</span><div class="fw-bold">${t.title || 'Sem título'}</div><small class="text-muted">${t.deletedAt?.toDate().toLocaleDateString()}</small></div><div><button class="btn btn-sm btn-success me-2" onclick="restoreFromTrash('${docSnap.id}', '${t.originalCollection}', '${t.originalId}', '${t.itemType}')">Recuperar</button><button class="btn btn-sm btn-outline-danger" onclick="nuke('${docSnap.id}')">X</button></div></div></div>`; 
+            const t = docSnap.data();
+            // Verifica se as strings são 'null' (bug do HTML anterior) e corrige
+            const col = (t.originalCollection && t.originalCollection !== 'none') ? t.originalCollection : null;
+            const oid = (t.originalId && t.originalId !== 'none') ? t.originalId : null;
+            
+            list.innerHTML += `
+                <div class="card mb-2 border-0 shadow-sm">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-secondary mb-1">${t.itemType || 'Item'}</span>
+                            <div class="fw-bold">${t.title || 'Sem título'}</div>
+                            <small class="text-muted">${t.deletedAt?.toDate ? t.deletedAt.toDate().toLocaleDateString() : 'Data inválida'}</small>
+                        </div>
+                        <div>
+                            <button class="btn btn-sm btn-success me-2" onclick="restoreFromTrash('${docSnap.id}', '${col}', '${oid}', '${t.itemType}')">Recuperar</button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="nuke('${docSnap.id}')">X</button>
+                        </div>
+                    </div>
+                </div>`; 
         }); 
     }); 
 };
-window.restoreFromTrash = async (trashId, collectionName, originalId, type) => { const trashDoc = await getDoc(doc(db, `users/${currentUser.uid}/trash`, trashId)); const data = trashDoc.data(); delete data.deletedAt; delete data.originalCollection; delete data.originalId; delete data.itemType; if(type === 'Item Lista') { alert("Itens de lista recuperados voltam como tarefas no quadro."); await addDoc(collection(db, `users/${currentUser.uid}/tasks`), { title: data.title, priority: 'low', projectId: activeProjectId || 'root', createdAt: new Date() }); } else if(collectionName) { await setDoc(doc(db, `users/${currentUser.uid}/${collectionName}`, originalId), data); } await deleteDoc(doc(db, `users/${currentUser.uid}/trash`, trashId)); };
+
+// RESTAURAR (CORRIGIDO PARA O BUG DE NULL)
+window.restoreFromTrash = async (trashId, collectionName, originalId, type) => {
+    try {
+        const trashDoc = await getDoc(doc(db, `users/${currentUser.uid}/trash`, trashId));
+        if(!trashDoc.exists()) { alert("Item não encontrado."); return; }
+        
+        const data = trashDoc.data();
+        delete data.deletedAt; delete data.originalCollection; delete data.originalId; delete data.itemType;
+
+        // Se for "null" string, trata como null real
+        if(collectionName === 'null' || collectionName === 'undefined') collectionName = null;
+        if(originalId === 'null' || originalId === 'undefined') originalId = null;
+
+        if(type === 'Item Lista' || !collectionName) {
+            // Itens de checklist viram tarefas para não perder dados
+            await addDoc(collection(db, `users/${currentUser.uid}/tasks`), { 
+                title: `[Recuperado] ${data.title}`, 
+                priority: 'low', 
+                projectId: activeProjectId || 'root', 
+                createdAt: new Date() 
+            });
+            alert("Item recuperado como uma nova Tarefa no quadro.");
+        } else {
+            // Tenta restaurar no local original se possível
+            if (originalId) {
+                await setDoc(doc(db, `users/${currentUser.uid}/${collectionName}`, originalId), data);
+            } else {
+                await addDoc(collection(db, `users/${currentUser.uid}/${collectionName}`), data);
+            }
+        }
+        await deleteDoc(doc(db, `users/${currentUser.uid}/trash`, trashId));
+    } catch(e) {
+        console.error("Erro ao restaurar", e);
+        alert("Erro ao restaurar: " + e.message);
+    }
+};
+
 window.nuke = async (id) => { if(confirm("Excluir permanentemente?")) await deleteDoc(doc(db, `users/${currentUser.uid}/trash`, id)); };
 document.getElementById('themeToggle').onclick = () => { document.body.classList.toggle('dark-mode'); localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light'); };
 if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
