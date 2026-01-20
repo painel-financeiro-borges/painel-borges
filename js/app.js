@@ -52,25 +52,18 @@ function applyViewMode(mode) { const { resources, kanban } = ui.sections; if(mod
 
 window.addSpacer = async (blockType) => { await addDoc(collection(db, `users/${currentUser.uid}/projects`), { title: "Spacer", type: blockType, isSpacer: true, position: 99999, createdAt: new Date() }); };
 
-// --- LÓGICA DE TROCA (SWAP) ---
-// Em vez de reordenar tudo, trocamos apenas a posição dos dois envolvidos
-async function performSwap(collectionName, draggedItem, targetItem) {
-    if (!draggedItem || !targetItem) return;
-    
-    // Pega os IDs
-    const dragId = draggedItem.getAttribute('data-id');
-    const dropId = targetItem.getAttribute('data-id');
-    
-    if (!dragId || !dropId || dragId === dropId) return;
-
-    // Precisamos das posições originais. Como o Sortable já moveu visualmente,
-    // vamos confiar na reindexação completa para garantir integridade.
-    // Mas para o usuário, parecerá uma troca.
-    
-    // ATENÇÃO: Para simular "casinha", vamos salvar a ordem exata que ficou na tela.
-    // Se o usuário arrastou A para cima de B, o Sortable colocou A no lugar de B e B foi pro lado.
-    // Para fazer "Swap" puro (A vai pra B e B vai pra A), precisaríamos de lógica customizada complexa.
-    // A melhor aproximação "No-Code style" é salvar a ordem do DOM.
+// --- ORDENAÇÃO DE DOM (SWAP LOGIC) ---
+async function saveOrderFromDom(gridEl, collectionPath) {
+    const cards = gridEl.children;
+    const batch = writeBatch(db);
+    Array.from(cards).forEach((card, index) => {
+        const id = card.getAttribute('data-id');
+        if(id) {
+            const ref = doc(db, collectionPath, id);
+            batch.update(ref, { position: index });
+        }
+    });
+    await batch.commit();
 }
 
 function initProjects() {
@@ -79,37 +72,24 @@ function initProjects() {
         ['Profissional', 'Pessoal', 'Ideia'].forEach(type => document.getElementById(`grid-${type}`).innerHTML = '');
         let items = [];
         snap.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
-        // Ordena por posição salva
         items.sort((a, b) => (a.position || 0) - (b.position || 0));
 
         items.forEach(data => {
             const targetGrid = document.getElementById(`grid-${data.type}`) || document.getElementById('grid-Ideia');
             if(!targetGrid) return;
             
-            let cardHtml = '';
-            let className = '';
-            
+            let card;
             if(data.isSpacer) {
-                className = 'spacer-card';
-                cardHtml = `<i class="fas fa-arrows-alt spacer-icon"></i><div class="spacer-delete" title="Excluir"><i class="fas fa-times"></i></div>`;
-            } else {
-                className = `project-card ${data.color}`;
-                cardHtml = `<div class="d-flex w-100 justify-content-between"><span class="badge bg-white text-dark opacity-75">${data.type}</span><i class="fas fa-pen" style="opacity:0.6; cursor:pointer; padding:5px;" onclick="editProject('${data.id}', '${data.title}', '${data.type}', '${data.color}')"></i></div><h4 class="fw-bold text-start mt-2">${data.title}</h4><div class="mt-auto text-end w-100 opacity-75 small"><i class="fas fa-arrow-right"></i></div>`;
-            }
-
-            const card = document.createElement('div');
-            card.className = className;
-            card.setAttribute('data-id', data.id);
-            // Salva o tipo para saber se mudou de lista
-            card.setAttribute('data-type', data.type); 
-            card.innerHTML = cardHtml;
-
-            if(data.isSpacer) {
+                card = document.createElement('div'); card.className = 'spacer-card'; card.setAttribute('data-id', data.id);
+                card.innerHTML = `<i class="fas fa-arrows-alt spacer-icon"></i><div class="spacer-delete" title="Excluir"><i class="fas fa-times"></i></div>`;
                 card.querySelector('.spacer-delete').onclick = async (e) => { e.stopPropagation(); if(confirm("Remover espaço?")) await deleteDoc(doc(db, `users/${currentUser.uid}/projects`, data.id)); };
             } else {
+                card = document.createElement('div'); card.className = `project-card ${data.color}`; card.setAttribute('data-id', data.id);
                 card.addEventListener('click', (e) => { if(!e.target.closest('.fa-pen')) window.navigate('kanban', data.title, { id: data.id, viewMode: data.viewMode }); });
+                card.innerHTML = `<div class="d-flex w-100 justify-content-between"><span class="badge bg-white text-dark opacity-75">${data.type}</span><i class="fas fa-pen" style="opacity:0.6; cursor:pointer; padding:5px;" onclick="editProject('${data.id}', '${data.title}', '${data.type}', '${data.color}')"></i></div><h4 class="fw-bold text-start mt-2 text-white-force">${data.title}</h4><div class="mt-auto text-end w-100 opacity-75 small"><i class="fas fa-arrow-right"></i></div>`;
             }
-            
+            // MARCADOR DE TIPO
+            card.setAttribute('data-type', data.type);
             targetGrid.appendChild(card);
         });
         
@@ -117,37 +97,17 @@ function initProjects() {
             const gridEl = document.getElementById(`grid-${type}`);
             if(gridEl) { 
                 new Sortable(gridEl, { 
-                    group: 'projects', animation: 150, 
-                    delay: 200, delayOnTouchOnly: true, // DELAY CRÍTICO PARA SCROLL MOBILE
-                    onChoose: () => { if(navigator.vibrate) navigator.vibrate(50); },
+                    group: 'projects', animation: 150, delay: 200, delayOnTouchOnly: true, onChoose: () => { if(navigator.vibrate) navigator.vibrate(50); },
                     onEnd: async function(evt) { 
-                        const itemEl = evt.item;
-                        const newType = evt.to.getAttribute('data-type'); 
-                        const projId = itemEl.getAttribute('data-id'); 
-                        // Se mudou de lista (Ex: Pessoal -> Profissional), atualiza o tipo
+                        const itemEl = evt.item; const newType = evt.to.getAttribute('data-type'); const projId = itemEl.getAttribute('data-id'); 
                         if (evt.from !== evt.to) { await updateDoc(doc(db, `users/${currentUser.uid}/projects`, projId), { type: newType }); } 
-                        // Salva a nova ordem (Onde o card caiu, ele fica)
-                        updateOrderFromDom(evt.to, `users/${currentUser.uid}/projects`);
-                        if(evt.from !== evt.to) updateOrderFromDom(evt.from, `users/${currentUser.uid}/projects`);
+                        saveOrderFromDom(evt.to, `users/${currentUser.uid}/projects`);
+                        if(evt.from !== evt.to) saveOrderFromDom(evt.from, `users/${currentUser.uid}/projects`);
                     } 
                 }); 
             }
         });
     });
-}
-
-// Função genérica para salvar a ordem visual atual
-async function updateOrderFromDom(gridEl, collectionPath) { 
-    const cards = gridEl.children; 
-    const batch = writeBatch(db); 
-    Array.from(cards).forEach((card, index) => { 
-        const id = card.getAttribute('data-id'); 
-        if(id) {
-            const ref = doc(db, collectionPath, id); 
-            batch.update(ref, { position: index }); 
-        }
-    }); 
-    await batch.commit(); 
 }
 
 const projModal = new bootstrap.Modal(document.getElementById('projectModal'));
@@ -160,7 +120,7 @@ window.selectColor = (el, color) => { document.querySelectorAll('#projectModal .
 document.getElementById('btnSaveProj').onclick = async () => { const id = document.getElementById('projId').value; const title = document.getElementById('projTitle').value; const type = document.getElementById('projType').value; const color = document.getElementById('selectedColor').value; if(!title) return; const data = { title, type, color, updatedAt: new Date(), isSpacer: false }; if(id) await updateDoc(doc(db, `users/${currentUser.uid}/projects`, id), data); else { data.createdAt = new Date(); data.position = 9999; data.viewMode = 'hybrid'; await addDoc(collection(db, `users/${currentUser.uid}/projects`), data); } projModal.hide(); };
 document.getElementById('btnDelProj').onclick = async () => { if(confirm("Apagar?")) { await deleteDoc(doc(db, `users/${currentUser.uid}/projects`, document.getElementById('projId').value)); projModal.hide(); } };
 
-// --- SUB-CARDS (RECURSOS) ---
+// --- SUB-CARDS (RECURSOS) COM SPACER ---
 window.addSubSpacer = async () => { if (!activeProjectId) return; await addDoc(collection(db, `users/${currentUser.uid}/subcards`), { title: "Spacer", projectId: activeProjectId, isSpacer: true, position: 99999, createdAt: new Date() }); };
 
 let subCardUnsub = null;
@@ -170,10 +130,11 @@ function initSubCards(projectId) {
     subCardUnsub = onSnapshot(q, (snap) => {
         const grid = document.getElementById('subCardsGrid'); grid.innerHTML = '';
         if(snap.empty) { grid.innerHTML = '<div class="text-muted small text-center w-100 py-3">Sem recursos.</div>'; return; }
+        
         let items = [];
         snap.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
         items.sort((a, b) => (a.position || 0) - (b.position || 0));
-        
+
         items.forEach(data => {
             let el;
             if(data.isSpacer) {
@@ -183,18 +144,18 @@ function initSubCards(projectId) {
             } else {
                 el = document.createElement('div'); el.className = `sub-card ${data.color || 'bg-grad-1'}`; el.setAttribute('data-id', data.id);
                 let icon = 'fa-align-left'; if (data.type === 'link') icon = 'fa-link'; if (data.type === 'checklist') icon = 'fa-tasks';
-                el.innerHTML = `<i class="fas ${icon} sub-card-icon"></i><div class="sub-card-title">${data.title}</div><small class="opacity-75 mt-2" style="font-size:0.7rem">${data.type.toUpperCase()}</small>`;
+                el.innerHTML = `<i class="fas ${icon} sub-card-icon"></i><div class="sub-card-title text-white-force">${data.title}</div><small class="opacity-75 mt-2" style="font-size:0.7rem">${data.type.toUpperCase()}</small>`;
                 el.onclick = () => { if(data.type === 'link' && !confirm("Editar?")) window.open(data.content, '_blank'); else editSubCard(data.id, data); };
             }
             grid.appendChild(el);
         });
         
-        // CONFIG SORTABLE SUB-CARDS (DELAY + VIBRATE)
+        // CONFIG SORTABLE SUB-CARDS IGUAL AO GRID PRINCIPAL
         new Sortable(grid, { 
             animation: 150, ghostClass: 'sortable-ghost', 
-            delay: 200, delayOnTouchOnly: true,
+            delay: 200, delayOnTouchOnly: true, 
             onChoose: () => { if(navigator.vibrate) navigator.vibrate(50); },
-            onEnd: async function(evt) { updateOrderFromDom(grid, `users/${currentUser.uid}/subcards`); } 
+            onEnd: async function(evt) { saveOrderFromDom(grid, `users/${currentUser.uid}/subcards`); } 
         });
     });
 }
