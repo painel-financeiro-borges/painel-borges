@@ -100,7 +100,9 @@ function initProjects() {
             card.innerHTML = `<i class="fas fa-thumbtack pin-btn ${data.pinned ? 'active' : ''}" onclick="toggleProjectPin(event, '${data.id}', ${data.pinned || false})"></i><div class="d-flex w-100 justify-content-between ps-5"><span class="badge bg-white text-dark opacity-75">${data.type}</span><i class="fas fa-pen" style="opacity:0.6; cursor:pointer; padding:5px;" onclick="editProject('${data.id}', '${data.title}', '${data.type}', '${data.color}')"></i></div><h4 class="fw-bold text-start mt-2 text-white-force">${data.title}</h4><div class="mt-auto text-end w-100 opacity-75 small"><i class="fas fa-arrow-right"></i></div>`; }
             card.setAttribute('data-type', data.type); targetGrid.appendChild(card);
         });
-        ['Profissional', 'Pessoal', 'Ideia'].forEach(type => { const gridEl = document.getElementById(`grid-${type}`); if(gridEl) { new Sortable(gridEl, { group: 'projects', animation: 150, onEnd: async function(evt) { const itemEl = evt.item; const newType = evt.to.getAttribute('data-type'); const projId = itemEl.getAttribute('data-id'); if (evt.from !== evt.to) { await updateDoc(doc(db, `users/${currentUser.uid}/projects`, projId), { type: newType }); } saveOrderFromDom(evt.to, `users/${currentUser.uid}/projects`); if(evt.from !== evt.to) saveOrderFromDom(evt.from, `users/${currentUser.uid}/projects`); } }); } });
+        ['Profissional', 'Pessoal', 'Ideia'].forEach(type => { const gridEl = document.getElementById(`grid-${type}`); if(gridEl) { 
+            // ADICIONADO DELAY PARA SCROLL MOBILE
+            new Sortable(gridEl, { group: 'projects', animation: 150, delay: 300, delayOnTouchOnly: true, onEnd: async function(evt) { const itemEl = evt.item; const newType = evt.to.getAttribute('data-type'); const projId = itemEl.getAttribute('data-id'); if (evt.from !== evt.to) { await updateDoc(doc(db, `users/${currentUser.uid}/projects`, projId), { type: newType }); } saveOrderFromDom(evt.to, `users/${currentUser.uid}/projects`); if(evt.from !== evt.to) saveOrderFromDom(evt.from, `users/${currentUser.uid}/projects`); } }); } });
     });
 }
 const projModal = new bootstrap.Modal(document.getElementById('projectModal'));
@@ -244,7 +246,8 @@ function initSubCards(projectId) {
             grid.appendChild(el);
         });
         if(subCardSortableInstance) subCardSortableInstance.destroy();
-        subCardSortableInstance = new Sortable(grid, { animation: 150, ghostClass: 'sortable-ghost', delay: 200, delayOnTouchOnly: true, touchStartThreshold: 10, onChoose: () => { if(navigator.vibrate) navigator.vibrate(50); }, onEnd: async function(evt) { saveOrderFromDom(grid, `users/${currentUser.uid}/subcards`); } });
+        // ADICIONADO DELAY TAMBÉM NOS SUB-CARDS
+        subCardSortableInstance = new Sortable(grid, { animation: 150, ghostClass: 'sortable-ghost', delay: 300, delayOnTouchOnly: true, onEnd: async function(evt) { saveOrderFromDom(grid, `users/${currentUser.uid}/subcards`); } });
     });
 }
 
@@ -268,7 +271,9 @@ function initKanban(projectId) {
 }
 window.toggleTaskDone = async (id, isDone) => { await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, id), { done: isDone }); addToHistory('TAREFA', `Tarefa ${isDone ? 'concluída' : 'pendente'}`); };
 window.deleteTaskDirect = async (id, title) => { if(confirm("Excluir?")) { const docRef = doc(db, `users/${currentUser.uid}/tasks`, id); const docSnap = await getDoc(docRef); await moveToTrash('tasks', id, docSnap.data(), 'Tarefa'); } };
-['urgent', 'medium', 'low'].forEach(p => { const el = document.getElementById(`col-${p}`); if(el) { new Sortable(el, { group: 'kanban', animation: 150, delay: 100, delayOnTouchOnly: true, onEnd: async (evt) => await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, evt.item.dataset.id), { priority: evt.to.dataset.priority }) }); } });
+['urgent', 'medium', 'low'].forEach(p => { const el = document.getElementById(`col-${p}`); if(el) { 
+    // ADICIONADO DELAY NAS COLUNAS KANBAN
+    new Sortable(el, { group: 'kanban', animation: 150, delay: 300, delayOnTouchOnly: true, onEnd: async (evt) => await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, evt.item.dataset.id), { priority: evt.to.dataset.priority }) }); } });
 const taskModal = new bootstrap.Modal(document.getElementById('taskModal'));
 window.openTaskModal = () => { document.getElementById('taskId').value = ''; document.getElementById('taskTitle').value = ''; document.getElementById('taskDesc').value = ''; document.getElementById('taskPriority').value = 'low'; document.getElementById('btnDelTask').style.display = 'none'; taskModal.show(); };
 window.editTask = (id, data) => { document.getElementById('taskId').value = id; document.getElementById('taskTitle').value = data.title; document.getElementById('taskDesc').value = data.desc || ''; let p = data.priority; if(p === 'none') p = 'low'; document.getElementById('taskPriority').value = p; document.getElementById('btnDelTask').style.display = 'block'; taskModal.show(); };
