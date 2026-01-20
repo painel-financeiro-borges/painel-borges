@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, query, where, onSnapshot, doc, updateDoc, deleteDoc, writeBatch, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, query, where, onSnapshot, doc, updateDoc, deleteDoc, writeBatch, getDoc, setDoc, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
@@ -34,16 +34,174 @@ document.getElementById('btnLogout').onclick = () => signOut(auth);
 
 onAuthStateChanged(auth, (user) => {
     ui.loading.style.display = 'none';
-    if (user) { currentUser = user; ui.nav.user.innerText = user.email; ui.loginScreen.style.opacity = '0'; setTimeout(() => ui.loginScreen.style.display = 'none', 400); initProjects(); } 
-    else { currentUser = null; ui.loginScreen.style.display = 'flex'; setTimeout(() => ui.loginScreen.style.opacity = '1', 10); }
+    if (user) { 
+        currentUser = user; 
+        ui.nav.user.innerText = user.email; 
+        ui.loginScreen.style.opacity = '0'; 
+        setTimeout(() => ui.loginScreen.style.display = 'none', 400); 
+        initProjects(); 
+        initHistory(); // Inicia o log
+    } else { 
+        currentUser = null; 
+        ui.loginScreen.style.display = 'flex'; 
+        setTimeout(() => ui.loginScreen.style.opacity = '1', 10); 
+    }
 });
+
+// --- SISTEMA DE LOG (HISTÓRICO) ---
+async function addToHistory(action, details) {
+    if(!currentUser) return;
+    try {
+        await addDoc(collection(db, `users/${currentUser.uid}/history`), {
+            action: action,
+            details: details,
+            createdAt: new Date()
+        });
+    } catch(e) { console.error("Erro ao logar", e); }
+}
+
+function initHistory() {
+    const q = query(collection(db, `users/${currentUser.uid}/history`), orderBy('createdAt', 'desc'), limit(50));
+    onSnapshot(q, (snap) => {
+        const container = document.getElementById('systemHistoryLog');
+        container.innerHTML = '';
+        if(snap.empty) { container.innerHTML = '<div class="text-muted small text-center">Nenhuma atividade recente.</div>'; return; }
+        
+        snap.forEach(doc => {
+            const data = doc.data();
+            const time = data.createdAt?.toDate ? data.createdAt.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--';
+            const div = document.createElement('div');
+            div.className = 'history-item';
+            div.innerHTML = `<div><span class="history-time">[${time}]</span> <span class="history-action">${data.action}:</span> ${data.details}</div>`;
+            container.appendChild(div);
+        });
+    });
+}
+
+document.getElementById('btnClearHistory').onclick = async () => {
+    if(!confirm("Limpar todo o histórico de logs?")) return;
+    const q = query(collection(db, `users/${currentUser.uid}/history`));
+    const snap = await getDocs(q);
+    const batch = writeBatch(db);
+    snap.forEach(doc => batch.delete(doc.ref));
+    await batch.commit();
+    addToHistory('SISTEMA', 'Histórico limpo pelo usuário.');
+};
+
+// --- SISTEMA DE EXPORTAÇÃO ---
+window.exportData = async (format) => {
+    if(!currentUser) return;
+    ui.loading.style.display = 'flex';
+    
+    try {
+        // Coleta todos os dados
+        const projectsSnap = await getDocs(collection(db, `users/${currentUser.uid}/projects`));
+        const tasksSnap = await getDocs(collection(db, `users/${currentUser.uid}/tasks`));
+        const subcardsSnap = await getDocs(collection(db, `users/${currentUser.uid}/subcards`));
+        
+        const data = {
+            exportedAt: new Date().toISOString(),
+            user: currentUser.email,
+            projects: projectsSnap.docs.map(d => ({id: d.id, ...d.data()})),
+            tasks: tasksSnap.docs.map(d => ({id: d.id, ...d.data()})),
+            subcards: subcardsSnap.docs.map(d => ({id: d.id, ...d.data()}))
+        };
+
+        if(format === 'json') {
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `backup_painel_borges_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            addToHistory('EXPORT', 'Backup JSON baixado.');
+        } 
+        else if (format === 'copy') {
+            await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+            alert("Dados copiados para a área de transferência!");
+            addToHistory('EXPORT', 'Dados copiados (Clipboard).');
+        }
+        else if (format === 'pdf') {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            doc.setFontSize(20);
+            doc.text("Relatório - Painel Borges", 10, 10);
+            doc.setFontSize(10);
+            doc.text(`Gerado em: ${new Date().toLocaleString()}`, 10, 18);
+            
+            let y = 30;
+            
+            data.projects.forEach(proj => {
+                if(y > 270) { doc.addPage(); y = 20; }
+                doc.setFontSize(14);
+                doc.setTextColor(0, 0, 255);
+                doc.text(`PROJETO: ${proj.title} (${proj.type})`, 10, y);
+                y += 8;
+                
+                // Tarefas do Projeto
+                const pTasks = data.tasks.filter(t => t.projectId === proj.id);
+                if(pTasks.length > 0) {
+                    doc.setFontSize(10);
+                    doc.setTextColor(0);
+                    pTasks.forEach(t => {
+                        if(y > 270) { doc.addPage(); y = 20; }
+                        const status = t.priority === 'urgent' ? '[URGENTE]' : (t.priority === 'medium' ? '[ATENÇÃO]' : '[NORMAL]');
+                        const check = t.done ? '(Concluído)' : '(Pendente)';
+                        doc.text(` - ${status} ${t.title} ${check}`, 15, y);
+                        y += 6;
+                    });
+                } else {
+                    doc.setFontSize(10);
+                    doc.setTextColor(100);
+                    doc.text(" - Nenhuma tarefa registrada.", 15, y);
+                    y += 6;
+                }
+                y += 5;
+            });
+            
+            doc.save(`relatorio_painel_${new Date().toISOString().slice(0,10)}.pdf`);
+            addToHistory('EXPORT', 'Relatório PDF gerado.');
+        }
+
+    } catch(e) {
+        console.error(e);
+        alert("Erro na exportação: " + e.message);
+    } finally {
+        ui.loading.style.display = 'none';
+        const modal = bootstrap.Modal.getInstance(document.getElementById('exportModal'));
+        if(modal) modal.hide();
+    }
+};
 
 window.navigate = (target, title = 'Painel Org. Borges', extra = null) => {
     Object.values(ui.views).forEach(el => el.style.display = 'none');
     ui.nav.back.style.display = 'none';
-    if (target === 'home') { ui.views.projects.style.display = 'block'; ui.nav.title.innerHTML = '<i class="fas fa-cube text-primary me-2"></i>Painel Org. Borges'; activeProjectId = null; } 
-    else if (target === 'kanban') { ui.views.kanban.style.display = 'block'; ui.nav.back.style.display = 'block'; ui.nav.title.innerText = title; activeProjectId = extra.id; initKanban(extra.id); initSubCards(extra.id); const savedMode = extra.viewMode || 'hybrid'; document.getElementById('viewModeSelector').value = savedMode; applyViewMode(savedMode); }
-    else if (target === 'iframe') { ui.views.iframe.src = extra; ui.views.iframe.style.display = 'block'; ui.nav.back.style.display = 'block'; ui.nav.title.innerText = title; }
+    if (target === 'home') { 
+        ui.views.projects.style.display = 'block'; 
+        ui.nav.title.innerHTML = '<i class="fas fa-cube text-primary me-2"></i>Painel Org. Borges'; 
+        activeProjectId = null; 
+        addToHistory('NAVEGAÇÃO', 'Acessou Página Inicial');
+    } 
+    else if (target === 'kanban') { 
+        ui.views.kanban.style.display = 'block'; 
+        ui.nav.back.style.display = 'block'; 
+        ui.nav.title.innerText = title; 
+        activeProjectId = extra.id; 
+        initKanban(extra.id); 
+        initSubCards(extra.id); 
+        const savedMode = extra.viewMode || 'hybrid'; 
+        document.getElementById('viewModeSelector').value = savedMode; 
+        applyViewMode(savedMode);
+        addToHistory('NAVEGAÇÃO', `Acessou Projeto: ${title}`);
+    }
+    else if (target === 'iframe') { 
+        ui.views.iframe.src = extra; 
+        ui.views.iframe.style.display = 'block'; 
+        ui.nav.back.style.display = 'block'; 
+        ui.nav.title.innerText = title; 
+        addToHistory('NAVEGAÇÃO', `Acessou Módulo: ${title}`);
+    }
     bootstrap.Offcanvas.getInstance(document.getElementById('sidebarMenu'))?.hide();
 };
 
@@ -52,22 +210,17 @@ document.querySelectorAll('.nav-btn').forEach(btn => { btn.onclick = () => { con
 document.getElementById('viewModeSelector').onchange = async (e) => { const mode = e.target.value; applyViewMode(mode); if(activeProjectId) await updateDoc(doc(db, `users/${currentUser.uid}/projects`, activeProjectId), { viewMode: mode }); };
 function applyViewMode(mode) { const { resources, kanban } = ui.sections; if(mode === 'hybrid') { resources.style.display = 'block'; kanban.style.display = 'block'; } else if(mode === 'cards') { resources.style.display = 'block'; kanban.style.display = 'none'; } else if(mode === 'kanban') { resources.style.display = 'none'; kanban.style.display = 'block'; } }
 
-window.addSpacer = async (blockType) => { await addDoc(collection(db, `users/${currentUser.uid}/projects`), { title: "Spacer", type: blockType, isSpacer: true, position: 99999, createdAt: new Date() }); };
+window.addSpacer = async (blockType) => { 
+    await addDoc(collection(db, `users/${currentUser.uid}/projects`), { title: "Spacer", type: blockType, isSpacer: true, position: 99999, createdAt: new Date() }); 
+    addToHistory('LAYOUT', `Adicionou Espaço Vazio em ${blockType}`);
+};
 
-// --- FUNÇÃO CRÍTICA: MOVER PARA LIXEIRA ---
 async function moveToTrash(collectionName, docId, data, type) {
     if(!currentUser) return;
     try {
-        await addDoc(collection(db, `users/${currentUser.uid}/trash`), {
-            ...data,
-            originalCollection: collectionName,
-            originalId: docId,
-            itemType: type,
-            deletedAt: new Date()
-        });
-        if(collectionName && docId) {
-            await deleteDoc(doc(db, `users/${currentUser.uid}/${collectionName}`, docId));
-        }
+        await addDoc(collection(db, `users/${currentUser.uid}/trash`), { ...data, originalCollection: collectionName, originalId: docId, itemType: type, deletedAt: new Date() });
+        if(collectionName && docId) { await deleteDoc(doc(db, `users/${currentUser.uid}/${collectionName}`, docId)); }
+        addToHistory('EXCLUSÃO', `Moveu para lixeira: ${data.title || type}`);
     } catch(e) { console.error("Erro lixeira", e); alert("Erro ao mover para lixeira: " + e.message); }
 }
 
@@ -80,22 +233,15 @@ async function saveOrderFromDom(gridEl, collectionPath) {
 window.toggleProjectPin = async (e, id, currentState) => {
     e.stopPropagation(); 
     await updateDoc(doc(db, `users/${currentUser.uid}/projects`, id), { pinned: !currentState });
+    addToHistory('FIXAR', `${currentState ? 'Desafixou' : 'Fixou'} projeto`);
 };
 
-// --- PROJETOS ---
 function initProjects() {
     const q = query(collection(db, `users/${currentUser.uid}/projects`));
     onSnapshot(q, (snap) => {
         ['Profissional', 'Pessoal', 'Ideia'].forEach(type => document.getElementById(`grid-${type}`).innerHTML = '');
         let items = []; snap.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
-        
-        items.sort((a, b) => {
-            if (!!a.pinned === !!b.pinned) { 
-                return (a.position || 0) - (b.position || 0);
-            }
-            return a.pinned ? -1 : 1; 
-        });
-
+        items.sort((a, b) => { if (!!a.pinned === !!b.pinned) { return (a.position || 0) - (b.position || 0); } return a.pinned ? -1 : 1; });
         items.forEach(data => {
             const targetGrid = document.getElementById(`grid-${data.type}`) || document.getElementById('grid-Ideia');
             if(!targetGrid) return;
@@ -107,34 +253,12 @@ function initProjects() {
             } else {
                 card = document.createElement('div'); card.className = `project-card ${data.color} animate-in`; card.setAttribute('data-id', data.id);
                 card.addEventListener('click', (e) => { if(!e.target.closest('.fa-pen') && !e.target.closest('.pin-btn')) window.navigate('kanban', data.title, { id: data.id, viewMode: data.viewMode }); });
-                
                 const pinnedClass = data.pinned ? 'active' : '';
-                card.innerHTML = `
-                    <i class="fas fa-thumbtack pin-btn ${pinnedClass}" onclick="toggleProjectPin(event, '${data.id}', ${data.pinned || false})"></i>
-                    <div class="d-flex w-100 justify-content-between ps-4"> 
-                        <span class="badge bg-white text-dark opacity-75">${data.type}</span>
-                        <i class="fas fa-pen" style="opacity:0.6; cursor:pointer; padding:5px;" onclick="editProject('${data.id}', '${data.title}', '${data.type}', '${data.color}')"></i>
-                    </div>
-                    <h4 class="fw-bold text-start mt-2 text-white-force">${data.title}</h4>
-                    <div class="mt-auto text-end w-100 opacity-75 small"><i class="fas fa-arrow-right"></i></div>`;
+                card.innerHTML = `<i class="fas fa-thumbtack pin-btn ${pinnedClass}" onclick="toggleProjectPin(event, '${data.id}', ${data.pinned || false})"></i><div class="d-flex w-100 justify-content-between ps-4"><span class="badge bg-white text-dark opacity-75">${data.type}</span><i class="fas fa-pen" style="opacity:0.6; cursor:pointer; padding:5px;" onclick="editProject('${data.id}', '${data.title}', '${data.type}', '${data.color}')"></i></div><h4 class="fw-bold text-start mt-2 text-white-force">${data.title}</h4><div class="mt-auto text-end w-100 opacity-75 small"><i class="fas fa-arrow-right"></i></div>`;
             }
             card.setAttribute('data-type', data.type); targetGrid.appendChild(card);
         });
-        ['Profissional', 'Pessoal', 'Ideia'].forEach(type => {
-            const gridEl = document.getElementById(`grid-${type}`);
-            if(gridEl) { 
-                new Sortable(gridEl, { 
-                    group: 'projects', animation: 150, delay: 200, delayOnTouchOnly: true, touchStartThreshold: 10, 
-                    onChoose: () => { if(navigator.vibrate) navigator.vibrate(50); }, 
-                    onEnd: async function(evt) { 
-                        const itemEl = evt.item; const newType = evt.to.getAttribute('data-type'); const projId = itemEl.getAttribute('data-id'); 
-                        if (evt.from !== evt.to) { await updateDoc(doc(db, `users/${currentUser.uid}/projects`, projId), { type: newType }); } 
-                        saveOrderFromDom(evt.to, `users/${currentUser.uid}/projects`); 
-                        if(evt.from !== evt.to) saveOrderFromDom(evt.from, `users/${currentUser.uid}/projects`); 
-                    } 
-                }); 
-            }
-        });
+        ['Profissional', 'Pessoal', 'Ideia'].forEach(type => { const gridEl = document.getElementById(`grid-${type}`); if(gridEl) { new Sortable(gridEl, { group: 'projects', animation: 150, delay: 200, delayOnTouchOnly: true, touchStartThreshold: 10, onChoose: () => { if(navigator.vibrate) navigator.vibrate(50); }, onEnd: async function(evt) { const itemEl = evt.item; const newType = evt.to.getAttribute('data-type'); const projId = itemEl.getAttribute('data-id'); if (evt.from !== evt.to) { await updateDoc(doc(db, `users/${currentUser.uid}/projects`, projId), { type: newType }); } saveOrderFromDom(evt.to, `users/${currentUser.uid}/projects`); if(evt.from !== evt.to) saveOrderFromDom(evt.from, `users/${currentUser.uid}/projects`); } }); } });
     });
 }
 
@@ -142,25 +266,16 @@ const projModal = new bootstrap.Modal(document.getElementById('projectModal'));
 document.getElementById('fabBtn').onclick = () => { if(activeProjectId) { const mode = document.getElementById('viewModeSelector').value; if(mode === 'cards') openSubCardModal(); else openTaskModal(); } else { document.getElementById('projId').value = ''; document.getElementById('projTitle').value = ''; document.getElementById('btnDelProj').style.display = 'none'; projModal.show(); } };
 window.editProject = (id, title, type, color) => { document.getElementById('projId').value = id; document.getElementById('projTitle').value = title; document.getElementById('projType').value = type; document.getElementById('selectedColor').value = color; document.getElementById('btnDelProj').style.display = 'block'; document.querySelectorAll('.color-dot').forEach(d => d.classList.toggle('selected', d.classList.contains(color))); projModal.show(); };
 window.selectColor = (el, color) => { document.querySelectorAll('#projectModal .color-dot').forEach(d => d.classList.remove('selected')); el.classList.add('selected'); document.getElementById('selectedColor').value = color; };
-document.getElementById('btnSaveProj').onclick = async () => { const id = document.getElementById('projId').value; const title = document.getElementById('projTitle').value; const type = document.getElementById('projType').value; const color = document.getElementById('selectedColor').value; if(!title) return; const data = { title, type, color, updatedAt: new Date(), isSpacer: false }; if(id) await updateDoc(doc(db, `users/${currentUser.uid}/projects`, id), data); else { data.createdAt = new Date(); data.position = 9999; data.pinned = false; data.viewMode = 'hybrid'; await addDoc(collection(db, `users/${currentUser.uid}/projects`), data); } projModal.hide(); };
-
-document.getElementById('btnDelProj').onclick = async () => { 
-    if(confirm("Mover para a lixeira?")) { 
-        const id = document.getElementById('projId').value;
-        const docRef = doc(db, `users/${currentUser.uid}/projects`, id);
-        const docSnap = await getDoc(docRef);
-        await moveToTrash('projects', id, docSnap.data(), 'Projeto');
-        projModal.hide(); 
-    } 
+document.getElementById('btnSaveProj').onclick = async () => { 
+    const id = document.getElementById('projId').value; const title = document.getElementById('projTitle').value; const type = document.getElementById('projType').value; const color = document.getElementById('selectedColor').value; if(!title) return; const data = { title, type, color, updatedAt: new Date(), isSpacer: false }; 
+    if(id) { await updateDoc(doc(db, `users/${currentUser.uid}/projects`, id), data); addToHistory('EDIÇÃO', `Projeto editado: ${title}`); } 
+    else { data.createdAt = new Date(); data.position = 9999; data.pinned = false; data.viewMode = 'hybrid'; await addDoc(collection(db, `users/${currentUser.uid}/projects`), data); addToHistory('CRIAÇÃO', `Novo projeto: ${title}`); } 
+    projModal.hide(); 
 };
+document.getElementById('btnDelProj').onclick = async () => { if(confirm("Mover para a lixeira?")) { const id = document.getElementById('projId').value; const docRef = doc(db, `users/${currentUser.uid}/projects`, id); const docSnap = await getDoc(docRef); await moveToTrash('projects', id, docSnap.data(), 'Projeto'); projModal.hide(); } };
 
-// --- SUB-CARDS ---
-window.addSubSpacer = async () => { if (!activeProjectId) return; await addDoc(collection(db, `users/${currentUser.uid}/subcards`), { title: "Spacer", projectId: activeProjectId, isSpacer: true, position: 99999, createdAt: new Date() }); };
-
-window.togglePin = async (e, id, currentState) => {
-    e.stopPropagation(); 
-    await updateDoc(doc(db, `users/${currentUser.uid}/subcards`, id), { pinned: !currentState });
-};
+window.addSubSpacer = async () => { if (!activeProjectId) return; await addDoc(collection(db, `users/${currentUser.uid}/subcards`), { title: "Spacer", projectId: activeProjectId, isSpacer: true, position: 99999, createdAt: new Date() }); addToHistory('LAYOUT', 'Adicionou Espaço em Subcards'); };
+window.togglePin = async (e, id, currentState) => { e.stopPropagation(); await updateDoc(doc(db, `users/${currentUser.uid}/subcards`, id), { pinned: !currentState }); addToHistory('FIXAR', `${currentState ? 'Desafixou' : 'Fixou'} sub-card`); };
 
 let subCardUnsub = null;
 function initSubCards(projectId) {
@@ -170,14 +285,7 @@ function initSubCards(projectId) {
         const grid = document.getElementById('subCardsGrid'); grid.innerHTML = '';
         if(snap.empty) { grid.innerHTML = '<div class="text-muted small text-center w-100 py-3">Sem recursos.</div>'; return; }
         let items = []; snap.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
-        
-        items.sort((a, b) => {
-            if (!!a.pinned === !!b.pinned) {
-                return (a.position || 0) - (b.position || 0); 
-            }
-            return a.pinned ? -1 : 1; 
-        });
-
+        items.sort((a, b) => { if (!!a.pinned === !!b.pinned) { return (a.position || 0) - (b.position || 0); } return a.pinned ? -1 : 1; });
         items.forEach(data => {
             if(data.isSpacer) {
                 const spacer = document.createElement('div'); spacer.className = 'spacer-card animate-in'; spacer.setAttribute('data-id', data.id);
@@ -187,14 +295,8 @@ function initSubCards(projectId) {
             }
             const el = document.createElement('div'); el.className = `sub-card ${data.color || 'bg-grad-1'} animate-in`; el.setAttribute('data-id', data.id);
             let icon = 'fa-align-left'; if (data.type === 'link') icon = 'fa-link'; if (data.type === 'checklist') icon = 'fa-tasks';
-            
             const pinnedClass = data.pinned ? 'active' : '';
-            el.innerHTML = `
-                <i class="fas fa-thumbtack pin-btn ${pinnedClass}" onclick="togglePin(event, '${data.id}', ${data.pinned || false})"></i>
-                <i class="fas ${icon} sub-card-icon"></i>
-                <div class="sub-card-title text-white-force">${data.title}</div>
-                <small class="opacity-75 mt-2" style="font-size:0.7rem">${data.type.toUpperCase()}</small>`;
-            
+            el.innerHTML = `<i class="fas fa-thumbtack pin-btn ${pinnedClass}" onclick="togglePin(event, '${data.id}', ${data.pinned || false})"></i><i class="fas ${icon} sub-card-icon"></i><div class="sub-card-title text-white-force">${data.title}</div><small class="opacity-75 mt-2" style="font-size:0.7rem">${data.type.toUpperCase()}</small>`;
             el.onclick = () => { if(data.type === 'link' && !confirm("Editar?")) window.open(data.content, '_blank'); else editSubCard(data.id, data); };
             grid.appendChild(el);
         });
@@ -206,7 +308,6 @@ function initSubCards(projectId) {
 const subCardModal = new bootstrap.Modal(document.getElementById('subCardModal'));
 window.toggleSubCardInputs = () => { const type = document.getElementById('subCardType').value; document.getElementById('areaInputText').style.display = (type === 'checklist') ? 'none' : 'block'; document.getElementById('areaInputChecklist').style.display = (type === 'checklist') ? 'block' : 'none'; };
 document.getElementById('subCardType').onchange = window.toggleSubCardInputs;
-
 window.renderTempChecklist = () => {
     const container = document.getElementById('tempChecklistList'); container.innerHTML = '';
     tempChecklistItems.forEach((item, index) => {
@@ -216,76 +317,25 @@ window.renderTempChecklist = () => {
     });
 };
 window.addTempItem = () => { const input = document.getElementById('newCheckItem'); const priority = document.getElementById('newCheckPriority').value; if(!input.value.trim()) return; tempChecklistItems.push({ text: input.value, done: false, priority: priority }); input.value = ''; renderTempChecklist(); };
-
-window.removeTempItem = async (index) => { 
-    const removedItem = tempChecklistItems[index];
-    await moveToTrash(null, null, { title: removedItem.text, priority: removedItem.priority, originalCardId: document.getElementById('subCardId').value }, 'Item Lista');
-    tempChecklistItems.splice(index, 1); 
-    renderTempChecklist(); 
-};
-
+window.removeTempItem = async (index) => { const removedItem = tempChecklistItems[index]; await moveToTrash(null, null, { title: removedItem.text, priority: removedItem.priority, originalCardId: document.getElementById('subCardId').value }, 'Item Lista'); tempChecklistItems.splice(index, 1); renderTempChecklist(); };
 window.toggleTempItem = (index) => { tempChecklistItems[index].done = !tempChecklistItems[index].done; renderTempChecklist(); };
 window.openSubCardModal = () => { document.getElementById('subCardId').value = ''; document.getElementById('subCardTitle').value = ''; document.getElementById('subCardContent').value = ''; document.getElementById('subCardType').value = 'checklist'; tempChecklistItems = []; renderTempChecklist(); toggleSubCardInputs(); document.getElementById('btnDelSubCard').style.display = 'none'; initSubCardSortable(); subCardModal.show(); };
 window.editSubCard = (id, data) => { document.getElementById('subCardId').value = id; document.getElementById('subCardTitle').value = data.title; document.getElementById('subCardContent').value = data.content || ''; document.getElementById('subCardType').value = data.type; document.getElementById('subCardColor').value = data.color; tempChecklistItems = data.items || []; renderTempChecklist(); toggleSubCardInputs(); document.getElementById('btnDelSubCard').style.display = 'block'; initSubCardSortable(); subCardModal.show(); };
 
 function initSubCardSortable() {
-    const el = document.getElementById('tempChecklistList');
-    if(!el) return;
-
-    if(checklistSortableInstance) {
-        checklistSortableInstance.destroy();
-        checklistSortableInstance = null;
-    }
-
-    checklistSortableInstance = new Sortable(el, {
-        animation: 150,
-        handle: '.checklist-handle', 
-        ghostClass: 'sortable-ghost',
-        delay: 0, 
-        fallbackOnBody: true, 
-        swapThreshold: 0.65,
-        onEnd: function(evt) {
-            const item = tempChecklistItems.splice(evt.oldIndex, 1)[0];
-            tempChecklistItems.splice(evt.newIndex, 0, item);
-            if(navigator.vibrate) navigator.vibrate(30);
-        }
-    });
+    const el = document.getElementById('tempChecklistList'); if(!el) return;
+    if(checklistSortableInstance) { checklistSortableInstance.destroy(); checklistSortableInstance = null; }
+    checklistSortableInstance = new Sortable(el, { animation: 150, handle: '.checklist-handle', ghostClass: 'sortable-ghost', delay: 0, fallbackOnBody: true, swapThreshold: 0.65, onEnd: function(evt) { const item = tempChecklistItems.splice(evt.oldIndex, 1)[0]; tempChecklistItems.splice(evt.newIndex, 0, item); if(navigator.vibrate) navigator.vibrate(30); } });
 }
-
 window.selectSubColor = (el, color) => { document.querySelectorAll('#subCardModal .color-dot').forEach(d => d.classList.remove('selected')); el.classList.add('selected'); document.getElementById('subCardColor').value = color; };
 
 document.getElementById('btnSaveSubCard').onclick = async () => { 
-    const id = document.getElementById('subCardId').value; 
-    const title = document.getElementById('subCardTitle').value; 
-    const content = document.getElementById('subCardContent').value; 
-    const type = document.getElementById('subCardType').value; 
-    const color = document.getElementById('subCardColor').value; 
-    
-    if(!title) return; 
-    
-    const data = { title, content, type, color, items: tempChecklistItems, projectId: activeProjectId, updatedAt: new Date() }; 
-    
-    if(id) { 
-        await updateDoc(doc(db, `users/${currentUser.uid}/subcards`, id), data); 
-    } else { 
-        data.createdAt = new Date(); 
-        data.position = 99999;
-        data.pinned = false;
-        await addDoc(collection(db, `users/${currentUser.uid}/subcards`), data); 
-    } 
+    const id = document.getElementById('subCardId').value; const title = document.getElementById('subCardTitle').value; const content = document.getElementById('subCardContent').value; const type = document.getElementById('subCardType').value; const color = document.getElementById('subCardColor').value; if(!title) return; const data = { title, content, type, color, items: tempChecklistItems, projectId: activeProjectId, updatedAt: new Date() }; 
+    if(id) { await updateDoc(doc(db, `users/${currentUser.uid}/subcards`, id), data); addToHistory('EDIÇÃO', `Sub-card editado: ${title}`); } 
+    else { data.createdAt = new Date(); data.position = 99999; data.pinned = false; await addDoc(collection(db, `users/${currentUser.uid}/subcards`), data); addToHistory('CRIAÇÃO', `Novo sub-card: ${title}`); } 
     subCardModal.hide(); 
 };
-
-document.getElementById('btnDelSubCard').onclick = async () => { 
-    if(confirm("Mover para lixeira?")) { 
-        const id = document.getElementById('subCardId').value;
-        const docRef = doc(db, `users/${currentUser.uid}/subcards`, id);
-        const docSnap = await getDoc(docRef);
-        
-        await moveToTrash('subcards', id, docSnap.data(), 'Recurso');
-        subCardModal.hide(); 
-    } 
-};
+document.getElementById('btnDelSubCard').onclick = async () => { if(confirm("Mover para lixeira?")) { const id = document.getElementById('subCardId').value; const docRef = doc(db, `users/${currentUser.uid}/subcards`, id); const docSnap = await getDoc(docRef); await moveToTrash('subcards', id, docSnap.data(), 'Recurso'); subCardModal.hide(); } };
 
 let kanbanUnsub = null;
 function initKanban(projectId) {
@@ -305,131 +355,50 @@ function initKanban(projectId) {
         Object.keys(counters).forEach(key => { const h = document.querySelector(`.kanban-header.${key} .count-badge`); if(h) h.innerText = counters[key]; });
     });
 }
-window.toggleTaskDone = async (id, isDone) => { await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, id), { done: isDone }); };
-
-window.deleteTaskDirect = async (id, title) => { 
-    if(confirm("Excluir esta tarefa?")) { 
-        const docRef = doc(db, `users/${currentUser.uid}/tasks`, id);
-        const docSnap = await getDoc(docRef);
-        await moveToTrash('tasks', id, docSnap.data(), 'Tarefa'); 
-    } 
-};
-
+window.toggleTaskDone = async (id, isDone) => { await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, id), { done: isDone }); addToHistory('TAREFA', `Marcou tarefa como ${isDone ? 'concluída' : 'pendente'}`); };
+window.deleteTaskDirect = async (id, title) => { if(confirm("Excluir esta tarefa?")) { const docRef = doc(db, `users/${currentUser.uid}/tasks`, id); const docSnap = await getDoc(docRef); await moveToTrash('tasks', id, docSnap.data(), 'Tarefa'); } };
 ['urgent', 'medium', 'low'].forEach(p => { const el = document.getElementById(`col-${p}`); if(el) { new Sortable(el, { group: 'kanban', animation: 150, delay: 100, delayOnTouchOnly: true, onEnd: async (evt) => await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, evt.item.dataset.id), { priority: evt.to.dataset.priority }) }); } });
 const taskModal = new bootstrap.Modal(document.getElementById('taskModal'));
 window.openTaskModal = () => { document.getElementById('taskId').value = ''; document.getElementById('taskTitle').value = ''; document.getElementById('taskDesc').value = ''; document.getElementById('taskPriority').value = 'low'; document.getElementById('btnDelTask').style.display = 'none'; taskModal.show(); };
 window.editTask = (id, data) => { document.getElementById('taskId').value = id; document.getElementById('taskTitle').value = data.title; document.getElementById('taskDesc').value = data.desc || ''; let p = data.priority; if(p === 'none') p = 'low'; document.getElementById('taskPriority').value = p; document.getElementById('btnDelTask').style.display = 'block'; taskModal.show(); };
-document.getElementById('btnSaveTask').onclick = async () => { const id = document.getElementById('taskId').value; const title = document.getElementById('taskTitle').value; const desc = document.getElementById('taskDesc').value; const priority = document.getElementById('taskPriority').value; if(!title) return; const data = { title, desc, priority, projectId: activeProjectId, deleted: false, updatedAt: new Date() }; if(id) await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, id), data); else { data.createdAt = new Date(); await addDoc(collection(db, `users/${currentUser.uid}/tasks`), data); } taskModal.hide(); };
-
-document.getElementById('btnDelTask').onclick = async () => { 
-    const id = document.getElementById('taskId').value;
-    const title = document.getElementById('taskTitle').value;
-    await deleteTaskDirect(id, title); 
-    taskModal.hide(); 
-};
-
+document.getElementById('btnSaveTask').onclick = async () => { const id = document.getElementById('taskId').value; const title = document.getElementById('taskTitle').value; const desc = document.getElementById('taskDesc').value; const priority = document.getElementById('taskPriority').value; if(!title) return; const data = { title, desc, priority, projectId: activeProjectId, deleted: false, updatedAt: new Date() }; if(id) { await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, id), data); addToHistory('EDIÇÃO', `Tarefa editada: ${title}`); } else { data.createdAt = new Date(); await addDoc(collection(db, `users/${currentUser.uid}/tasks`), data); addToHistory('CRIAÇÃO', `Nova tarefa: ${title}`); } taskModal.hide(); };
+document.getElementById('btnDelTask').onclick = async () => { const id = document.getElementById('taskId').value; const title = document.getElementById('taskTitle').value; await deleteTaskDirect(id, title); taskModal.hide(); };
 document.getElementById('taskSearch').onkeyup = (e) => { const term = e.target.value.toLowerCase(); document.querySelectorAll('.task-card').forEach(card => card.style.display = card.innerText.toLowerCase().includes(term) ? 'block' : 'none'); };
 
-// --- LIXEIRA GLOBAL ---
 document.getElementById('btnTrash').onclick = () => { 
-    const list = document.getElementById('trashList'); 
-    list.innerHTML = '<div class="text-center p-3"><div class="spinner-border"></div></div>'; 
-    new bootstrap.Modal(document.getElementById('trashModal')).show(); 
-    
+    const list = document.getElementById('trashList'); list.innerHTML = '<div class="text-center p-3"><div class="spinner-border"></div></div>'; new bootstrap.Modal(document.getElementById('trashModal')).show(); 
     const q = query(collection(db, `users/${currentUser.uid}/trash`), where('deletedAt', '!=', null));
     onSnapshot(collection(db, `users/${currentUser.uid}/trash`), (snap) => { 
-        list.innerHTML = ''; 
-        if(snap.empty) { list.innerHTML = '<div class="text-center mt-5 text-muted">Lixeira vazia</div>'; return; } 
+        list.innerHTML = ''; if(snap.empty) { list.innerHTML = '<div class="text-center mt-5 text-muted">Lixeira vazia</div>'; return; } 
         snap.forEach(docSnap => { 
             const t = docSnap.data();
-            list.innerHTML += `
-                <div class="card mb-2 border-0 shadow-sm">
-                    <div class="card-body d-flex justify-content-between align-items-center">
-                        <div>
-                            <span class="badge bg-secondary mb-1">${t.itemType || 'Item'}</span>
-                            <div class="fw-bold">${t.title || 'Sem título'}</div>
-                            <small class="text-muted">${t.deletedAt?.toDate ? t.deletedAt.toDate().toLocaleDateString() : ''}</small>
-                        </div>
-                        <div>
-                            <button class="btn btn-sm btn-success me-2" onclick="restoreFromTrash('${docSnap.id}')">Recuperar</button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="nuke('${docSnap.id}')">X</button>
-                        </div>
-                    </div>
-                </div>`; 
+            list.innerHTML += `<div class="card mb-2 border-0 shadow-sm"><div class="card-body d-flex justify-content-between align-items-center"><div><span class="badge bg-secondary mb-1">${t.itemType || 'Item'}</span><div class="fw-bold">${t.title || 'Sem título'}</div><small class="text-muted">${t.deletedAt?.toDate ? t.deletedAt.toDate().toLocaleDateString() : ''}</small></div><div><button class="btn btn-sm btn-success me-2" onclick="restoreFromTrash('${docSnap.id}')">Recuperar</button><button class="btn btn-sm btn-outline-danger" onclick="nuke('${docSnap.id}')">X</button></div></div></div>`; 
         }); 
     }); 
 };
 
-// --- FUNÇÃO DE RESTAURAÇÃO INTELIGENTE ---
 window.restoreFromTrash = async (trashId) => {
     try {
-        const trashRef = doc(db, `users/${currentUser.uid}/trash`, trashId);
-        const trashDoc = await getDoc(trashRef);
-        
+        const trashRef = doc(db, `users/${currentUser.uid}/trash`, trashId); const trashDoc = await getDoc(trashRef);
         if(!trashDoc.exists()) { alert("Item não encontrado."); return; }
-        
-        const data = trashDoc.data();
-        const collectionName = data.originalCollection;
-        const originalId = data.originalId;
-        const type = data.itemType;
+        const data = trashDoc.data(); const collectionName = data.originalCollection; const originalId = data.originalId; const type = data.itemType;
+        delete data.deletedAt; delete data.originalCollection; delete data.originalId; delete data.itemType;
 
-        // Limpa metadados da lixeira
-        delete data.deletedAt; 
-        delete data.originalCollection; 
-        delete data.originalId; 
-        delete data.itemType;
-
-        // SE FOR UM ITEM DE CHECKLIST (DENTRO DE CARD)
         if (type === 'Item Lista' && data.originalCardId) {
-            // Verifica se o Card original ainda existe
-            const cardRef = doc(db, `users/${currentUser.uid}/subcards`, data.originalCardId);
-            const cardSnap = await getDoc(cardRef);
-
+            const cardRef = doc(db, `users/${currentUser.uid}/subcards`, data.originalCardId); const cardSnap = await getDoc(cardRef);
             if (cardSnap.exists()) {
-                // Card existe: Devolve o item para dentro do array 'items' do card
-                const cardData = cardSnap.data();
-                const currentItems = cardData.items || [];
-                
-                // Reconstrói o objeto do item (pois o 'data' da lixeira tem campos extras)
-                const restoredItem = {
-                    text: data.title, // Na lixeira o texto vira 'title'
-                    priority: data.priority || 'low',
-                    done: false
-                };
-                
-                currentItems.push(restoredItem);
-                await updateDoc(cardRef, { items: currentItems });
-                alert("Item restaurado para dentro do Card original.");
+                const currentItems = cardSnap.data().items || []; currentItems.push({ text: data.title, priority: data.priority || 'low', done: false });
+                await updateDoc(cardRef, { items: currentItems }); addToHistory('RESTAURAÇÃO', `Item de lista restaurado em Card`);
             } else {
-                // Card não existe mais: Recupera como uma Tarefa Solta (Fallback)
-                await addDoc(collection(db, `users/${currentUser.uid}/tasks`), { 
-                    title: `[Orfão] ${data.title}`, 
-                    priority: data.priority || 'low', 
-                    projectId: activeProjectId || 'root', 
-                    createdAt: new Date() 
-                });
-                alert("O Card original foi excluído. O item voltou como uma Tarefa Solta.");
+                await addDoc(collection(db, `users/${currentUser.uid}/tasks`), { title: `[Orfão] ${data.title}`, priority: data.priority || 'low', projectId: activeProjectId || 'root', createdAt: new Date() });
+                alert("Card original excluído. Item voltou como Tarefa Solta."); addToHistory('RESTAURAÇÃO', `Item restaurado como Tarefa (Órfão)`);
             }
-        } 
-        // SE FOR OUTRA COISA (PROJETO, TAREFA, SUB-CARD)
-        else if (collectionName && originalId) {
-            // Usa setDoc para restaurar com o ID original exato
-            await setDoc(doc(db, `users/${currentUser.uid}/${collectionName}`, originalId), data);
-            alert("Item restaurado com sucesso.");
-        } else {
-            alert("Erro: Não foi possível identificar a origem deste item.");
-            return;
-        }
-
-        // Remove da lixeira
+        } else if (collectionName && originalId) {
+            await setDoc(doc(db, `users/${currentUser.uid}/${collectionName}`, originalId), data); addToHistory('RESTAURAÇÃO', `Item restaurado: ${data.title}`);
+        } else { alert("Erro de origem."); return; }
         await deleteDoc(trashRef);
-
-    } catch(e) {
-        console.error("Erro ao restaurar", e);
-        alert("Erro ao restaurar: " + e.message);
-    }
+    } catch(e) { console.error("Erro restore", e); alert("Erro ao restaurar: " + e.message); }
 };
-
-window.nuke = async (id) => { if(confirm("Excluir permanentemente?")) await deleteDoc(doc(db, `users/${currentUser.uid}/trash`, id)); };
+window.nuke = async (id) => { if(confirm("Excluir permanentemente?")) { await deleteDoc(doc(db, `users/${currentUser.uid}/trash`, id)); addToHistory('LIXEIRA', 'Item excluído permanentemente'); }};
 document.getElementById('themeToggle').onclick = () => { document.body.classList.toggle('dark-mode'); localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light'); };
 if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
