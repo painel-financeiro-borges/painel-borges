@@ -22,19 +22,14 @@ body.dark-mode .glass-effect { background: rgba(26, 26, 46, 0.9); border-bottom:
 .project-card { height: 160px; border-radius: var(--radius); padding: 20px; color: white; position: relative; cursor: pointer; box-shadow: var(--shadow); transition: transform 0.2s; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; border: none; }
 .project-card:active { transform: scale(0.96); }
 .project-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(255,255,255,0.1), rgba(0,0,0,0.2)); }
-
-/* SPACER CARD (Geral) */
 .spacer-card { min-height: 160px; width: 100%; border-radius: var(--radius); border: 3px dashed rgba(100, 100, 100, 0.2); background: rgba(100, 100, 100, 0.05); display: flex; align-items: center; justify-content: center; cursor: move; position: relative; }
 .spacer-card:hover { border-color: rgba(100, 100, 100, 0.5); }
 .spacer-icon { font-size: 1.5rem; opacity: 0.3; color: gray; }
 .spacer-delete { position: absolute; top: 5px; right: 5px; background: rgba(255,0,0,0.1); color: red; width: 25px; height: 25px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0.5; transition: 0.2s; }
 .spacer-delete:hover { opacity: 1; background: rgba(255,0,0,0.2); }
-body.dark-mode .spacer-card { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); }
-
-/* CSS ESPECÍFICO PARA SPACER DENTRO DE SUB-CARDS */
 #subCardsGrid .spacer-card { min-height: 100px; height: auto; }
 #subCardsGrid .spacer-icon { font-size: 1.2rem; }
-
+body.dark-mode .spacer-card { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); }
 .sortable-ghost { opacity: 0.5; background: #e0e0e0; }
 .bg-grad-1 { background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%); }
 .bg-grad-2 { background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); }
@@ -62,14 +57,20 @@ body.dark-mode .spacer-card { border-color: rgba(255,255,255,0.2); background: r
 .color-dot { width: 35px; height: 35px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
 .color-dot.selected { border-color: #333; transform: scale(1.1); }
 .full-frame { position: fixed; top: var(--header-height); left: 0; width: 100%; height: calc(100% - var(--header-height)); border: none; background: #fff; z-index: 50; display: none; }
-.checklist-item { display: flex; align-items: center; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; background: #fff; margin-bottom: 5px; border-radius: 5px; border-left: 4px solid transparent; cursor: grab; }
-.checklist-item:active { cursor: grabbing; }
-.checklist-item span { flex-grow: 1; margin-left: 10px; }
-.checklist-item.done span { text-decoration: line-through; opacity: 0.6; }
-.cl-urgent { border-left-color: #d32f2f; }
-.cl-medium { border-left-color: #f57c00; }
-.cl-low { border-left-color: #388e3c; }
 .task-done-text { text-decoration: line-through; color: #999; opacity: 0.8; }
 .task-actions { min-width: 40px; text-align: right; }
 .task-actions i { opacity: 0.5; transition: 0.2s; }
 .task-actions i:hover { opacity: 1; }
+
+/* CHECKLIST DO MODAL COM ALÇA DE ARRASTAR */
+.checklist-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px; border-bottom: 1px solid #eee; background: #fff; margin-bottom: 5px; border-radius: 5px;
+    border-left: 4px solid transparent;
+}
+.checklist-handle { cursor: grab; color: #ccc; padding: 5px; }
+.checklist-item span { flex-grow: 1; }
+.checklist-item.done span { text-decoration: line-through; opacity: 0.6; }
+.cl-urgent { border-left-color: #d32f2f; }
+.cl-medium { border-left-color: #f57c00; }
+.cl-low { border-left-color: #388e3c; }
