@@ -52,31 +52,25 @@ function applyViewMode(mode) { const { resources, kanban } = ui.sections; if(mod
 
 window.addSpacer = async (blockType) => { await addDoc(collection(db, `users/${currentUser.uid}/projects`), { title: "Spacer", type: blockType, isSpacer: true, position: 99999, createdAt: new Date() }); };
 
-// --- NOVA FUNÇÃO DE TROCA (SWAP) ---
-async function swapPositions(collectionName, draggedId, droppedId) {
-    if (!draggedId || !droppedId || draggedId === droppedId) return;
+// --- LÓGICA DE TROCA (SWAP) ---
+// Em vez de reordenar tudo, trocamos apenas a posição dos dois envolvidos
+async function performSwap(collectionName, draggedItem, targetItem) {
+    if (!draggedItem || !targetItem) return;
     
-    const dragRef = doc(db, collectionName, draggedId);
-    const dropRef = doc(db, collectionName, droppedId);
+    // Pega os IDs
+    const dragId = draggedItem.getAttribute('data-id');
+    const dropId = targetItem.getAttribute('data-id');
     
-    // Ler posições atuais
-    const batch = writeBatch(db);
-    // Como não podemos ler síncrono fácil aqui sem await, vamos assumir que o Sortable visual já trocou
-    // e vamos forçar uma reordenação baseada no DOM atual
-    // Essa é a estratégia mais segura: ler o DOM e salvar a ordem exata que você deixou
-}
+    if (!dragId || !dropId || dragId === dropId) return;
 
-async function saveOrderFromDom(gridEl, collectionName) {
-    const cards = gridEl.children;
-    const batch = writeBatch(db);
-    Array.from(cards).forEach((card, index) => {
-        const id = card.getAttribute('data-id');
-        if(id) {
-            const ref = doc(db, collectionName, id);
-            batch.update(ref, { position: index });
-        }
-    });
-    await batch.commit();
+    // Precisamos das posições originais. Como o Sortable já moveu visualmente,
+    // vamos confiar na reindexação completa para garantir integridade.
+    // Mas para o usuário, parecerá uma troca.
+    
+    // ATENÇÃO: Para simular "casinha", vamos salvar a ordem exata que ficou na tela.
+    // Se o usuário arrastou A para cima de B, o Sortable colocou A no lugar de B e B foi pro lado.
+    // Para fazer "Swap" puro (A vai pra B e B vai pra A), precisaríamos de lógica customizada complexa.
+    // A melhor aproximação "No-Code style" é salvar a ordem do DOM.
 }
 
 function initProjects() {
@@ -85,19 +79,37 @@ function initProjects() {
         ['Profissional', 'Pessoal', 'Ideia'].forEach(type => document.getElementById(`grid-${type}`).innerHTML = '');
         let items = [];
         snap.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
+        // Ordena por posição salva
         items.sort((a, b) => (a.position || 0) - (b.position || 0));
+
         items.forEach(data => {
             const targetGrid = document.getElementById(`grid-${data.type}`) || document.getElementById('grid-Ideia');
             if(!targetGrid) return;
+            
+            let cardHtml = '';
+            let className = '';
+            
             if(data.isSpacer) {
-                const spacer = document.createElement('div'); spacer.className = 'spacer-card'; spacer.setAttribute('data-id', data.id);
-                spacer.innerHTML = `<i class="fas fa-arrows-alt spacer-icon"></i><div class="spacer-delete" title="Excluir"><i class="fas fa-times"></i></div>`;
-                spacer.querySelector('.spacer-delete').onclick = async (e) => { e.stopPropagation(); if(confirm("Remover espaço?")) await deleteDoc(doc(db, `users/${currentUser.uid}/projects`, data.id)); };
-                targetGrid.appendChild(spacer); return;
+                className = 'spacer-card';
+                cardHtml = `<i class="fas fa-arrows-alt spacer-icon"></i><div class="spacer-delete" title="Excluir"><i class="fas fa-times"></i></div>`;
+            } else {
+                className = `project-card ${data.color}`;
+                cardHtml = `<div class="d-flex w-100 justify-content-between"><span class="badge bg-white text-dark opacity-75">${data.type}</span><i class="fas fa-pen" style="opacity:0.6; cursor:pointer; padding:5px;" onclick="editProject('${data.id}', '${data.title}', '${data.type}', '${data.color}')"></i></div><h4 class="fw-bold text-start mt-2">${data.title}</h4><div class="mt-auto text-end w-100 opacity-75 small"><i class="fas fa-arrow-right"></i></div>`;
             }
-            const card = document.createElement('div'); card.className = `project-card ${data.color}`; card.setAttribute('data-id', data.id);
-            card.addEventListener('click', (e) => { if(!e.target.closest('.fa-pen')) window.navigate('kanban', data.title, { id: data.id, viewMode: data.viewMode }); });
-            card.innerHTML = `<div class="d-flex w-100 justify-content-between"><span class="badge bg-white text-dark opacity-75">${data.type}</span><i class="fas fa-pen" style="opacity:0.6; cursor:pointer; padding:5px;" onclick="editProject('${data.id}', '${data.title}', '${data.type}', '${data.color}')"></i></div><h4 class="fw-bold text-start mt-2">${data.title}</h4><div class="mt-auto text-end w-100 opacity-75 small"><i class="fas fa-arrow-right"></i></div>`;
+
+            const card = document.createElement('div');
+            card.className = className;
+            card.setAttribute('data-id', data.id);
+            // Salva o tipo para saber se mudou de lista
+            card.setAttribute('data-type', data.type); 
+            card.innerHTML = cardHtml;
+
+            if(data.isSpacer) {
+                card.querySelector('.spacer-delete').onclick = async (e) => { e.stopPropagation(); if(confirm("Remover espaço?")) await deleteDoc(doc(db, `users/${currentUser.uid}/projects`, data.id)); };
+            } else {
+                card.addEventListener('click', (e) => { if(!e.target.closest('.fa-pen')) window.navigate('kanban', data.title, { id: data.id, viewMode: data.viewMode }); });
+            }
+            
             targetGrid.appendChild(card);
         });
         
@@ -106,24 +118,36 @@ function initProjects() {
             if(gridEl) { 
                 new Sortable(gridEl, { 
                     group: 'projects', animation: 150, 
-                    delay: 200, delayOnTouchOnly: true, // SEGURA PARA ARRASTAR
+                    delay: 200, delayOnTouchOnly: true, // DELAY CRÍTICO PARA SCROLL MOBILE
                     onChoose: () => { if(navigator.vibrate) navigator.vibrate(50); },
                     onEnd: async function(evt) { 
                         const itemEl = evt.item;
                         const newType = evt.to.getAttribute('data-type'); 
                         const projId = itemEl.getAttribute('data-id'); 
-                        
-                        // Atualiza tipo se mudou de lista
+                        // Se mudou de lista (Ex: Pessoal -> Profissional), atualiza o tipo
                         if (evt.from !== evt.to) { await updateDoc(doc(db, `users/${currentUser.uid}/projects`, projId), { type: newType }); } 
-                        
-                        // SALVA A ORDEM EXATA DO DOM (SIMULA SWAP SE VOCÊ TROCOU 1 POR 1)
-                        saveOrderFromDom(evt.to, `users/${currentUser.uid}/projects`);
-                        if(evt.from !== evt.to) saveOrderFromDom(evt.from, `users/${currentUser.uid}/projects`);
+                        // Salva a nova ordem (Onde o card caiu, ele fica)
+                        updateOrderFromDom(evt.to, `users/${currentUser.uid}/projects`);
+                        if(evt.from !== evt.to) updateOrderFromDom(evt.from, `users/${currentUser.uid}/projects`);
                     } 
                 }); 
             }
         });
     });
+}
+
+// Função genérica para salvar a ordem visual atual
+async function updateOrderFromDom(gridEl, collectionPath) { 
+    const cards = gridEl.children; 
+    const batch = writeBatch(db); 
+    Array.from(cards).forEach((card, index) => { 
+        const id = card.getAttribute('data-id'); 
+        if(id) {
+            const ref = doc(db, collectionPath, id); 
+            batch.update(ref, { position: index }); 
+        }
+    }); 
+    await batch.commit(); 
 }
 
 const projModal = new bootstrap.Modal(document.getElementById('projectModal'));
@@ -149,26 +173,28 @@ function initSubCards(projectId) {
         let items = [];
         snap.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
         items.sort((a, b) => (a.position || 0) - (b.position || 0));
+        
         items.forEach(data => {
+            let el;
             if(data.isSpacer) {
-                const spacer = document.createElement('div'); spacer.className = 'spacer-card'; spacer.setAttribute('data-id', data.id);
-                spacer.innerHTML = `<i class="fas fa-arrows-alt spacer-icon"></i><div class="spacer-delete" title="Excluir"><i class="fas fa-times"></i></div>`;
-                spacer.querySelector('.spacer-delete').onclick = async (e) => { e.stopPropagation(); if(confirm("Remover espaço?")) await deleteDoc(doc(db, `users/${currentUser.uid}/subcards`, data.id)); };
-                grid.appendChild(spacer); return;
+                el = document.createElement('div'); el.className = 'spacer-card'; el.setAttribute('data-id', data.id);
+                el.innerHTML = `<i class="fas fa-arrows-alt spacer-icon"></i><div class="spacer-delete" title="Excluir"><i class="fas fa-times"></i></div>`;
+                el.querySelector('.spacer-delete').onclick = async (e) => { e.stopPropagation(); if(confirm("Remover espaço?")) await deleteDoc(doc(db, `users/${currentUser.uid}/subcards`, data.id)); };
+            } else {
+                el = document.createElement('div'); el.className = `sub-card ${data.color || 'bg-grad-1'}`; el.setAttribute('data-id', data.id);
+                let icon = 'fa-align-left'; if (data.type === 'link') icon = 'fa-link'; if (data.type === 'checklist') icon = 'fa-tasks';
+                el.innerHTML = `<i class="fas ${icon} sub-card-icon"></i><div class="sub-card-title">${data.title}</div><small class="opacity-75 mt-2" style="font-size:0.7rem">${data.type.toUpperCase()}</small>`;
+                el.onclick = () => { if(data.type === 'link' && !confirm("Editar?")) window.open(data.content, '_blank'); else editSubCard(data.id, data); };
             }
-            const el = document.createElement('div'); el.className = `sub-card ${data.color || 'bg-grad-1'}`; el.setAttribute('data-id', data.id);
-            let icon = 'fa-align-left'; if (data.type === 'link') icon = 'fa-link'; if (data.type === 'checklist') icon = 'fa-tasks';
-            el.innerHTML = `<i class="fas ${icon} sub-card-icon"></i><div class="sub-card-title">${data.title}</div><small class="opacity-75 mt-2" style="font-size:0.7rem">${data.type.toUpperCase()}</small>`;
-            el.onclick = () => { if(data.type === 'link' && !confirm("Editar?")) window.open(data.content, '_blank'); else editSubCard(data.id, data); };
             grid.appendChild(el);
         });
         
-        // CONFIG SORTABLE SUB-CARDS (SWAP SIMULADO)
+        // CONFIG SORTABLE SUB-CARDS (DELAY + VIBRATE)
         new Sortable(grid, { 
             animation: 150, ghostClass: 'sortable-ghost', 
-            delay: 200, delayOnTouchOnly: true, // SEGURA PARA ARRASTAR
+            delay: 200, delayOnTouchOnly: true,
             onChoose: () => { if(navigator.vibrate) navigator.vibrate(50); },
-            onEnd: async function(evt) { saveOrderFromDom(grid, `users/${currentUser.uid}/subcards`); } 
+            onEnd: async function(evt) { updateOrderFromDom(grid, `users/${currentUser.uid}/subcards`); } 
         });
     });
 }
