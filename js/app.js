@@ -77,7 +77,6 @@ async function saveOrderFromDom(gridEl, collectionPath) {
     await batch.commit();
 }
 
-// --- NOVA FUNÇÃO: TOGGLE PIN PARA PROJETOS ---
 window.toggleProjectPin = async (e, id, currentState) => {
     e.stopPropagation(); 
     await updateDoc(doc(db, `users/${currentUser.uid}/projects`, id), { pinned: !currentState });
@@ -90,9 +89,8 @@ function initProjects() {
         ['Profissional', 'Pessoal', 'Ideia'].forEach(type => document.getElementById(`grid-${type}`).innerHTML = '');
         let items = []; snap.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
         
-        // ORDENAÇÃO: PRIMEIRO PINNED, DEPOIS POSIÇÃO
         items.sort((a, b) => {
-            if (!!a.pinned === !!b.pinned) { // Compara booleano de forma segura
+            if (!!a.pinned === !!b.pinned) { 
                 return (a.position || 0) - (b.position || 0);
             }
             return a.pinned ? -1 : 1; 
@@ -110,11 +108,11 @@ function initProjects() {
                 card = document.createElement('div'); card.className = `project-card ${data.color} animate-in`; card.setAttribute('data-id', data.id);
                 card.addEventListener('click', (e) => { if(!e.target.closest('.fa-pen') && !e.target.closest('.pin-btn')) window.navigate('kanban', data.title, { id: data.id, viewMode: data.viewMode }); });
                 
-                // RENDERIZAÇÃO COM PIN
                 const pinnedClass = data.pinned ? 'active' : '';
                 card.innerHTML = `
                     <i class="fas fa-thumbtack pin-btn ${pinnedClass}" onclick="toggleProjectPin(event, '${data.id}', ${data.pinned || false})"></i>
-                    <div class="d-flex w-100 justify-content-between ps-4"> <span class="badge bg-white text-dark opacity-75">${data.type}</span>
+                    <div class="d-flex w-100 justify-content-between ps-4"> 
+                        <span class="badge bg-white text-dark opacity-75">${data.type}</span>
                         <i class="fas fa-pen" style="opacity:0.6; cursor:pointer; padding:5px;" onclick="editProject('${data.id}', '${data.title}', '${data.type}', '${data.color}')"></i>
                     </div>
                     <h4 class="fw-bold text-start mt-2 text-white-force">${data.title}</h4>
@@ -159,7 +157,6 @@ document.getElementById('btnDelProj').onclick = async () => {
 // --- SUB-CARDS ---
 window.addSubSpacer = async () => { if (!activeProjectId) return; await addDoc(collection(db, `users/${currentUser.uid}/subcards`), { title: "Spacer", projectId: activeProjectId, isSpacer: true, position: 99999, createdAt: new Date() }); };
 
-// --- TOGGLE PIN PARA SUB-CARDS ---
 window.togglePin = async (e, id, currentState) => {
     e.stopPropagation(); 
     await updateDoc(doc(db, `users/${currentUser.uid}/subcards`, id), { pinned: !currentState });
@@ -174,7 +171,6 @@ function initSubCards(projectId) {
         if(snap.empty) { grid.innerHTML = '<div class="text-muted small text-center w-100 py-3">Sem recursos.</div>'; return; }
         let items = []; snap.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
         
-        // ORDENAÇÃO: PRIMEIRO PINNED, DEPOIS POSIÇÃO
         items.sort((a, b) => {
             if (!!a.pinned === !!b.pinned) {
                 return (a.position || 0) - (b.position || 0); 
@@ -280,7 +276,18 @@ document.getElementById('btnSaveSubCard').onclick = async () => {
     subCardModal.hide(); 
 };
 
-document.getElementById('btnDelSubCard').onclick = async () => { if(confirm("Mover para lixeira?")) { const id = document.getElementById('subCardId').value; const title = document.getElementById('subCardTitle').value; await moveToTrash('subcards', id, { title }, 'Recurso'); subCardModal.hide(); } };
+// --- CORREÇÃO: BUSCAR DADOS COMPLETOS DO SUB-CARD ANTES DE DELETAR ---
+document.getElementById('btnDelSubCard').onclick = async () => { 
+    if(confirm("Mover para lixeira?")) { 
+        const id = document.getElementById('subCardId').value;
+        // Pega os dados direto do banco para garantir que tudo (incluindo projectId) vá para o lixo
+        const docRef = doc(db, `users/${currentUser.uid}/subcards`, id);
+        const docSnap = await getDoc(docRef);
+        
+        await moveToTrash('subcards', id, docSnap.data(), 'Recurso');
+        subCardModal.hide(); 
+    } 
+};
 
 let kanbanUnsub = null;
 function initKanban(projectId) {
@@ -301,13 +308,30 @@ function initKanban(projectId) {
     });
 }
 window.toggleTaskDone = async (id, isDone) => { await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, id), { done: isDone }); };
-window.deleteTaskDirect = async (id, title) => { if(confirm("Excluir esta tarefa?")) { await moveToTrash('tasks', id, { title }, 'Tarefa'); } };
+
+// --- CORREÇÃO: BUSCAR DADOS COMPLETOS DA TAREFA ANTES DE DELETAR ---
+window.deleteTaskDirect = async (id, title) => { 
+    if(confirm("Excluir esta tarefa?")) { 
+        const docRef = doc(db, `users/${currentUser.uid}/tasks`, id);
+        const docSnap = await getDoc(docRef);
+        await moveToTrash('tasks', id, docSnap.data(), 'Tarefa'); 
+    } 
+};
+
 ['urgent', 'medium', 'low'].forEach(p => { const el = document.getElementById(`col-${p}`); if(el) { new Sortable(el, { group: 'kanban', animation: 150, delay: 100, delayOnTouchOnly: true, onEnd: async (evt) => await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, evt.item.dataset.id), { priority: evt.to.dataset.priority }) }); } });
 const taskModal = new bootstrap.Modal(document.getElementById('taskModal'));
 window.openTaskModal = () => { document.getElementById('taskId').value = ''; document.getElementById('taskTitle').value = ''; document.getElementById('taskDesc').value = ''; document.getElementById('taskPriority').value = 'low'; document.getElementById('btnDelTask').style.display = 'none'; taskModal.show(); };
 window.editTask = (id, data) => { document.getElementById('taskId').value = id; document.getElementById('taskTitle').value = data.title; document.getElementById('taskDesc').value = data.desc || ''; let p = data.priority; if(p === 'none') p = 'low'; document.getElementById('taskPriority').value = p; document.getElementById('btnDelTask').style.display = 'block'; taskModal.show(); };
 document.getElementById('btnSaveTask').onclick = async () => { const id = document.getElementById('taskId').value; const title = document.getElementById('taskTitle').value; const desc = document.getElementById('taskDesc').value; const priority = document.getElementById('taskPriority').value; if(!title) return; const data = { title, desc, priority, projectId: activeProjectId, deleted: false, updatedAt: new Date() }; if(id) await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, id), data); else { data.createdAt = new Date(); await addDoc(collection(db, `users/${currentUser.uid}/tasks`), data); } taskModal.hide(); };
-document.getElementById('btnDelTask').onclick = async () => { await deleteTaskDirect(document.getElementById('taskId').value, document.getElementById('taskTitle').value); taskModal.hide(); };
+
+// CORREÇÃO: DELETAR TAREFA DENTRO DO MODAL TAMBÉM SEGUE A REGRA
+document.getElementById('btnDelTask').onclick = async () => { 
+    const id = document.getElementById('taskId').value;
+    const title = document.getElementById('taskTitle').value;
+    await deleteTaskDirect(id, title); 
+    taskModal.hide(); 
+};
+
 document.getElementById('taskSearch').onkeyup = (e) => { const term = e.target.value.toLowerCase(); document.querySelectorAll('.task-card').forEach(card => card.style.display = card.innerText.toLowerCase().includes(term) ? 'block' : 'none'); };
 
 // --- LIXEIRA GLOBAL ---
@@ -352,6 +376,7 @@ window.restoreFromTrash = async (trashId) => {
         const originalId = data.originalId;
         const type = data.itemType;
 
+        // Limpa metadados da lixeira
         delete data.deletedAt; 
         delete data.originalCollection; 
         delete data.originalId; 
@@ -366,6 +391,7 @@ window.restoreFromTrash = async (trashId) => {
             });
             alert("Item recuperado como uma Tarefa Pendente.");
         } else if (collectionName && originalId) {
+            // Como salvamos o objeto COMPLETO (incluindo projectId), ele volta para o lugar certo
             await setDoc(doc(db, `users/${currentUser.uid}/${collectionName}`, originalId), data);
         } else {
             alert("Erro: Não foi possível identificar a origem deste item.");
