@@ -98,8 +98,6 @@ body.dark-mode .checklist-item.cl-low { border-left-color: #2ed573; background: 
 /* --- RESOURCE ITEMS (LINKS E TEXTOS) --- */
 .resource-item { display: flex; flex-direction: column; padding: 12px; background: var(--card-bg); margin-bottom: 8px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 4px 10px rgba(0,0,0,0.03); position: relative; }
 body.dark-mode .resource-item { background: #2c2c2e; border-color: rgba(255,255,255,0.1); color: white; }
-
-/* CORREÇÃO DO Z-INDEX DO BOTÃO DE EXCLUIR LINKS */
 .resource-delete { 
     position: absolute; 
     top: 10px; 
@@ -107,7 +105,7 @@ body.dark-mode .resource-item { background: #2c2c2e; border-color: rgba(255,255,
     cursor: pointer; 
     color: #ff4757; 
     opacity: 0.6; 
-    z-index: 50; /* Garante que o X fique na frente dos inputs */
+    z-index: 20; /* CORREÇÃO APLICADA AQUI */
 }
 .resource-delete:hover { opacity: 1; transform: scale(1.1); }
 
