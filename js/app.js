@@ -19,7 +19,7 @@ let currentUser = null;
 let activeProjectId = null;
 let tempChecklistItems = [];
 let subCardSortableInstance = null;
-let checklistSortableInstance = null; // Variável para controlar a instância do drag-drop
+let checklistSortableInstance = null; 
 
 const ui = {
     loginScreen: document.getElementById('loginScreen'),
@@ -188,38 +188,57 @@ window.toggleTempItem = (index) => { tempChecklistItems[index].done = !tempCheck
 window.openSubCardModal = () => { document.getElementById('subCardId').value = ''; document.getElementById('subCardTitle').value = ''; document.getElementById('subCardContent').value = ''; document.getElementById('subCardType').value = 'checklist'; tempChecklistItems = []; renderTempChecklist(); toggleSubCardInputs(); document.getElementById('btnDelSubCard').style.display = 'none'; initSubCardSortable(); subCardModal.show(); };
 window.editSubCard = (id, data) => { document.getElementById('subCardId').value = id; document.getElementById('subCardTitle').value = data.title; document.getElementById('subCardContent').value = data.content || ''; document.getElementById('subCardType').value = data.type; document.getElementById('subCardColor').value = data.color; tempChecklistItems = data.items || []; renderTempChecklist(); toggleSubCardInputs(); document.getElementById('btnDelSubCard').style.display = 'block'; initSubCardSortable(); subCardModal.show(); };
 
-// --- FUNÇÃO CORRIGIDA DO SORTABLE DA LISTA DE ITENS ---
 function initSubCardSortable() {
     const el = document.getElementById('tempChecklistList');
     if(!el) return;
 
-    // Destrói instância anterior para evitar conflitos (Corrige o último item travado)
     if(checklistSortableInstance) {
         checklistSortableInstance.destroy();
         checklistSortableInstance = null;
     }
 
-    // Cria nova instância com configurações otimizadas para Mobile e Modais
     checklistSortableInstance = new Sortable(el, {
         animation: 150,
-        handle: '.checklist-handle', // Define que só arrasta pelo ícone
+        handle: '.checklist-handle', 
         ghostClass: 'sortable-ghost',
-        delay: 0, // Sem delay, pois usamos o handle e touch-action:none no CSS
-        fallbackOnBody: true, // CRUCIAL PARA MODAL DO BOOTSTRAP: Joga o item pro body ao arrastar, evitando erros de posição
+        delay: 0, 
+        fallbackOnBody: true, 
         swapThreshold: 0.65,
         onEnd: function(evt) {
-            // Atualiza array temporário
             const item = tempChecklistItems.splice(evt.oldIndex, 1)[0];
             tempChecklistItems.splice(evt.newIndex, 0, item);
-            
-            // Vibração tátil
             if(navigator.vibrate) navigator.vibrate(30);
         }
     });
 }
 
 window.selectSubColor = (el, color) => { document.querySelectorAll('#subCardModal .color-dot').forEach(d => d.classList.remove('selected')); el.classList.add('selected'); document.getElementById('subCardColor').value = color; };
-document.getElementById('btnSaveSubCard').onclick = async () => { const id = document.getElementById('subCardId').value; const title = document.getElementById('subCardTitle').value; const content = document.getElementById('subCardContent').value; const type = document.getElementById('subCardType').value; const color = document.getElementById('subCardColor').value; if(!title) return; const data = { title, content, type, color, items: tempChecklistItems, projectId: activeProjectId, updatedAt: new Date(), position: 99999 }; if(id) await updateDoc(doc(db, `users/${currentUser.uid}/subcards`, id), data); else { data.createdAt = new Date(); await addDoc(collection(db, `users/${currentUser.uid}/subcards`), data); } subCardModal.hide(); };
+
+// --- CORREÇÃO NO BOTÃO SALVAR CARD INTERNO ---
+document.getElementById('btnSaveSubCard').onclick = async () => { 
+    const id = document.getElementById('subCardId').value; 
+    const title = document.getElementById('subCardTitle').value; 
+    const content = document.getElementById('subCardContent').value; 
+    const type = document.getElementById('subCardType').value; 
+    const color = document.getElementById('subCardColor').value; 
+    
+    if(!title) return; 
+    
+    // Objeto base SEM a posição (para não sobrescrever em edições)
+    const data = { title, content, type, color, items: tempChecklistItems, projectId: activeProjectId, updatedAt: new Date() }; 
+    
+    if(id) { 
+        // EDIÇÃO: Mantém a posição original (não envia campo position)
+        await updateDoc(doc(db, `users/${currentUser.uid}/subcards`, id), data); 
+    } else { 
+        // CRIAÇÃO: Adiciona data de criação e posição (vai para o final)
+        data.createdAt = new Date(); 
+        data.position = 99999;
+        await addDoc(collection(db, `users/${currentUser.uid}/subcards`), data); 
+    } 
+    subCardModal.hide(); 
+};
+
 document.getElementById('btnDelSubCard').onclick = async () => { if(confirm("Mover para lixeira?")) { const id = document.getElementById('subCardId').value; const title = document.getElementById('subCardTitle').value; await moveToTrash('subcards', id, { title }, 'Recurso'); subCardModal.hide(); } };
 
 let kanbanUnsub = null;
