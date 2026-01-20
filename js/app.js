@@ -147,7 +147,13 @@ window.renderTempLinks = () => {
     });
 };
 window.addTempLink = () => { tempLinks.push({name: '', url: ''}); renderTempLinks(); };
-window.removeTempLink = (index) => { tempLinks.splice(index, 1); renderTempLinks(); };
+// ATUALIZADO: ENVIA O LINK PARA A LIXEIRA CORRETAMENTE
+window.removeTempLink = async (index) => { 
+    const removedItem = tempLinks[index]; 
+    await moveToTrash(null, null, { title: removedItem.name, content: removedItem.url, originalCardId: document.getElementById('subCardId').value }, 'Item Link'); 
+    tempLinks.splice(index, 1); 
+    renderTempLinks(); 
+};
 window.updateTempLink = (index, field, value) => { tempLinks[index][field] = value; };
 
 window.renderTempTexts = () => {
@@ -162,7 +168,13 @@ window.renderTempTexts = () => {
     });
 };
 window.addTempText = () => { tempTexts.push({title: '', content: ''}); renderTempTexts(); };
-window.removeTempText = (index) => { tempTexts.splice(index, 1); renderTempTexts(); };
+// ATUALIZADO: ENVIA A NOTA PARA A LIXEIRA CORRETAMENTE
+window.removeTempText = async (index) => { 
+    const removedItem = tempTexts[index]; 
+    await moveToTrash(null, null, { title: removedItem.title, content: removedItem.content, originalCardId: document.getElementById('subCardId').value }, 'Item Texto'); 
+    tempTexts.splice(index, 1); 
+    renderTempTexts(); 
+};
 window.updateTempText = (index, field, value) => { tempTexts[index][field] = value; };
 
 window.renderTempChecklist = () => {
@@ -272,7 +284,7 @@ function initKanban(projectId) {
 window.toggleTaskDone = async (id, isDone) => { await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, id), { done: isDone }); addToHistory('TAREFA', `Tarefa ${isDone ? 'concluída' : 'pendente'}`); };
 window.deleteTaskDirect = async (id, title) => { if(confirm("Excluir?")) { const docRef = doc(db, `users/${currentUser.uid}/tasks`, id); const docSnap = await getDoc(docRef); await moveToTrash('tasks', id, docSnap.data(), 'Tarefa'); } };
 ['urgent', 'medium', 'low'].forEach(p => { const el = document.getElementById(`col-${p}`); if(el) { 
-    // ADICIONADO DELAY NAS COLUNAS KANBAN
+    // DELAY PRESERVADO
     new Sortable(el, { group: 'kanban', animation: 150, delay: 300, delayOnTouchOnly: true, onEnd: async (evt) => await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, evt.item.dataset.id), { priority: evt.to.dataset.priority }) }); } });
 const taskModal = new bootstrap.Modal(document.getElementById('taskModal'));
 window.openTaskModal = () => { document.getElementById('taskId').value = ''; document.getElementById('taskTitle').value = ''; document.getElementById('taskDesc').value = ''; document.getElementById('taskPriority').value = 'low'; document.getElementById('btnDelTask').style.display = 'none'; taskModal.show(); };
@@ -293,7 +305,7 @@ document.getElementById('btnTrash').onclick = () => {
     }); 
 };
 
-// --- RESTAURAÇÃO DE ITENS DE CHECKLIST ---
+// --- LÓGICA DE RESTAURAÇÃO APRIMORADA ---
 window.restoreFromTrash = async (trashId) => {
     try {
         const trashRef = doc(db, `users/${currentUser.uid}/trash`, trashId); const trashDoc = await getDoc(trashRef);
@@ -301,24 +313,36 @@ window.restoreFromTrash = async (trashId) => {
         const data = trashDoc.data(); const collectionName = data.originalCollection; const originalId = data.originalId; const type = data.itemType;
         delete data.deletedAt; delete data.originalCollection; delete data.originalId; delete data.itemType;
 
-        if (type === 'Item Lista' && data.originalCardId) {
+        // RESTAURAÇÃO DE ITENS INTERNOS (Checklist, Link, Texto)
+        if ((type === 'Item Lista' || type === 'Item Link' || type === 'Item Texto') && data.originalCardId) {
             const cardRef = doc(db, `users/${currentUser.uid}/subcards`, data.originalCardId); const cardSnap = await getDoc(cardRef);
             if (cardSnap.exists()) {
                 const currentData = cardSnap.data();
-                const currentItems = currentData.items || [];
-                // Recria o objeto do item conforme estava na lista
-                const restoredItem = { text: data.title, priority: data.priority || 'low', done: false };
-                currentItems.push(restoredItem);
                 
-                await updateDoc(cardRef, { items: currentItems }); 
-                addToHistory('RESTAURAÇÃO', `Item de lista restaurado em Card`);
-                alert("Item restaurado dentro do Card original.");
+                if (type === 'Item Lista') {
+                    const currentItems = currentData.items || [];
+                    currentItems.push({ text: data.title, priority: data.priority || 'low', done: false });
+                    await updateDoc(cardRef, { items: currentItems }); 
+                } else if (type === 'Item Link') {
+                    const currentLinks = currentData.links || [];
+                    currentLinks.push({ name: data.title, url: data.content });
+                    await updateDoc(cardRef, { links: currentLinks });
+                } else if (type === 'Item Texto') {
+                    const currentTexts = currentData.texts || [];
+                    currentTexts.push({ title: data.title, content: data.content });
+                    await updateDoc(cardRef, { texts: currentTexts });
+                }
+                addToHistory('RESTAURAÇÃO', `${type} restaurado em Card`);
+                alert("Restaurado para dentro do Card original.");
             } else {
-                await addDoc(collection(db, `users/${currentUser.uid}/tasks`), { title: `[Orfão] ${data.title}`, priority: data.priority || 'low', projectId: activeProjectId || 'root', createdAt: new Date() });
+                // FALLBACK: Se o card não existe mais, vira tarefa solta
+                const contentText = data.content ? ` - ${data.content}` : '';
+                await addDoc(collection(db, `users/${currentUser.uid}/tasks`), { title: `[Orfão ${type}] ${data.title}${contentText}`, priority: 'low', projectId: activeProjectId || 'root', createdAt: new Date() });
                 alert("Card original excluído. Item voltou como Tarefa Solta."); addToHistory('RESTAURAÇÃO', `Item restaurado como Tarefa (Órfão)`);
             }
         } else if (collectionName && originalId) {
             await setDoc(doc(db, `users/${currentUser.uid}/${collectionName}`, originalId), data); addToHistory('RESTAURAÇÃO', `Item restaurado: ${data.title}`);
+            alert("Restaurado com sucesso!");
         } else { alert("Erro de origem."); return; }
         await deleteDoc(trashRef);
     } catch(e) { console.error("Erro restore", e); alert("Erro ao restaurar: " + e.message); }
