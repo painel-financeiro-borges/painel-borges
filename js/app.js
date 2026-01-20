@@ -77,13 +77,27 @@ async function saveOrderFromDom(gridEl, collectionPath) {
     await batch.commit();
 }
 
+// --- NOVA FUNÇÃO: TOGGLE PIN PARA PROJETOS ---
+window.toggleProjectPin = async (e, id, currentState) => {
+    e.stopPropagation(); 
+    await updateDoc(doc(db, `users/${currentUser.uid}/projects`, id), { pinned: !currentState });
+};
+
 // --- PROJETOS ---
 function initProjects() {
     const q = query(collection(db, `users/${currentUser.uid}/projects`));
     onSnapshot(q, (snap) => {
         ['Profissional', 'Pessoal', 'Ideia'].forEach(type => document.getElementById(`grid-${type}`).innerHTML = '');
         let items = []; snap.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
-        items.sort((a, b) => (a.position || 0) - (b.position || 0));
+        
+        // ORDENAÇÃO: PRIMEIRO PINNED, DEPOIS POSIÇÃO
+        items.sort((a, b) => {
+            if (!!a.pinned === !!b.pinned) { // Compara booleano de forma segura
+                return (a.position || 0) - (b.position || 0);
+            }
+            return a.pinned ? -1 : 1; 
+        });
+
         items.forEach(data => {
             const targetGrid = document.getElementById(`grid-${data.type}`) || document.getElementById('grid-Ideia');
             if(!targetGrid) return;
@@ -94,8 +108,17 @@ function initProjects() {
                 card.querySelector('.spacer-delete').onclick = async (e) => { e.stopPropagation(); if(confirm("Mover para lixeira?")) await moveToTrash('projects', data.id, data, 'Espaço Vazio'); };
             } else {
                 card = document.createElement('div'); card.className = `project-card ${data.color} animate-in`; card.setAttribute('data-id', data.id);
-                card.addEventListener('click', (e) => { if(!e.target.closest('.fa-pen')) window.navigate('kanban', data.title, { id: data.id, viewMode: data.viewMode }); });
-                card.innerHTML = `<div class="d-flex w-100 justify-content-between"><span class="badge bg-white text-dark opacity-75">${data.type}</span><i class="fas fa-pen" style="opacity:0.6; cursor:pointer; padding:5px;" onclick="editProject('${data.id}', '${data.title}', '${data.type}', '${data.color}')"></i></div><h4 class="fw-bold text-start mt-2 text-white-force">${data.title}</h4><div class="mt-auto text-end w-100 opacity-75 small"><i class="fas fa-arrow-right"></i></div>`;
+                card.addEventListener('click', (e) => { if(!e.target.closest('.fa-pen') && !e.target.closest('.pin-btn')) window.navigate('kanban', data.title, { id: data.id, viewMode: data.viewMode }); });
+                
+                // RENDERIZAÇÃO COM PIN
+                const pinnedClass = data.pinned ? 'active' : '';
+                card.innerHTML = `
+                    <i class="fas fa-thumbtack pin-btn ${pinnedClass}" onclick="toggleProjectPin(event, '${data.id}', ${data.pinned || false})"></i>
+                    <div class="d-flex w-100 justify-content-between ps-4"> <span class="badge bg-white text-dark opacity-75">${data.type}</span>
+                        <i class="fas fa-pen" style="opacity:0.6; cursor:pointer; padding:5px;" onclick="editProject('${data.id}', '${data.title}', '${data.type}', '${data.color}')"></i>
+                    </div>
+                    <h4 class="fw-bold text-start mt-2 text-white-force">${data.title}</h4>
+                    <div class="mt-auto text-end w-100 opacity-75 small"><i class="fas fa-arrow-right"></i></div>`;
             }
             card.setAttribute('data-type', data.type); targetGrid.appendChild(card);
         });
@@ -121,7 +144,7 @@ const projModal = new bootstrap.Modal(document.getElementById('projectModal'));
 document.getElementById('fabBtn').onclick = () => { if(activeProjectId) { const mode = document.getElementById('viewModeSelector').value; if(mode === 'cards') openSubCardModal(); else openTaskModal(); } else { document.getElementById('projId').value = ''; document.getElementById('projTitle').value = ''; document.getElementById('btnDelProj').style.display = 'none'; projModal.show(); } };
 window.editProject = (id, title, type, color) => { document.getElementById('projId').value = id; document.getElementById('projTitle').value = title; document.getElementById('projType').value = type; document.getElementById('selectedColor').value = color; document.getElementById('btnDelProj').style.display = 'block'; document.querySelectorAll('.color-dot').forEach(d => d.classList.toggle('selected', d.classList.contains(color))); projModal.show(); };
 window.selectColor = (el, color) => { document.querySelectorAll('#projectModal .color-dot').forEach(d => d.classList.remove('selected')); el.classList.add('selected'); document.getElementById('selectedColor').value = color; };
-document.getElementById('btnSaveProj').onclick = async () => { const id = document.getElementById('projId').value; const title = document.getElementById('projTitle').value; const type = document.getElementById('projType').value; const color = document.getElementById('selectedColor').value; if(!title) return; const data = { title, type, color, updatedAt: new Date(), isSpacer: false }; if(id) await updateDoc(doc(db, `users/${currentUser.uid}/projects`, id), data); else { data.createdAt = new Date(); data.position = 9999; data.viewMode = 'hybrid'; await addDoc(collection(db, `users/${currentUser.uid}/projects`), data); } projModal.hide(); };
+document.getElementById('btnSaveProj').onclick = async () => { const id = document.getElementById('projId').value; const title = document.getElementById('projTitle').value; const type = document.getElementById('projType').value; const color = document.getElementById('selectedColor').value; if(!title) return; const data = { title, type, color, updatedAt: new Date(), isSpacer: false }; if(id) await updateDoc(doc(db, `users/${currentUser.uid}/projects`, id), data); else { data.createdAt = new Date(); data.position = 9999; data.pinned = false; data.viewMode = 'hybrid'; await addDoc(collection(db, `users/${currentUser.uid}/projects`), data); } projModal.hide(); };
 
 document.getElementById('btnDelProj').onclick = async () => { 
     if(confirm("Mover para a lixeira?")) { 
@@ -136,9 +159,9 @@ document.getElementById('btnDelProj').onclick = async () => {
 // --- SUB-CARDS ---
 window.addSubSpacer = async () => { if (!activeProjectId) return; await addDoc(collection(db, `users/${currentUser.uid}/subcards`), { title: "Spacer", projectId: activeProjectId, isSpacer: true, position: 99999, createdAt: new Date() }); };
 
-// --- NOVA FUNÇÃO: TOGGLE PIN (FIXAR) ---
+// --- TOGGLE PIN PARA SUB-CARDS ---
 window.togglePin = async (e, id, currentState) => {
-    e.stopPropagation(); // Impede que o clique no alfinete abra o modal de edição
+    e.stopPropagation(); 
     await updateDoc(doc(db, `users/${currentUser.uid}/subcards`, id), { pinned: !currentState });
 };
 
@@ -151,12 +174,12 @@ function initSubCards(projectId) {
         if(snap.empty) { grid.innerHTML = '<div class="text-muted small text-center w-100 py-3">Sem recursos.</div>'; return; }
         let items = []; snap.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
         
-        // ORDENAÇÃO ROBUSTA: PRIMEIRO PINNED, DEPOIS POSIÇÃO
+        // ORDENAÇÃO: PRIMEIRO PINNED, DEPOIS POSIÇÃO
         items.sort((a, b) => {
-            if (a.pinned === b.pinned) {
-                return (a.position || 0) - (b.position || 0); // Se o estado de pin for igual, usa a posição
+            if (!!a.pinned === !!b.pinned) {
+                return (a.position || 0) - (b.position || 0); 
             }
-            return a.pinned ? -1 : 1; // Se 'a' for pinned, vem primeiro
+            return a.pinned ? -1 : 1; 
         });
 
         items.forEach(data => {
@@ -169,7 +192,6 @@ function initSubCards(projectId) {
             const el = document.createElement('div'); el.className = `sub-card ${data.color || 'bg-grad-1'} animate-in`; el.setAttribute('data-id', data.id);
             let icon = 'fa-align-left'; if (data.type === 'link') icon = 'fa-link'; if (data.type === 'checklist') icon = 'fa-tasks';
             
-            // RENDERIZAÇÃO COM O BOTÃO DE ALFINETE
             const pinnedClass = data.pinned ? 'active' : '';
             el.innerHTML = `
                 <i class="fas fa-thumbtack pin-btn ${pinnedClass}" onclick="togglePin(event, '${data.id}', ${data.pinned || false})"></i>
@@ -248,12 +270,11 @@ document.getElementById('btnSaveSubCard').onclick = async () => {
     const data = { title, content, type, color, items: tempChecklistItems, projectId: activeProjectId, updatedAt: new Date() }; 
     
     if(id) { 
-        // Edição mantém posição e status de pin
         await updateDoc(doc(db, `users/${currentUser.uid}/subcards`, id), data); 
     } else { 
         data.createdAt = new Date(); 
         data.position = 99999;
-        data.pinned = false; // Novo card nasce desfixado
+        data.pinned = false;
         await addDoc(collection(db, `users/${currentUser.uid}/subcards`), data); 
     } 
     subCardModal.hide(); 
