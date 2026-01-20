@@ -18,6 +18,7 @@ const db = getFirestore(app);
 let currentUser = null;
 let activeProjectId = null;
 let tempChecklistItems = [];
+let subCardSortableInstance = null; // Variável para controlar instância
 
 const ui = {
     loginScreen: document.getElementById('loginScreen'),
@@ -97,7 +98,10 @@ function initProjects() {
             const gridEl = document.getElementById(`grid-${type}`);
             if(gridEl) { 
                 new Sortable(gridEl, { 
-                    group: 'projects', animation: 150, delay: 200, delayOnTouchOnly: true, onChoose: () => { if(navigator.vibrate) navigator.vibrate(50); },
+                    group: 'projects', animation: 150, 
+                    delay: 200, delayOnTouchOnly: true, // DELAY CRÍTICO PARA SCROLL MOBILE
+                    touchStartThreshold: 10,
+                    onChoose: () => { if(navigator.vibrate) navigator.vibrate(50); },
                     onEnd: async function(evt) { 
                         const itemEl = evt.item; const newType = evt.to.getAttribute('data-type'); const projId = itemEl.getAttribute('data-id'); 
                         if (evt.from !== evt.to) { await updateDoc(doc(db, `users/${currentUser.uid}/projects`, projId), { type: newType }); } 
@@ -120,7 +124,7 @@ window.selectColor = (el, color) => { document.querySelectorAll('#projectModal .
 document.getElementById('btnSaveProj').onclick = async () => { const id = document.getElementById('projId').value; const title = document.getElementById('projTitle').value; const type = document.getElementById('projType').value; const color = document.getElementById('selectedColor').value; if(!title) return; const data = { title, type, color, updatedAt: new Date(), isSpacer: false }; if(id) await updateDoc(doc(db, `users/${currentUser.uid}/projects`, id), data); else { data.createdAt = new Date(); data.position = 9999; data.viewMode = 'hybrid'; await addDoc(collection(db, `users/${currentUser.uid}/projects`), data); } projModal.hide(); };
 document.getElementById('btnDelProj').onclick = async () => { if(confirm("Apagar?")) { await deleteDoc(doc(db, `users/${currentUser.uid}/projects`, document.getElementById('projId').value)); projModal.hide(); } };
 
-// --- SUB-CARDS (RECURSOS) COM SPACER ---
+// --- SUB-CARDS (RECURSOS) ---
 window.addSubSpacer = async () => { if (!activeProjectId) return; await addDoc(collection(db, `users/${currentUser.uid}/subcards`), { title: "Spacer", projectId: activeProjectId, isSpacer: true, position: 99999, createdAt: new Date() }); };
 
 let subCardUnsub = null;
@@ -150,10 +154,11 @@ function initSubCards(projectId) {
             grid.appendChild(el);
         });
         
-        // CONFIG SORTABLE SUB-CARDS IGUAL AO GRID PRINCIPAL
-        new Sortable(grid, { 
+        // CONFIG SORTABLE SUB-CARDS (CORRIGIDA)
+        if(subCardSortableInstance) subCardSortableInstance.destroy();
+        subCardSortableInstance = new Sortable(grid, { 
             animation: 150, ghostClass: 'sortable-ghost', 
-            delay: 200, delayOnTouchOnly: true, 
+            delay: 200, delayOnTouchOnly: true, touchStartThreshold: 10,
             onChoose: () => { if(navigator.vibrate) navigator.vibrate(50); },
             onEnd: async function(evt) { saveOrderFromDom(grid, `users/${currentUser.uid}/subcards`); } 
         });
