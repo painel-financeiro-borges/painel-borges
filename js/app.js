@@ -96,15 +96,8 @@ window.selectColor = (el, color) => { document.querySelectorAll('#projectModal .
 document.getElementById('btnSaveProj').onclick = async () => { const id = document.getElementById('projId').value; const title = document.getElementById('projTitle').value; const type = document.getElementById('projType').value; const color = document.getElementById('selectedColor').value; if(!title) return; const data = { title, type, color, updatedAt: new Date(), isSpacer: false }; if(id) await updateDoc(doc(db, `users/${currentUser.uid}/projects`, id), data); else { data.createdAt = new Date(); data.position = 9999; data.viewMode = 'hybrid'; await addDoc(collection(db, `users/${currentUser.uid}/projects`), data); } projModal.hide(); };
 document.getElementById('btnDelProj').onclick = async () => { if(confirm("Apagar?")) { await deleteDoc(doc(db, `users/${currentUser.uid}/projects`, document.getElementById('projId').value)); projModal.hide(); } };
 
-// --- SUB-CARDS (RECURSOS) COM SPACER ---
-
-// Nova função para criar spacer interno
-window.addSubSpacer = async () => {
-    if (!activeProjectId) return;
-    await addDoc(collection(db, `users/${currentUser.uid}/subcards`), {
-        title: "Spacer", projectId: activeProjectId, isSpacer: true, position: 99999, createdAt: new Date()
-    });
-};
+// --- SUB-CARDS (RECURSOS) ---
+window.addSubSpacer = async () => { if (!activeProjectId) return; await addDoc(collection(db, `users/${currentUser.uid}/subcards`), { title: "Spacer", projectId: activeProjectId, isSpacer: true, position: 99999, createdAt: new Date() }); };
 
 let subCardUnsub = null;
 function initSubCards(projectId) {
@@ -113,59 +106,39 @@ function initSubCards(projectId) {
     subCardUnsub = onSnapshot(q, (snap) => {
         const grid = document.getElementById('subCardsGrid'); grid.innerHTML = '';
         if(snap.empty) { grid.innerHTML = '<div class="text-muted small text-center w-100 py-3">Sem recursos.</div>'; return; }
-        
-        // 1. Coleta e Ordena
         let items = [];
         snap.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
         items.sort((a, b) => (a.position || 0) - (b.position || 0));
-
-        // 2. Renderiza
         items.forEach(data => {
-            // SE FOR SPACER INTERNO
             if(data.isSpacer) {
                 const spacer = document.createElement('div'); spacer.className = 'spacer-card'; spacer.setAttribute('data-id', data.id);
                 spacer.innerHTML = `<i class="fas fa-arrows-alt spacer-icon"></i><div class="spacer-delete" title="Excluir"><i class="fas fa-times"></i></div>`;
                 spacer.querySelector('.spacer-delete').onclick = async (e) => { e.stopPropagation(); if(confirm("Remover espaço?")) await deleteDoc(doc(db, `users/${currentUser.uid}/subcards`, data.id)); };
-                grid.appendChild(spacer);
-                return;
+                grid.appendChild(spacer); return;
             }
-
-            // SE FOR CARD COLORIDO NORMAL
             const el = document.createElement('div'); el.className = `sub-card ${data.color || 'bg-grad-1'}`; el.setAttribute('data-id', data.id);
             let icon = 'fa-align-left'; if (data.type === 'link') icon = 'fa-link'; if (data.type === 'checklist') icon = 'fa-tasks';
             el.innerHTML = `<i class="fas ${icon} sub-card-icon"></i><div class="sub-card-title">${data.title}</div><small class="opacity-75 mt-2" style="font-size:0.7rem">${data.type.toUpperCase()}</small>`;
             el.onclick = () => { if(data.type === 'link' && !confirm("Editar?")) window.open(data.content, '_blank'); else editSubCard(data.id, data); };
             grid.appendChild(el);
         });
-
-        // 3. Ativa Drag & Drop no Grid Interno
-        new Sortable(grid, { 
-            animation: 150, ghostClass: 'sortable-ghost', delay: 200, delayOnTouchOnly: true, touchStartThreshold: 10,
-            onEnd: async function(evt) { updateSubCardOrder(grid); } 
-        });
+        new Sortable(grid, { animation: 150, ghostClass: 'sortable-ghost', delay: 200, delayOnTouchOnly: true, touchStartThreshold: 10, onEnd: async function(evt) { updateSubCardOrder(grid); } });
     });
 }
-
-// Salva a ordem dos sub-cards (coloridos e spacers)
-async function updateSubCardOrder(gridEl) { 
-    const cards = gridEl.children; const batch = writeBatch(db); 
-    Array.from(cards).forEach((card, index) => { 
-        const id = card.getAttribute('data-id'); if(!id) return;
-        const ref = doc(db, `users/${currentUser.uid}/subcards`, id); batch.update(ref, { position: index }); 
-    }); await batch.commit(); 
-}
+async function updateSubCardOrder(gridEl) { const cards = gridEl.children; const batch = writeBatch(db); Array.from(cards).forEach((card, index) => { const id = card.getAttribute('data-id'); if(!id) return; const ref = doc(db, `users/${currentUser.uid}/subcards`, id); batch.update(ref, { position: index }); }); await batch.commit(); }
 
 const subCardModal = new bootstrap.Modal(document.getElementById('subCardModal'));
 window.toggleSubCardInputs = () => { const type = document.getElementById('subCardType').value; document.getElementById('areaInputText').style.display = (type === 'checklist') ? 'none' : 'block'; document.getElementById('areaInputChecklist').style.display = (type === 'checklist') ? 'block' : 'none'; };
 document.getElementById('subCardType').onchange = window.toggleSubCardInputs;
 
+// --- CHECKLIST MODAL ARRASTÁVEL ---
 window.renderTempChecklist = () => {
     const container = document.getElementById('tempChecklistList');
     container.innerHTML = '';
     tempChecklistItems.forEach((item, index) => {
         const div = document.createElement('div');
         div.className = `checklist-item cl-${item.priority || 'low'} ${item.done ? 'done' : ''}`;
-        div.innerHTML = `<input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleTempItem(${index})"><span>${item.text}</span><i class="fas fa-times text-danger" style="cursor:pointer" onclick="removeTempItem(${index})"></i>`;
+        div.innerHTML = `<i class="fas fa-grip-vertical checklist-handle"></i><input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleTempItem(${index})"><span>${item.text}</span><i class="fas fa-times text-danger" style="cursor:pointer" onclick="removeTempItem(${index})"></i>`;
         container.appendChild(div);
     });
 };
@@ -174,8 +147,7 @@ window.addTempItem = () => {
     const priority = document.getElementById('newCheckPriority').value;
     if(!input.value.trim()) return;
     tempChecklistItems.push({ text: input.value, done: false, priority: priority });
-    input.value = '';
-    renderTempChecklist();
+    input.value = ''; renderTempChecklist();
 };
 window.removeTempItem = (index) => { tempChecklistItems.splice(index, 1); renderTempChecklist(); };
 window.toggleTempItem = (index) => { tempChecklistItems[index].done = !tempChecklistItems[index].done; renderTempChecklist(); };
@@ -192,7 +164,13 @@ window.editSubCard = (id, data) => {
 };
 function initSubCardSortable() {
     const el = document.getElementById('tempChecklistList');
-    if(el) { new Sortable(el, { animation: 150, onEnd: function(evt) { const item = tempChecklistItems.splice(evt.oldIndex, 1)[0]; tempChecklistItems.splice(evt.newIndex, 0, item); } }); }
+    if(el) { 
+        new Sortable(el, { 
+            animation: 150, 
+            handle: '.checklist-handle', // Só arrasta pelo ícone
+            onEnd: function(evt) { const item = tempChecklistItems.splice(evt.oldIndex, 1)[0]; tempChecklistItems.splice(evt.newIndex, 0, item); } 
+        }); 
+    }
 }
 window.selectSubColor = (el, color) => { document.querySelectorAll('#subCardModal .color-dot').forEach(d => d.classList.remove('selected')); el.classList.add('selected'); document.getElementById('subCardColor').value = color; };
 document.getElementById('btnSaveSubCard').onclick = async () => { const id = document.getElementById('subCardId').value; const title = document.getElementById('subCardTitle').value; const content = document.getElementById('subCardContent').value; const type = document.getElementById('subCardType').value; const color = document.getElementById('subCardColor').value; if(!title) return; const data = { title, content, type, color, items: tempChecklistItems, projectId: activeProjectId, updatedAt: new Date(), position: 99999 }; if(id) await updateDoc(doc(db, `users/${currentUser.uid}/subcards`, id), data); else { data.createdAt = new Date(); await addDoc(collection(db, `users/${currentUser.uid}/subcards`), data); } subCardModal.hide(); };
