@@ -19,10 +19,10 @@ body.dark-mode .glass-effect { background: rgba(26, 26, 46, 0.9); border-bottom:
 .project-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 10px; background: rgba(0,0,0,0.02); border-radius: var(--radius); border: 2px dashed rgba(0,0,0,0.05); min-height: 150px; }
 @media(min-width: 768px) { .project-grid { grid-template-columns: repeat(4, 1fr); } }
 
-/* CRÍTICO: PERMITE SCROLL NO MOBILE */
-.project-card, .spacer-card, .sub-card, .task-card { 
-    touch-action: pan-y !important; /* Permite scroll vertical */
-    user-select: none; /* Evita selecionar texto */
+/* IMPORTANTE: Permite scroll na página, mas o Sortable intercepta o toque longo */
+.project-card, .spacer-card, .sub-card { 
+    touch-action: pan-y !important; 
+    -webkit-user-select: none; user-select: none;
 }
 
 .project-card { height: 160px; border-radius: var(--radius); padding: 20px; color: white; position: relative; cursor: pointer; box-shadow: var(--shadow); transition: transform 0.2s; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; border: none; }
