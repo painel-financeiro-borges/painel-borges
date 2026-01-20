@@ -10,7 +10,8 @@ body.dark-mode .glass-panel { background: rgba(30,30,30,0.7); }
 .fade-in { animation: fadeIn 0.4s ease-in; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #1a1a1a 0%, #2c3e50 100%); z-index: 9999; display: flex; align-items: center; justify-content: center; }
-.login-card { text-align: center; max-width: 400px; padding: 40px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border-radius: 30px; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
+.login-card { text-align: center; max-width: 400px; padding: 40px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border-radius: 30px; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 25px 50px rgba(0,0,0,0.5); animation: zoomIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+@keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; display: none; align-items: center; justify-content: center; }
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -19,22 +20,22 @@ body.dark-mode .glass-panel { background: rgba(30,30,30,0.7); }
 .section-title { font-weight: 900; letter-spacing: 1.5px; font-size: 0.9rem; opacity: 1; text-transform: uppercase; text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
 .small-btn { font-size: 0.7rem; padding: 4px 12px; font-weight: 700; border-width: 2px; transition: 0.2s; }
 .small-btn:active { transform: scale(0.95); }
-.project-grid, .sub-card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 15px; background: rgba(0,0,0,0.03); border-radius: var(--radius); border: 2px dashed rgba(100,100,100,0.15); min-height: 180px; }
+.project-grid, .sub-card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 15px; background: rgba(0,0,0,0.03); border-radius: var(--radius); border: 2px dashed rgba(100,100,100,0.15); min-height: 180px; transition: background 0.3s; }
 @media(min-width: 768px) { .project-grid, .sub-card-grid { grid-template-columns: repeat(4, 1fr); } }
 .project-card, .sub-card, .spacer-card { touch-action: pan-y !important; user-select: none; -webkit-user-select: none; }
-.project-card, .sub-card { height: 170px; border-radius: var(--radius); padding: 20px; color: white; position: relative; cursor: grab; box-shadow: 0 15px 30px rgba(0,0,0,0.3), inset 0 2px 0 rgba(255,255,255,0.5), inset 0 -2px 0 rgba(0,0,0,0.3); transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; border: none; }
-.project-card:active, .sub-card:active { transform: scale(0.95); box-shadow: 0 5px 10px rgba(0,0,0,0.2); cursor: grabbing; }
+.project-card, .sub-card { height: 170px; border-radius: var(--radius); padding: 20px; color: white; position: relative; cursor: grab; box-shadow: 0 15px 30px rgba(0,0,0,0.3), inset 0 2px 0 rgba(255,255,255,0.5), inset 0 -2px 0 rgba(0,0,0,0.3); transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; border: none; }
+.project-card:active, .sub-card:active { transform: scale(0.95) !important; box-shadow: 0 5px 10px rgba(0,0,0,0.2); cursor: grabbing; }
 body.dark-mode .project-card, body.dark-mode .sub-card { box-shadow: 0 0 20px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.3); }
 .project-card::before, .sub-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom right, rgba(255,255,255,0.15), rgba(0,0,0,0.2)); z-index: 0; }
 .project-card > *, .sub-card > * { z-index: 1; position: relative; }
 .spacer-card { min-height: 170px; width: 100%; border-radius: var(--radius); border: 3px dashed rgba(100, 100, 100, 0.3); background: rgba(100, 100, 100, 0.08); display: flex; align-items: center; justify-content: center; cursor: grab; position: relative; transition: 0.2s; }
-.spacer-card:hover { border-color: rgba(50, 50, 50, 0.8); background: rgba(100, 100, 100, 0.15); }
+.spacer-card:hover { border-color: rgba(100, 100, 100, 0.6); background: rgba(100, 100, 100, 0.15); transform: scale(1.02); }
 .spacer-icon { font-size: 2rem; opacity: 0.4; color: var(--text-primary); transition: 0.3s; }
 .spacer-card:hover .spacer-icon { transform: rotate(90deg); opacity: 0.8; }
 .spacer-delete { position: absolute; top: 10px; right: 10px; background: #ff4757; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 5px 10px rgba(255,71,87,0.4); transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 .spacer-delete:hover { opacity: 1; background: #ff6b81; transform: scale(1.2) rotate(90deg); }
 #subCardsGrid .spacer-card { min-height: 100px; height: auto; }
-body.dark-mode .spacer-card { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); }
+body.dark-mode .spacer-card { border-color: rgba(255,255,255,0.15); background: rgba(255,255,255,0.02); }
 .sortable-ghost { opacity: 0.4; background: rgba(255,255,255,0.1); border: 2px dashed #fff; transform: scale(0.95); }
 .bg-grad-dark { background: linear-gradient(135deg, #2b2b2b 0%, #000000 100%); }
 .bg-grad-1 { background: linear-gradient(135deg, #FF3CAC 0%, #784BA0 50%, #2B86C5 100%); }
@@ -62,19 +63,14 @@ body.dark-mode .spacer-card { border-color: rgba(255,255,255,0.2); background: r
 .task-card.priority-urgent { border-left-color: #ff4757; }
 .task-card.priority-medium { border-left-color: #ffa502; }
 .task-card.priority-low { border-left-color: #2ed573; }
-
-/* CHECKLIST FIX */
-.checklist-container { min-height: 50px; padding-bottom: 50px; display: flex; flex-direction: column; }
-.checklist-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--card-bg); margin-bottom: 8px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 4px 10px rgba(0,0,0,0.03); transform: translate3d(0,0,0); }
+.checklist-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--card-bg); margin-bottom: 8px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 4px 10px rgba(0,0,0,0.03); cursor: grab; transition: all 0.2s; }
+.checklist-item:active { cursor: grabbing; transform: scale(0.98); }
 body.dark-mode .checklist-item { background: #25252b; border-color: rgba(255,255,255,0.1); color: white; }
 .checklist-item.done { opacity: 0.6; background: rgba(0,0,0,0.02); }
 .checklist-item.done span { text-decoration: line-through; }
 .checklist-item.cl-urgent { border-left: 5px solid #ff4757; }
 .checklist-item.cl-medium { border-left: 5px solid #ffa502; }
 .checklist-item.cl-low { border-left: 5px solid #2ed573; }
-.checklist-handle { cursor: grab; color: #999; padding: 15px; margin: -10px 0 -10px -10px; touch-action: none !important; -webkit-touch-callout: none; user-select: none; }
-.checklist-handle:active { cursor: grabbing; color: var(--text-primary); }
-
 .fab { position: fixed; bottom: 30px; right: 30px; width: 70px; height: 70px; border-radius: 50%; border: none; background: linear-gradient(135deg, #1a1a1a 0%, #000 100%); color: white; font-size: 28px; cursor: pointer; z-index: 99; box-shadow: 0 15px 30px rgba(0,0,0,0.4), inset 0 2px 0 rgba(255,255,255,0.3); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 .fab:active { transform: scale(0.9); }
 .fab:hover { transform: scale(1.1) rotate(90deg); }
@@ -86,5 +82,24 @@ body.dark-mode .color-dot.selected { border-color: #fff; box-shadow: 0 0 0 3px r
 .task-actions { min-width: 40px; text-align: right; }
 .task-actions i { opacity: 0.4; transition: 0.2s; padding: 5px; }
 .task-actions i:hover { opacity: 1; transform: scale(1.2); }
+
+/* --- ANIMAÇÕES DE ENTRADA (CASCATA) --- */
 .animate-in { opacity: 0; animation: fadeInUp 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards; }
 @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+/* --- CORREÇÕES ESPECÍFICAS PARA DRAG AND DROP (MOBILE + BOOTSTRAP) --- */
+.checklist-handle {
+    cursor: grab;
+    padding: 10px; /* Aumenta área de toque para mobile */
+    margin-right: 5px;
+    color: #aaa;
+    touch-action: none; /* ESSENCIAL: Impede que o celular faça scroll ao tocar no ícone */
+}
+.checklist-handle:active {
+    cursor: grabbing;
+    color: var(--text-primary);
+}
+.checklist-container {
+    padding-bottom: 30px; /* Espaço de segurança para o último item não travar no fim do modal */
+    min-height: 60px;
+}
