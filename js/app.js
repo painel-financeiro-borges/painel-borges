@@ -174,7 +174,7 @@ window.renderTempChecklist = () => {
     });
 };
 window.addTempItem = () => { const input = document.getElementById('newCheckItem'); const priority = document.getElementById('newCheckPriority').value; if(!input.value.trim()) return; tempChecklistItems.push({ text: input.value, done: false, priority: priority }); input.value = ''; renderTempChecklist(); };
-window.removeTempItem = (index) => { tempChecklistItems.splice(index, 1); renderTempChecklist(); };
+window.removeTempItem = async (index) => { const removedItem = tempChecklistItems[index]; await moveToTrash(null, null, { title: removedItem.text, priority: removedItem.priority, originalCardId: document.getElementById('subCardId').value }, 'Item Lista'); tempChecklistItems.splice(index, 1); renderTempChecklist(); };
 window.toggleTempItem = (index) => { tempChecklistItems[index].done = !tempChecklistItems[index].done; renderTempChecklist(); };
 
 window.openSubCardModal = () => { 
@@ -216,7 +216,7 @@ document.getElementById('btnSaveSubCard').onclick = async () => {
     const id = document.getElementById('subCardId').value; const title = document.getElementById('subCardTitle').value; const color = document.getElementById('subCardColor').value; if(!title) return; 
     const data = { title, color, items: tempChecklistItems, links: tempLinks, texts: tempTexts, projectId: activeProjectId, updatedAt: new Date(), type: (tempLinks.length > 0 && tempTexts.length === 0 && tempChecklistItems.length === 0) ? 'link' : (tempTexts.length > 0 && tempLinks.length === 0 && tempChecklistItems.length === 0) ? 'text' : (tempChecklistItems.length > 0 && tempLinks.length === 0 && tempTexts.length === 0) ? 'checklist' : 'mixed' }; 
     if(id) { await updateDoc(doc(db, `users/${currentUser.uid}/subcards`, id), data); addToHistory('EDIÇÃO', `Sub-card: ${title}`); } 
-    else { data.createdAt = new Date(); data.position = 99999; data.pinned = false; await addDoc(collection(db, `users/${currentUser.uid}/subcards`), data); addToHistory('CRIAÇÃO', `Sub-card: ${title}`); } 
+    else { data.createdAt = new Date(); data.position = 9999; data.pinned = false; await addDoc(collection(db, `users/${currentUser.uid}/subcards`), data); addToHistory('CRIAÇÃO', `Sub-card: ${title}`); } 
     subCardModal.hide(); 
 };
 document.getElementById('btnDelSubCard').onclick = async () => { if(confirm("Lixeira?")) { const id = document.getElementById('subCardId').value; const docRef = doc(db, `users/${currentUser.uid}/subcards`, id); const docSnap = await getDoc(docRef); await moveToTrash('subcards', id, docSnap.data(), 'Recurso'); subCardModal.hide(); } };
@@ -293,6 +293,7 @@ document.getElementById('btnTrash').onclick = () => {
     }); 
 };
 
+// --- RESTAURAÇÃO DE ITENS DE CHECKLIST ---
 window.restoreFromTrash = async (trashId) => {
     try {
         const trashRef = doc(db, `users/${currentUser.uid}/trash`, trashId); const trashDoc = await getDoc(trashRef);
@@ -303,8 +304,15 @@ window.restoreFromTrash = async (trashId) => {
         if (type === 'Item Lista' && data.originalCardId) {
             const cardRef = doc(db, `users/${currentUser.uid}/subcards`, data.originalCardId); const cardSnap = await getDoc(cardRef);
             if (cardSnap.exists()) {
-                const currentItems = cardSnap.data().items || []; currentItems.push({ text: data.title, priority: data.priority || 'low', done: false });
-                await updateDoc(cardRef, { items: currentItems }); addToHistory('RESTAURAÇÃO', `Item de lista restaurado em Card`);
+                const currentData = cardSnap.data();
+                const currentItems = currentData.items || [];
+                // Recria o objeto do item conforme estava na lista
+                const restoredItem = { text: data.title, priority: data.priority || 'low', done: false };
+                currentItems.push(restoredItem);
+                
+                await updateDoc(cardRef, { items: currentItems }); 
+                addToHistory('RESTAURAÇÃO', `Item de lista restaurado em Card`);
+                alert("Item restaurado dentro do Card original.");
             } else {
                 await addDoc(collection(db, `users/${currentUser.uid}/tasks`), { title: `[Orfão] ${data.title}`, priority: data.priority || 'low', projectId: activeProjectId || 'root', createdAt: new Date() });
                 alert("Card original excluído. Item voltou como Tarefa Solta."); addToHistory('RESTAURAÇÃO', `Item restaurado como Tarefa (Órfão)`);
