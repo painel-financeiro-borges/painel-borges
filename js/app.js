@@ -54,6 +54,7 @@ function initHistory() {
 }
 document.getElementById('btnClearHistory').onclick = async () => { if(!confirm("Limpar?")) return; const snap = await getDocs(query(collection(db, `users/${currentUser.uid}/history`))); const batch = writeBatch(db); snap.forEach(doc => batch.delete(doc.ref)); await batch.commit(); addToHistory('SISTEMA', 'Histórico limpo.'); };
 
+// FUNÇÃO DE EXPORTAÇÃO CORRIGIDA PARA INCLUIR TUDO NO PDF
 window.exportData = async (format) => {
     if(!currentUser) return; ui.loading.style.display = 'flex';
     try {
@@ -61,14 +62,115 @@ window.exportData = async (format) => {
         const t = await getDocs(collection(db, `users/${currentUser.uid}/tasks`));
         const s = await getDocs(collection(db, `users/${currentUser.uid}/subcards`));
         const data = { exportedAt: new Date().toISOString(), user: currentUser.email, projects: p.docs.map(d=>({id:d.id,...d.data()})), tasks: t.docs.map(d=>({id:d.id,...d.data()})), subcards: s.docs.map(d=>({id:d.id,...d.data()})) };
-        if(format==='json') { const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download=`backup_${new Date().toISOString().slice(0,10)}.json`; a.click(); addToHistory('EXPORT', 'JSON baixado.'); }
-        else if(format==='copy') { await navigator.clipboard.writeText(JSON.stringify(data,null,2)); alert("Copiado!"); addToHistory('EXPORT', 'Copiado para área de transferência.'); }
-        else if(format==='pdf') { 
-            const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.text(`Relatório - ${new Date().toLocaleString()}`,10,10); let y=20;
-            data.projects.forEach(proj => { if(y>270){doc.addPage();y=20;} doc.setFontSize(14); doc.text(proj.title,10,y); y+=10; const tasks=data.tasks.filter(k=>k.projectId===proj.id); tasks.forEach(task=>{doc.setFontSize(10);doc.text(`- ${task.title} [${task.priority}]`,15,y);y+=6;}); y+=5; });
-            doc.save(`relatorio_${new Date().toISOString().slice(0,10)}.pdf`); addToHistory('EXPORT', 'PDF gerado.');
+        
+        if(format==='json') { 
+            const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download=`backup_${new Date().toISOString().slice(0,10)}.json`; a.click(); addToHistory('EXPORT', 'JSON (Backup Completo) baixado.'); 
         }
-    } catch(e) { alert("Erro export: "+e.message); } finally { ui.loading.style.display = 'none'; bootstrap.Modal.getInstance(document.getElementById('exportModal'))?.hide(); }
+        else if(format==='copy') { 
+            await navigator.clipboard.writeText(JSON.stringify(data,null,2)); alert("Backup JSON copiado!"); addToHistory('EXPORT', 'Copiado para área de transferência.'); 
+        }
+        else if(format==='pdf') { 
+            const { jsPDF } = window.jspdf; 
+            const doc = new jsPDF(); 
+            doc.setFont("helvetica", "bold");
+            doc.text(`Relatório Completo - Painel Borges`, 10, 10); 
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(10);
+            doc.text(`Gerado em: ${new Date().toLocaleString()}`, 10, 16);
+            
+            let y=25;
+
+            data.projects.forEach(proj => { 
+                // Nova Página se necessário
+                if(y>270){doc.addPage();y=20;} 
+                
+                // Título do Projeto
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(14); 
+                doc.setTextColor(0, 0, 0);
+                doc.text(`PROJETO: ${proj.title} [${proj.type}]`, 10, y); 
+                y+=8;
+
+                // Tarefas
+                const tasks = data.tasks.filter(k=>k.projectId===proj.id);
+                if(tasks.length > 0) {
+                    doc.setFontSize(11);
+                    doc.setTextColor(100, 100, 100);
+                    doc.text("Tarefas:", 15, y);
+                    y+=6;
+                    tasks.forEach(task=>{
+                        if(y>280){doc.addPage();y=20;} 
+                        doc.setFont("helvetica", "normal");
+                        doc.setFontSize(10);
+                        doc.setTextColor(0, 0, 0);
+                        const status = task.done ? "(Feito)" : "(Pendente)";
+                        doc.text(`- ${task.title} [${task.priority}] ${status}`, 20, y);
+                        y+=5;
+                    });
+                    y+=4;
+                }
+
+                // Subcards (Recursos) - ADICIONADO AGORA
+                const cards = data.subcards.filter(s => s.projectId === proj.id && !s.isSpacer);
+                if(cards.length > 0) {
+                    if(y>280){doc.addPage();y=20;} 
+                    doc.setFont("helvetica", "bold");
+                    doc.setFontSize(11);
+                    doc.setTextColor(100, 100, 100);
+                    doc.text("Recursos & Cards:", 15, y);
+                    y+=6;
+                    
+                    cards.forEach(card => {
+                        if(y>280){doc.addPage();y=20;} 
+                        doc.setFont("helvetica", "bold");
+                        doc.setFontSize(10);
+                        doc.setTextColor(0, 0, 0);
+                        doc.text(`> Card: ${card.title}`, 20, y);
+                        y+=5;
+
+                        // Listar links dentro do card
+                        if(card.links && card.links.length > 0) {
+                             card.links.forEach(l => {
+                                 doc.setFont("helvetica", "normal");
+                                 doc.setFontSize(9);
+                                 doc.text(`   Link: ${l.name} (${l.url})`, 25, y);
+                                 y+=4;
+                             });
+                        }
+                        // Listar Checklist dentro do card
+                        if(card.items && card.items.length > 0) {
+                             card.items.forEach(i => {
+                                 const ck = i.done ? "[x]" : "[ ]";
+                                 doc.setFont("helvetica", "normal");
+                                 doc.setFontSize(9);
+                                 doc.text(`   ${ck} ${i.text}`, 25, y);
+                                 y+=4;
+                             });
+                        }
+                        // Listar Textos dentro do card
+                        if(card.texts && card.texts.length > 0) {
+                             card.texts.forEach(tx => {
+                                 doc.setFont("helvetica", "italic");
+                                 doc.setFontSize(9);
+                                 doc.text(`   Nota: ${tx.title}`, 25, y);
+                                 y+=4;
+                             });
+                        }
+                        y+=2;
+                    });
+                    y+=5;
+                }
+
+                // Linha separadora
+                doc.setDrawColor(200, 200, 200);
+                doc.line(10, y, 200, y);
+                y+=10; 
+            });
+            
+            doc.save(`relatorio_completo_${new Date().toISOString().slice(0,10)}.pdf`); 
+            addToHistory('EXPORT', 'PDF Completo gerado.');
+        }
+    } catch(e) { console.error(e); alert("Erro export: "+e.message); } finally { ui.loading.style.display = 'none'; bootstrap.Modal.getInstance(document.getElementById('exportModal'))?.hide(); }
 };
 
 window.navigate = (target, title = 'Painel Org. Borges', extra = null) => {
