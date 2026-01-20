@@ -53,30 +53,34 @@ function applyViewMode(mode) { const { resources, kanban } = ui.sections; if(mod
 
 window.addSpacer = async (blockType) => { await addDoc(collection(db, `users/${currentUser.uid}/projects`), { title: "Spacer", type: blockType, isSpacer: true, position: 99999, createdAt: new Date() }); };
 
-// --- FUNÇÃO GLOBAL PARA MOVER PARA LIXEIRA ---
+// --- FUNÇÃO CRÍTICA: MOVER PARA LIXEIRA ---
 async function moveToTrash(collectionName, docId, data, type) {
     if(!currentUser) return;
     try {
+        // Copia para a coleção 'trash'
         await addDoc(collection(db, `users/${currentUser.uid}/trash`), {
             ...data,
-            originalCollection: collectionName || 'none', // Evita erro de null
-            originalId: docId || 'none',
-            itemType: type,
+            originalCollection: collectionName, // 'projects', 'tasks', 'subcards'
+            originalId: docId, // O ID original é salvo aqui
+            itemType: type, // 'Projeto', 'Tarefa', etc.
             deletedAt: new Date()
         });
+        
+        // Remove da coleção original
         if(collectionName && docId) {
             await deleteDoc(doc(db, `users/${currentUser.uid}/${collectionName}`, docId));
         }
     } catch(e) { console.error("Erro lixeira", e); alert("Erro ao mover para lixeira: " + e.message); }
 }
 
-// --- ORDENAÇÃO ---
+// --- ORDENAÇÃO E SWAP ---
 async function saveOrderFromDom(gridEl, collectionPath) {
     const cards = gridEl.children; const batch = writeBatch(db);
     Array.from(cards).forEach((card, index) => { const id = card.getAttribute('data-id'); if(id) { const ref = doc(db, collectionPath, id); batch.update(ref, { position: index }); } });
     await batch.commit();
 }
 
+// --- PROJETOS ---
 function initProjects() {
     const q = query(collection(db, `users/${currentUser.uid}/projects`));
     onSnapshot(q, (snap) => {
@@ -100,7 +104,18 @@ function initProjects() {
         });
         ['Profissional', 'Pessoal', 'Ideia'].forEach(type => {
             const gridEl = document.getElementById(`grid-${type}`);
-            if(gridEl) { new Sortable(gridEl, { group: 'projects', animation: 150, delay: 200, delayOnTouchOnly: true, touchStartThreshold: 10, onChoose: () => { if(navigator.vibrate) navigator.vibrate(50); }, onEnd: async function(evt) { const itemEl = evt.item; const newType = evt.to.getAttribute('data-type'); const projId = itemEl.getAttribute('data-id'); if (evt.from !== evt.to) { await updateDoc(doc(db, `users/${currentUser.uid}/projects`, projId), { type: newType }); } saveOrderFromDom(evt.to, `users/${currentUser.uid}/projects`); if(evt.from !== evt.to) saveOrderFromDom(evt.from, `users/${currentUser.uid}/projects`); } }); }
+            if(gridEl) { 
+                new Sortable(gridEl, { 
+                    group: 'projects', animation: 150, delay: 200, delayOnTouchOnly: true, touchStartThreshold: 10, 
+                    onChoose: () => { if(navigator.vibrate) navigator.vibrate(50); }, 
+                    onEnd: async function(evt) { 
+                        const itemEl = evt.item; const newType = evt.to.getAttribute('data-type'); const projId = itemEl.getAttribute('data-id'); 
+                        if (evt.from !== evt.to) { await updateDoc(doc(db, `users/${currentUser.uid}/projects`, projId), { type: newType }); } 
+                        saveOrderFromDom(evt.to, `users/${currentUser.uid}/projects`); 
+                        if(evt.from !== evt.to) saveOrderFromDom(evt.from, `users/${currentUser.uid}/projects`); 
+                    } 
+                }); 
+            }
         });
     });
 }
@@ -110,17 +125,20 @@ document.getElementById('fabBtn').onclick = () => { if(activeProjectId) { const 
 window.editProject = (id, title, type, color) => { document.getElementById('projId').value = id; document.getElementById('projTitle').value = title; document.getElementById('projType').value = type; document.getElementById('selectedColor').value = color; document.getElementById('btnDelProj').style.display = 'block'; document.querySelectorAll('.color-dot').forEach(d => d.classList.toggle('selected', d.classList.contains(color))); projModal.show(); };
 window.selectColor = (el, color) => { document.querySelectorAll('#projectModal .color-dot').forEach(d => d.classList.remove('selected')); el.classList.add('selected'); document.getElementById('selectedColor').value = color; };
 document.getElementById('btnSaveProj').onclick = async () => { const id = document.getElementById('projId').value; const title = document.getElementById('projTitle').value; const type = document.getElementById('projType').value; const color = document.getElementById('selectedColor').value; if(!title) return; const data = { title, type, color, updatedAt: new Date(), isSpacer: false }; if(id) await updateDoc(doc(db, `users/${currentUser.uid}/projects`, id), data); else { data.createdAt = new Date(); data.position = 9999; data.viewMode = 'hybrid'; await addDoc(collection(db, `users/${currentUser.uid}/projects`), data); } projModal.hide(); };
-// DELETE PROJETO -> LIXEIRA
+
+// DELETAR PROJETO -> MANDA PRA LIXEIRA CORRETAMENTE
 document.getElementById('btnDelProj').onclick = async () => { 
     if(confirm("Mover para a lixeira?")) { 
         const id = document.getElementById('projId').value;
         const docRef = doc(db, `users/${currentUser.uid}/projects`, id);
         const docSnap = await getDoc(docRef);
+        // Chama o MoveToTrash passando 'projects' explicitamente
         await moveToTrash('projects', id, docSnap.data(), 'Projeto');
         projModal.hide(); 
     } 
 };
 
+// --- SUB-CARDS ---
 window.addSubSpacer = async () => { if (!activeProjectId) return; await addDoc(collection(db, `users/${currentUser.uid}/subcards`), { title: "Spacer", projectId: activeProjectId, isSpacer: true, position: 99999, createdAt: new Date() }); };
 
 let subCardUnsub = null;
@@ -164,9 +182,9 @@ window.renderTempChecklist = () => {
 };
 window.addTempItem = () => { const input = document.getElementById('newCheckItem'); const priority = document.getElementById('newCheckPriority').value; if(!input.value.trim()) return; tempChecklistItems.push({ text: input.value, done: false, priority: priority }); input.value = ''; renderTempChecklist(); };
 
-// REMOVER ITEM DE CHECKLIST -> LIXEIRA
 window.removeTempItem = async (index) => { 
     const removedItem = tempChecklistItems[index];
+    // Salva o item solto na lixeira, marcado como "Item Lista"
     await moveToTrash(null, null, { title: removedItem.text, priority: removedItem.priority, originalCardId: document.getElementById('subCardId').value }, 'Item Lista');
     tempChecklistItems.splice(index, 1); 
     renderTempChecklist(); 
@@ -178,15 +196,7 @@ window.editSubCard = (id, data) => { document.getElementById('subCardId').value 
 function initSubCardSortable() { const el = document.getElementById('tempChecklistList'); if(el) { new Sortable(el, { animation: 150, handle: '.checklist-handle', onEnd: function(evt) { const item = tempChecklistItems.splice(evt.oldIndex, 1)[0]; tempChecklistItems.splice(evt.newIndex, 0, item); } }); } }
 window.selectSubColor = (el, color) => { document.querySelectorAll('#subCardModal .color-dot').forEach(d => d.classList.remove('selected')); el.classList.add('selected'); document.getElementById('subCardColor').value = color; };
 document.getElementById('btnSaveSubCard').onclick = async () => { const id = document.getElementById('subCardId').value; const title = document.getElementById('subCardTitle').value; const content = document.getElementById('subCardContent').value; const type = document.getElementById('subCardType').value; const color = document.getElementById('subCardColor').value; if(!title) return; const data = { title, content, type, color, items: tempChecklistItems, projectId: activeProjectId, updatedAt: new Date(), position: 99999 }; if(id) await updateDoc(doc(db, `users/${currentUser.uid}/subcards`, id), data); else { data.createdAt = new Date(); await addDoc(collection(db, `users/${currentUser.uid}/subcards`), data); } subCardModal.hide(); };
-// DELETE SUB-CARD -> LIXEIRA
-document.getElementById('btnDelSubCard').onclick = async () => { 
-    if(confirm("Mover para lixeira?")) { 
-        const id = document.getElementById('subCardId').value;
-        const title = document.getElementById('subCardTitle').value;
-        await moveToTrash('subcards', id, { title }, 'Recurso');
-        subCardModal.hide(); 
-    } 
-};
+document.getElementById('btnDelSubCard').onclick = async () => { if(confirm("Mover para lixeira?")) { const id = document.getElementById('subCardId').value; const title = document.getElementById('subCardTitle').value; await moveToTrash('subcards', id, { title }, 'Recurso'); subCardModal.hide(); } };
 
 let kanbanUnsub = null;
 function initKanban(projectId) {
@@ -207,7 +217,6 @@ function initKanban(projectId) {
     });
 }
 window.toggleTaskDone = async (id, isDone) => { await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, id), { done: isDone }); };
-// DELETE TAREFA -> LIXEIRA
 window.deleteTaskDirect = async (id, title) => { if(confirm("Excluir esta tarefa?")) { await moveToTrash('tasks', id, { title }, 'Tarefa'); } };
 ['urgent', 'medium', 'low'].forEach(p => { const el = document.getElementById(`col-${p}`); if(el) { new Sortable(el, { group: 'kanban', animation: 150, delay: 100, delayOnTouchOnly: true, onEnd: async (evt) => await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, evt.item.dataset.id), { priority: evt.to.dataset.priority }) }); } });
 const taskModal = new bootstrap.Modal(document.getElementById('taskModal'));
@@ -217,31 +226,29 @@ document.getElementById('btnSaveTask').onclick = async () => { const id = docume
 document.getElementById('btnDelTask').onclick = async () => { await deleteTaskDirect(document.getElementById('taskId').value, document.getElementById('taskTitle').value); taskModal.hide(); };
 document.getElementById('taskSearch').onkeyup = (e) => { const term = e.target.value.toLowerCase(); document.querySelectorAll('.task-card').forEach(card => card.style.display = card.innerText.toLowerCase().includes(term) ? 'block' : 'none'); };
 
-// --- LIXEIRA GLOBAL (LÓGICA CORRIGIDA) ---
+// --- LIXEIRA GLOBAL (LEITURA E RESTAURAÇÃO CORRIGIDAS) ---
 document.getElementById('btnTrash').onclick = () => { 
     const list = document.getElementById('trashList'); 
     list.innerHTML = '<div class="text-center p-3"><div class="spinner-border"></div></div>'; 
     new bootstrap.Modal(document.getElementById('trashModal')).show(); 
+    
+    // Consulta segura
     const q = query(collection(db, `users/${currentUser.uid}/trash`), where('deletedAt', '!=', null));
     onSnapshot(collection(db, `users/${currentUser.uid}/trash`), (snap) => { 
         list.innerHTML = ''; 
         if(snap.empty) { list.innerHTML = '<div class="text-center mt-5 text-muted">Lixeira vazia</div>'; return; } 
         snap.forEach(docSnap => { 
             const t = docSnap.data();
-            // Verifica se as strings são 'null' (bug do HTML anterior) e corrige
-            const col = (t.originalCollection && t.originalCollection !== 'none') ? t.originalCollection : null;
-            const oid = (t.originalId && t.originalId !== 'none') ? t.originalId : null;
-            
             list.innerHTML += `
                 <div class="card mb-2 border-0 shadow-sm">
                     <div class="card-body d-flex justify-content-between align-items-center">
                         <div>
                             <span class="badge bg-secondary mb-1">${t.itemType || 'Item'}</span>
                             <div class="fw-bold">${t.title || 'Sem título'}</div>
-                            <small class="text-muted">${t.deletedAt?.toDate ? t.deletedAt.toDate().toLocaleDateString() : 'Data inválida'}</small>
+                            <small class="text-muted">${t.deletedAt?.toDate ? t.deletedAt.toDate().toLocaleDateString() : ''}</small>
                         </div>
                         <div>
-                            <button class="btn btn-sm btn-success me-2" onclick="restoreFromTrash('${docSnap.id}', '${col}', '${oid}', '${t.itemType}')">Recuperar</button>
+                            <button class="btn btn-sm btn-success me-2" onclick="restoreFromTrash('${docSnap.id}')">Recuperar</button>
                             <button class="btn btn-sm btn-outline-danger" onclick="nuke('${docSnap.id}')">X</button>
                         </div>
                     </div>
@@ -250,37 +257,45 @@ document.getElementById('btnTrash').onclick = () => {
     }); 
 };
 
-// RESTAURAR (CORRIGIDO PARA O BUG DE NULL)
-window.restoreFromTrash = async (trashId, collectionName, originalId, type) => {
+// --- FUNÇÃO DE RESTAURAR (CORRIGIDA) ---
+window.restoreFromTrash = async (trashId) => {
     try {
-        const trashDoc = await getDoc(doc(db, `users/${currentUser.uid}/trash`, trashId));
+        const trashRef = doc(db, `users/${currentUser.uid}/trash`, trashId);
+        const trashDoc = await getDoc(trashRef);
+        
         if(!trashDoc.exists()) { alert("Item não encontrado."); return; }
         
         const data = trashDoc.data();
-        delete data.deletedAt; delete data.originalCollection; delete data.originalId; delete data.itemType;
+        const collectionName = data.originalCollection;
+        const originalId = data.originalId;
+        const type = data.itemType;
 
-        // Se for "null" string, trata como null real
-        if(collectionName === 'null' || collectionName === 'undefined') collectionName = null;
-        if(originalId === 'null' || originalId === 'undefined') originalId = null;
+        // Limpa metadados da lixeira
+        delete data.deletedAt; 
+        delete data.originalCollection; 
+        delete data.originalId; 
+        delete data.itemType;
 
-        if(type === 'Item Lista' || !collectionName) {
-            // Itens de checklist viram tarefas para não perder dados
+        if (type === 'Item Lista') {
+            // Se for item de checklist, volta como tarefa na lista principal
             await addDoc(collection(db, `users/${currentUser.uid}/tasks`), { 
                 title: `[Recuperado] ${data.title}`, 
                 priority: 'low', 
-                projectId: activeProjectId || 'root', 
+                projectId: activeProjectId || 'root', // Tenta jogar no projeto ativo ou raiz
                 createdAt: new Date() 
             });
-            alert("Item recuperado como uma nova Tarefa no quadro.");
+            alert("Item recuperado como uma Tarefa Pendente.");
+        } else if (collectionName && originalId) {
+            // Tenta restaurar com o MESMO ID (Crucial para projetos)
+            await setDoc(doc(db, `users/${currentUser.uid}/${collectionName}`, originalId), data);
         } else {
-            // Tenta restaurar no local original se possível
-            if (originalId) {
-                await setDoc(doc(db, `users/${currentUser.uid}/${collectionName}`, originalId), data);
-            } else {
-                await addDoc(collection(db, `users/${currentUser.uid}/${collectionName}`), data);
-            }
+            alert("Erro: Não foi possível identificar a origem deste item.");
+            return;
         }
-        await deleteDoc(doc(db, `users/${currentUser.uid}/trash`, trashId));
+
+        // Remove da lixeira se deu certo
+        await deleteDoc(trashRef);
+
     } catch(e) {
         console.error("Erro ao restaurar", e);
         alert("Erro ao restaurar: " + e.message);
