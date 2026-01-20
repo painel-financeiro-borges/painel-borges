@@ -60,13 +60,67 @@ window.exportData = async (format) => {
         const p = await getDocs(collection(db, `users/${currentUser.uid}/projects`));
         const t = await getDocs(collection(db, `users/${currentUser.uid}/tasks`));
         const s = await getDocs(collection(db, `users/${currentUser.uid}/subcards`));
-        const data = { exportedAt: new Date().toISOString(), user: currentUser.email, projects: p.docs.map(d=>({id:d.id,...d.data()})), tasks: t.docs.map(d=>({id:d.id,...d.data()})), subcards: s.docs.map(d=>({id:d.id,...d.data()})) };
+        // FETCH EXTRA COLLECTIONS FOR FULL BACKUP
+        const tr = await getDocs(collection(db, `users/${currentUser.uid}/trash`));
+        const h = await getDocs(collection(db, `users/${currentUser.uid}/history`));
+
+        const data = { 
+            exportedAt: new Date().toISOString(), 
+            user: currentUser.email, 
+            projects: p.docs.map(d=>({id:d.id,...d.data()})), 
+            tasks: t.docs.map(d=>({id:d.id,...d.data()})), 
+            subcards: s.docs.map(d=>({id:d.id,...d.data()})),
+            trash: tr.docs.map(d=>({id:d.id,...d.data()})),
+            history: h.docs.map(d=>({id:d.id,...d.data()}))
+        };
+
         if(format==='json') { const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download=`backup_${new Date().toISOString().slice(0,10)}.json`; a.click(); addToHistory('EXPORT', 'JSON baixado.'); }
         else if(format==='copy') { await navigator.clipboard.writeText(JSON.stringify(data,null,2)); alert("Copiado!"); addToHistory('EXPORT', 'Copiado para área de transferência.'); }
         else if(format==='pdf') { 
-            const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.text(`Relatório - ${new Date().toLocaleString()}`,10,10); let y=20;
-            data.projects.forEach(proj => { if(y>270){doc.addPage();y=20;} doc.setFontSize(14); doc.text(proj.title,10,y); y+=10; const tasks=data.tasks.filter(k=>k.projectId===proj.id); tasks.forEach(task=>{doc.setFontSize(10);doc.text(`- ${task.title} [${task.priority}]`,15,y);y+=6;}); y+=5; });
-            doc.save(`relatorio_${new Date().toISOString().slice(0,10)}.pdf`); addToHistory('EXPORT', 'PDF gerado.');
+            const { jsPDF } = window.jspdf; const doc = new jsPDF(); 
+            doc.setFontSize(18); doc.text(`Relatório Completo - ${new Date().toLocaleDateString()}`,10,10); 
+            let y=20;
+            
+            data.projects.forEach(proj => { 
+                if(y>270){doc.addPage();y=20;} 
+                doc.setFontSize(14); doc.setTextColor(0,0,255); doc.text(`PROJETO: ${proj.title}`,10,y); y+=8; 
+                
+                // TASKS
+                const tasks=data.tasks.filter(k=>k.projectId===proj.id); 
+                if(tasks.length>0){
+                    doc.setFontSize(10); doc.setTextColor(0); doc.text("Tarefas:",15,y); y+=5;
+                    tasks.forEach(task=>{ if(y>270){doc.addPage();y=20;} doc.text(`- [${task.priority}] ${task.title} (${task.done?'OK':'Pendente'})`,20,y);y+=5;});
+                }
+                
+                // SUBCARDS (Detailed)
+                const cards=data.subcards.filter(k=>k.projectId===proj.id);
+                if(cards.length>0){
+                    y+=5; doc.setFontSize(10); doc.setTextColor(0); doc.text("Cards & Recursos:",15,y); y+=5;
+                    cards.forEach(c => {
+                        if(y>270){doc.addPage();y=20;}
+                        doc.setFontSize(11); doc.setTextColor(100); doc.text(`> ${c.title}`, 20, y); y+=5;
+                        
+                        // Checklists inside card
+                        if(c.items && c.items.length>0){
+                            doc.setFontSize(9); doc.setTextColor(50);
+                            c.items.forEach(i=>{ if(y>270){doc.addPage();y=20;} doc.text(`  • ${i.text}`, 25, y); y+=4; });
+                        }
+                        // Links inside card
+                        if(c.links && c.links.length>0){
+                            doc.setFontSize(9); doc.setTextColor(0,0,200);
+                            c.links.forEach(l=>{ if(y>270){doc.addPage();y=20;} doc.text(`  @ ${l.name}: ${l.url}`, 25, y); y+=4; });
+                        }
+                         // Texts inside card
+                         if(c.texts && c.texts.length>0){
+                            doc.setFontSize(9); doc.setTextColor(50);
+                            c.texts.forEach(t=>{ if(y>270){doc.addPage();y=20;} doc.text(`  T: ${t.title}`, 25, y); y+=4; });
+                        }
+                        y+=2;
+                    });
+                }
+                y+=10; 
+            });
+            doc.save(`relatorio_${new Date().toISOString().slice(0,10)}.pdf`); addToHistory('EXPORT', 'PDF Completo gerado.');
         }
     } catch(e) { alert("Erro export: "+e.message); } finally { ui.loading.style.display = 'none'; bootstrap.Modal.getInstance(document.getElementById('exportModal'))?.hide(); }
 };
@@ -101,7 +155,7 @@ function initProjects() {
             card.setAttribute('data-type', data.type); targetGrid.appendChild(card);
         });
         ['Profissional', 'Pessoal', 'Ideia'].forEach(type => { const gridEl = document.getElementById(`grid-${type}`); if(gridEl) { 
-            // ADICIONADO DELAY PARA SCROLL MOBILE
+            // DELAY PRESERVADO
             new Sortable(gridEl, { group: 'projects', animation: 150, delay: 300, delayOnTouchOnly: true, onEnd: async function(evt) { const itemEl = evt.item; const newType = evt.to.getAttribute('data-type'); const projId = itemEl.getAttribute('data-id'); if (evt.from !== evt.to) { await updateDoc(doc(db, `users/${currentUser.uid}/projects`, projId), { type: newType }); } saveOrderFromDom(evt.to, `users/${currentUser.uid}/projects`); if(evt.from !== evt.to) saveOrderFromDom(evt.from, `users/${currentUser.uid}/projects`); } }); } });
     });
 }
@@ -128,9 +182,7 @@ const formatUrl = (url) => {
 window.renderTempLinks = () => {
     const container = document.getElementById('tempLinkList'); container.innerHTML = '';
     tempLinks.forEach((link, index) => {
-        // Botão de abrir link adicionado
         const openBtn = link.url ? `<a href="${formatUrl(link.url)}" target="_blank" class="btn btn-outline-secondary border-0" title="Abrir Link"><i class="fas fa-external-link-alt"></i></a>` : '';
-        
         container.innerHTML += `
             <div class="resource-item">
                 <i class="fas fa-times resource-delete" onclick="removeTempLink(${index})"></i>
@@ -246,7 +298,7 @@ function initSubCards(projectId) {
             grid.appendChild(el);
         });
         if(subCardSortableInstance) subCardSortableInstance.destroy();
-        // ADICIONADO DELAY TAMBÉM NOS SUB-CARDS
+        // DELAY PRESERVADO
         subCardSortableInstance = new Sortable(grid, { animation: 150, ghostClass: 'sortable-ghost', delay: 300, delayOnTouchOnly: true, onEnd: async function(evt) { saveOrderFromDom(grid, `users/${currentUser.uid}/subcards`); } });
     });
 }
@@ -272,7 +324,7 @@ function initKanban(projectId) {
 window.toggleTaskDone = async (id, isDone) => { await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, id), { done: isDone }); addToHistory('TAREFA', `Tarefa ${isDone ? 'concluída' : 'pendente'}`); };
 window.deleteTaskDirect = async (id, title) => { if(confirm("Excluir?")) { const docRef = doc(db, `users/${currentUser.uid}/tasks`, id); const docSnap = await getDoc(docRef); await moveToTrash('tasks', id, docSnap.data(), 'Tarefa'); } };
 ['urgent', 'medium', 'low'].forEach(p => { const el = document.getElementById(`col-${p}`); if(el) { 
-    // ADICIONADO DELAY NAS COLUNAS KANBAN
+    // DELAY PRESERVADO
     new Sortable(el, { group: 'kanban', animation: 150, delay: 300, delayOnTouchOnly: true, onEnd: async (evt) => await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, evt.item.dataset.id), { priority: evt.to.dataset.priority }) }); } });
 const taskModal = new bootstrap.Modal(document.getElementById('taskModal'));
 window.openTaskModal = () => { document.getElementById('taskId').value = ''; document.getElementById('taskTitle').value = ''; document.getElementById('taskDesc').value = ''; document.getElementById('taskPriority').value = 'low'; document.getElementById('btnDelTask').style.display = 'none'; taskModal.show(); };
@@ -293,7 +345,7 @@ document.getElementById('btnTrash').onclick = () => {
     }); 
 };
 
-// --- RESTAURAÇÃO DE ITENS DE CHECKLIST ---
+// --- LÓGICA DE RESTAURAÇÃO PRESERVADA ---
 window.restoreFromTrash = async (trashId) => {
     try {
         const trashRef = doc(db, `users/${currentUser.uid}/trash`, trashId); const trashDoc = await getDoc(trashRef);
@@ -306,7 +358,6 @@ window.restoreFromTrash = async (trashId) => {
             if (cardSnap.exists()) {
                 const currentData = cardSnap.data();
                 const currentItems = currentData.items || [];
-                // Recria o objeto do item conforme estava na lista
                 const restoredItem = { text: data.title, priority: data.priority || 'low', done: false };
                 currentItems.push(restoredItem);
                 
@@ -319,6 +370,7 @@ window.restoreFromTrash = async (trashId) => {
             }
         } else if (collectionName && originalId) {
             await setDoc(doc(db, `users/${currentUser.uid}/${collectionName}`, originalId), data); addToHistory('RESTAURAÇÃO', `Item restaurado: ${data.title}`);
+            alert("Restaurado com sucesso!");
         } else { alert("Erro de origem."); return; }
         await deleteDoc(trashRef);
     } catch(e) { console.error("Erro restore", e); alert("Erro ao restaurar: " + e.message); }
