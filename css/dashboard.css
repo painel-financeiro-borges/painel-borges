@@ -9,9 +9,39 @@ body.dark-mode .glass-effect { background: rgba(18, 18, 18, 0.8); border-bottom:
 body.dark-mode .glass-panel { background: rgba(30,30,30,0.7); }
 .fade-in { animation: fadeIn 0.4s ease-in; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* --- TELA DE LOGIN & ANIMAÇÃO ÍCONE SATÉLITE --- */
 #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #1a1a1a 0%, #2c3e50 100%); z-index: 9999; display: flex; align-items: center; justify-content: center; }
 .login-card { text-align: center; max-width: 400px; padding: 40px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border-radius: 30px; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 25px 50px rgba(0,0,0,0.5); animation: zoomIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* Ajuste do Botão para receber o satélite */
+#btnLogin { position: relative; overflow: visible; transition: transform 0.2s; }
+#btnLogin:active { transform: scale(0.98); }
+
+/* O Ícone Preto (Satélite) */
+.login-satellite-icon {
+    position: absolute;
+    top: -10px;
+    right: -5px;
+    width: 48px;
+    height: 48px;
+    background: #000000;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+    z-index: 10;
+    /* Animação Elástica */
+    transform: scale(0);
+    animation: popInElastic 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+    animation-delay: 0.4s; /* Espera o card abrir */
+}
+@keyframes popInElastic { 0% { transform: scale(0) rotate(-45deg); opacity: 0; } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
+
 #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; display: none; align-items: center; justify-content: center; }
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -98,15 +128,9 @@ body.dark-mode .checklist-item.cl-low { border-left-color: #2ed573; background: 
 /* --- RESOURCE ITEMS (LINKS E TEXTOS) --- */
 .resource-item { display: flex; flex-direction: column; padding: 12px; background: var(--card-bg); margin-bottom: 8px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 4px 10px rgba(0,0,0,0.03); position: relative; }
 body.dark-mode .resource-item { background: #2c2c2e; border-color: rgba(255,255,255,0.1); color: white; }
-.resource-delete { 
-    position: absolute; 
-    top: 10px; 
-    right: 10px; 
-    cursor: pointer; 
-    color: #ff4757; 
-    opacity: 0.6; 
-    z-index: 20; /* CORREÇÃO APLICADA AQUI */
-}
+
+/* CORREÇÃO DO BOTÃO X: Z-INDEX ALTO PARA FICAR ACIMA DO CAMPO DE TEXTO */
+.resource-delete { position: absolute; top: 10px; right: 10px; cursor: pointer; color: #ff4757; opacity: 0.6; z-index: 50; }
 .resource-delete:hover { opacity: 1; transform: scale(1.1); }
 
 .fab { position: fixed; bottom: 30px; right: 30px; width: 70px; height: 70px; border-radius: 50%; border: none; background: linear-gradient(135deg, #1a1a1a 0%, #000 100%); color: white; font-size: 28px; cursor: pointer; z-index: 99; box-shadow: 0 15px 30px rgba(0,0,0,0.4), inset 0 2px 0 rgba(255,255,255,0.3); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
