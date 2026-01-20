@@ -10,13 +10,53 @@ body.dark-mode .glass-panel { background: rgba(30,30,30,0.7); }
 .fade-in { animation: fadeIn 0.4s ease-in; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-/* --- TELA DE LOGIN (LIMPA) --- */
+/* --- TELA DE LOGIN --- */
 #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #1a1a1a 0%, #2c3e50 100%); z-index: 9999; display: flex; align-items: center; justify-content: center; }
 .login-card { text-align: center; max-width: 400px; padding: 40px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border-radius: 30px; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 25px 50px rgba(0,0,0,0.5); animation: zoomIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-#btnLogin { transition: transform 0.2s; }
-#btnLogin:active { transform: scale(0.95); }
+/* Botão de Login (Limpo, sem rotação azul) */
+#btnLogin {
+    position: relative;
+    overflow: visible; /* Necessário para o satélite sair da borda */
+    transition: transform 0.2s;
+    background-color: #ffffff; /* Fundo Branco Sólido */
+    border: none;
+    color: #1a1a1a;
+    z-index: 1;
+}
+#btnLogin:active { transform: scale(0.98); }
+
+/* O Ícone Satélite (G) */
+.login-satellite-icon {
+    position: absolute;
+    top: -8px; 
+    right: -5px;
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+    background: #000000;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    border: 1px solid rgba(255,255,255,0.3);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    /* Mantive o pulso suave, se não quiser, apague a linha animation abaixo */
+    animation: satellitePulse 3s infinite ease-in-out;
+}
+
+@keyframes satellitePulse {
+    0%, 80% { transform: scale(1) rotate(0deg); }
+    85% { transform: scale(0.9) rotate(-5deg); }
+    90% { transform: scale(1.15) rotate(5deg); }
+    95% { transform: scale(0.95) rotate(-3deg); }
+    100% { transform: scale(1) rotate(0deg); }
+}
+
+.login-helper-text { font-size: 0.75rem; color: rgba(255, 255, 255, 0.7); margin-top: 20px; font-weight: 500; line-height: 1.4; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
 
 #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; display: none; align-items: center; justify-content: center; }
 ::-webkit-scrollbar { width: 6px; }
