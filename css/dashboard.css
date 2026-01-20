@@ -83,40 +83,40 @@ body.dark-mode .color-dot.selected { border-color: #fff; box-shadow: 0 0 0 3px r
 .task-actions i { opacity: 0.4; transition: 0.2s; padding: 5px; }
 .task-actions i:hover { opacity: 1; transform: scale(1.2); }
 
-/* --- ANIMAÇÕES DE ENTRADA (CASCATA) --- */
+/* --- ANIMAÇÕES DE ENTRADA --- */
 .animate-in { opacity: 0; animation: fadeInUp 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards; }
 @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
-/* --- CORREÇÕES ESPECÍFICAS PARA DRAG AND DROP (MOBILE + BOOTSTRAP) --- */
+/* --- CORREÇÕES ESPECÍFICAS PARA DRAG AND DROP --- */
 .checklist-handle {
     cursor: grab;
-    padding: 10px; /* Aumenta área de toque para mobile */
+    padding: 10px;
     margin-right: 5px;
     color: #aaa;
-    touch-action: none; /* ESSENCIAL: Impede que o celular faça scroll ao tocar no ícone */
+    touch-action: none; 
 }
 .checklist-handle:active {
     cursor: grabbing;
     color: var(--text-primary);
 }
 .checklist-container {
-    padding-bottom: 30px; /* Espaço de segurança para o último item não travar no fim do modal */
+    padding-bottom: 30px; 
     min-height: 60px;
 }
 
-/* --- NOVO ESTILO DO BOTÃO PIN (FIXAR) --- */
+/* --- ESTILO DO BOTÃO PIN (FIXAR) UNIFICADO --- */
 .pin-btn {
     position: absolute;
     top: 15px;
-    left: 15px; /* Canto superior esquerdo */
+    left: 15px; 
     color: white;
     font-size: 1.1rem;
     cursor: pointer;
     opacity: 0.4;
     transition: all 0.3s;
-    z-index: 10;
+    z-index: 20; /* Aumentado para garantir clique em cima de tudo */
     text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-    padding: 5px; /* Área de clique */
+    padding: 5px; 
 }
 .pin-btn:hover {
     transform: scale(1.2);
