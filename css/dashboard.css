@@ -9,55 +9,9 @@ body.dark-mode .glass-effect { background: rgba(18, 18, 18, 0.8); border-bottom:
 body.dark-mode .glass-panel { background: rgba(30,30,30,0.7); }
 .fade-in { animation: fadeIn 0.4s ease-in; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-/* --- TELA DE LOGIN --- */
 #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #1a1a1a 0%, #2c3e50 100%); z-index: 9999; display: flex; align-items: center; justify-content: center; }
 .login-card { text-align: center; max-width: 400px; padding: 40px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border-radius: 30px; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 25px 50px rgba(0,0,0,0.5); animation: zoomIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
-/* Botão de Login (Limpo, sem rotação azul) */
-#btnLogin {
-    position: relative;
-    overflow: visible; /* Necessário para o satélite sair da borda */
-    transition: transform 0.2s;
-    background-color: #ffffff; /* Fundo Branco Sólido */
-    border: none;
-    color: #1a1a1a;
-    z-index: 1;
-}
-#btnLogin:active { transform: scale(0.98); }
-
-/* O Ícone Satélite (G) */
-.login-satellite-icon {
-    position: absolute;
-    top: -8px; 
-    right: -5px;
-    width: 28px;
-    height: 28px;
-    font-size: 14px;
-    background: #000000;
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10;
-    border: 1px solid rgba(255,255,255,0.3);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    /* Mantive o pulso suave, se não quiser, apague a linha animation abaixo */
-    animation: satellitePulse 3s infinite ease-in-out;
-}
-
-@keyframes satellitePulse {
-    0%, 80% { transform: scale(1) rotate(0deg); }
-    85% { transform: scale(0.9) rotate(-5deg); }
-    90% { transform: scale(1.15) rotate(5deg); }
-    95% { transform: scale(0.95) rotate(-3deg); }
-    100% { transform: scale(1) rotate(0deg); }
-}
-
-.login-helper-text { font-size: 0.75rem; color: rgba(255, 255, 255, 0.7); margin-top: 20px; font-weight: 500; line-height: 1.4; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
-
 #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; display: none; align-items: center; justify-content: center; }
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -146,7 +100,15 @@ body.dark-mode .checklist-item.cl-low { border-left-color: #2ed573; background: 
 body.dark-mode .resource-item { background: #2c2c2e; border-color: rgba(255,255,255,0.1); color: white; }
 
 /* CORREÇÃO DO BOTÃO X: Z-INDEX ALTO PARA FICAR ACIMA DO CAMPO DE TEXTO */
-.resource-delete { position: absolute; top: 10px; right: 10px; cursor: pointer; color: #ff4757; opacity: 0.6; z-index: 50; }
+.resource-delete { 
+    position: absolute; 
+    top: 10px; 
+    right: 10px; 
+    cursor: pointer; 
+    color: #ff4757; 
+    opacity: 0.6; 
+    z-index: 50; /* Correção para o clique */
+}
 .resource-delete:hover { opacity: 1; transform: scale(1.1); }
 
 .fab { position: fixed; bottom: 30px; right: 30px; width: 70px; height: 70px; border-radius: 50%; border: none; background: linear-gradient(135deg, #1a1a1a 0%, #000 100%); color: white; font-size: 28px; cursor: pointer; z-index: 99; box-shadow: 0 15px 30px rgba(0,0,0,0.4), inset 0 2px 0 rgba(255,255,255,0.3); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
@@ -178,12 +140,46 @@ body.dark-mode .history-item { border-bottom-color: rgba(255,255,255,0.05); }
 .history-action { font-weight: bold; margin-right: 5px; }
 
 /* --- CORREÇÕES DE CONTRASTE (DARK MODE & LIXEIRA) --- */
-body.dark-mode .modal-content { background-color: #1c1c1e !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.1); }
-body.dark-mode .modal-header, body.dark-mode .modal-footer { border-color: rgba(255,255,255,0.1); }
-body.dark-mode .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
-body.dark-mode .form-control, body.dark-mode .form-select, body.dark-mode .input-group-text { background-color: #2c2c2e !important; border-color: rgba(255,255,255,0.1) !important; color: white !important; }
-body.dark-mode .form-control::placeholder { color: #aaa !important; }
-body.dark-mode .text-muted { color: #b0b0b0 !important; }
-body.dark-mode #trashList .card { background-color: #2c2c2e; color: white; border: 1px solid rgba(255,255,255,0.1); }
-body.dark-mode .btn-outline-dark { color: #e0e0e0; border-color: rgba(255,255,255,0.2); }
-body.dark-mode .btn-outline-dark:hover { background-color: rgba(255,255,255,0.1); color: #fff; }
+/* Força cor escura e texto branco em todos os modais no modo escuro */
+body.dark-mode .modal-content { 
+    background-color: #1c1c1e !important; 
+    color: #ffffff !important; 
+    border: 1px solid rgba(255,255,255,0.1); 
+}
+body.dark-mode .modal-header, 
+body.dark-mode .modal-footer { 
+    border-color: rgba(255,255,255,0.1); 
+}
+body.dark-mode .btn-close { 
+    filter: invert(1) grayscale(100%) brightness(200%); /* Torna o X branco */
+}
+/* Inputs em Dark Mode */
+body.dark-mode .form-control, 
+body.dark-mode .form-select, 
+body.dark-mode .input-group-text { 
+    background-color: #2c2c2e !important; 
+    border-color: rgba(255,255,255,0.1) !important; 
+    color: white !important; 
+}
+body.dark-mode .form-control::placeholder { 
+    color: #aaa !important; 
+}
+/* Textos Muted em Dark Mode */
+body.dark-mode .text-muted { 
+    color: #b0b0b0 !important; 
+}
+/* Cards da Lixeira em Dark Mode */
+body.dark-mode #trashList .card { 
+    background-color: #2c2c2e; 
+    color: white; 
+    border: 1px solid rgba(255,255,255,0.1); 
+}
+/* Botões de Exportação */
+body.dark-mode .btn-outline-dark { 
+    color: #e0e0e0; 
+    border-color: rgba(255,255,255,0.2); 
+}
+body.dark-mode .btn-outline-dark:hover { 
+    background-color: rgba(255,255,255,0.1); 
+    color: #fff; 
+}
