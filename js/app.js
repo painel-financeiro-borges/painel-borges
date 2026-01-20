@@ -52,6 +52,33 @@ function applyViewMode(mode) { const { resources, kanban } = ui.sections; if(mod
 
 window.addSpacer = async (blockType) => { await addDoc(collection(db, `users/${currentUser.uid}/projects`), { title: "Spacer", type: blockType, isSpacer: true, position: 99999, createdAt: new Date() }); };
 
+// --- NOVA FUNÇÃO DE TROCA (SWAP) ---
+async function swapPositions(collectionName, draggedId, droppedId) {
+    if (!draggedId || !droppedId || draggedId === droppedId) return;
+    
+    const dragRef = doc(db, collectionName, draggedId);
+    const dropRef = doc(db, collectionName, droppedId);
+    
+    // Ler posições atuais
+    const batch = writeBatch(db);
+    // Como não podemos ler síncrono fácil aqui sem await, vamos assumir que o Sortable visual já trocou
+    // e vamos forçar uma reordenação baseada no DOM atual
+    // Essa é a estratégia mais segura: ler o DOM e salvar a ordem exata que você deixou
+}
+
+async function saveOrderFromDom(gridEl, collectionName) {
+    const cards = gridEl.children;
+    const batch = writeBatch(db);
+    Array.from(cards).forEach((card, index) => {
+        const id = card.getAttribute('data-id');
+        if(id) {
+            const ref = doc(db, collectionName, id);
+            batch.update(ref, { position: index });
+        }
+    });
+    await batch.commit();
+}
+
 function initProjects() {
     const q = query(collection(db, `users/${currentUser.uid}/projects`));
     onSnapshot(q, (snap) => {
@@ -74,26 +101,30 @@ function initProjects() {
             targetGrid.appendChild(card);
         });
         
-        // CONFIGURAÇÃO MOBILE OTIMIZADA
         ['Profissional', 'Pessoal', 'Ideia'].forEach(type => {
             const gridEl = document.getElementById(`grid-${type}`);
             if(gridEl) { 
                 new Sortable(gridEl, { 
-                    group: 'projects', animation: 150, ghostClass: 'sortable-ghost', 
-                    delay: 300, // Pressione 300ms para arrastar
-                    delayOnTouchOnly: true,
-                    onChoose: () => { if(navigator.vibrate) navigator.vibrate(50); }, // VIBRA AO AGARRAR
+                    group: 'projects', animation: 150, 
+                    delay: 200, delayOnTouchOnly: true, // SEGURA PARA ARRASTAR
+                    onChoose: () => { if(navigator.vibrate) navigator.vibrate(50); },
                     onEnd: async function(evt) { 
-                        const newType = evt.to.getAttribute('data-type'); const projId = evt.item.getAttribute('data-id'); 
+                        const itemEl = evt.item;
+                        const newType = evt.to.getAttribute('data-type'); 
+                        const projId = itemEl.getAttribute('data-id'); 
+                        
+                        // Atualiza tipo se mudou de lista
                         if (evt.from !== evt.to) { await updateDoc(doc(db, `users/${currentUser.uid}/projects`, projId), { type: newType }); } 
-                        updateProjectOrder(evt.to); 
+                        
+                        // SALVA A ORDEM EXATA DO DOM (SIMULA SWAP SE VOCÊ TROCOU 1 POR 1)
+                        saveOrderFromDom(evt.to, `users/${currentUser.uid}/projects`);
+                        if(evt.from !== evt.to) saveOrderFromDom(evt.from, `users/${currentUser.uid}/projects`);
                     } 
                 }); 
             }
         });
     });
 }
-async function updateProjectOrder(gridEl) { const cards = gridEl.children; const batch = writeBatch(db); Array.from(cards).forEach((card, index) => { const id = card.getAttribute('data-id'); const ref = doc(db, `users/${currentUser.uid}/projects`, id); batch.update(ref, { position: index }); }); await batch.commit(); }
 
 const projModal = new bootstrap.Modal(document.getElementById('projectModal'));
 document.getElementById('fabBtn').onclick = () => {
@@ -105,7 +136,7 @@ window.selectColor = (el, color) => { document.querySelectorAll('#projectModal .
 document.getElementById('btnSaveProj').onclick = async () => { const id = document.getElementById('projId').value; const title = document.getElementById('projTitle').value; const type = document.getElementById('projType').value; const color = document.getElementById('selectedColor').value; if(!title) return; const data = { title, type, color, updatedAt: new Date(), isSpacer: false }; if(id) await updateDoc(doc(db, `users/${currentUser.uid}/projects`, id), data); else { data.createdAt = new Date(); data.position = 9999; data.viewMode = 'hybrid'; await addDoc(collection(db, `users/${currentUser.uid}/projects`), data); } projModal.hide(); };
 document.getElementById('btnDelProj').onclick = async () => { if(confirm("Apagar?")) { await deleteDoc(doc(db, `users/${currentUser.uid}/projects`, document.getElementById('projId').value)); projModal.hide(); } };
 
-// --- SUB-CARDS (RECURSOS) COM SPACER ---
+// --- SUB-CARDS (RECURSOS) ---
 window.addSubSpacer = async () => { if (!activeProjectId) return; await addDoc(collection(db, `users/${currentUser.uid}/subcards`), { title: "Spacer", projectId: activeProjectId, isSpacer: true, position: 99999, createdAt: new Date() }); };
 
 let subCardUnsub = null;
@@ -132,15 +163,15 @@ function initSubCards(projectId) {
             grid.appendChild(el);
         });
         
-        // CONFIG SORTABLE SUB-CARDS
+        // CONFIG SORTABLE SUB-CARDS (SWAP SIMULADO)
         new Sortable(grid, { 
-            animation: 150, ghostClass: 'sortable-ghost', delay: 300, delayOnTouchOnly: true,
-            onChoose: () => { if(navigator.vibrate) navigator.vibrate(50); }, // VIBRAÇÃO
-            onEnd: async function(evt) { updateSubCardOrder(grid); } 
+            animation: 150, ghostClass: 'sortable-ghost', 
+            delay: 200, delayOnTouchOnly: true, // SEGURA PARA ARRASTAR
+            onChoose: () => { if(navigator.vibrate) navigator.vibrate(50); },
+            onEnd: async function(evt) { saveOrderFromDom(grid, `users/${currentUser.uid}/subcards`); } 
         });
     });
 }
-async function updateSubCardOrder(gridEl) { const cards = gridEl.children; const batch = writeBatch(db); Array.from(cards).forEach((card, index) => { const id = card.getAttribute('data-id'); if(!id) return; const ref = doc(db, `users/${currentUser.uid}/subcards`, id); batch.update(ref, { position: index }); }); await batch.commit(); }
 
 const subCardModal = new bootstrap.Modal(document.getElementById('subCardModal'));
 window.toggleSubCardInputs = () => { const type = document.getElementById('subCardType').value; document.getElementById('areaInputText').style.display = (type === 'checklist') ? 'none' : 'block'; document.getElementById('areaInputChecklist').style.display = (type === 'checklist') ? 'block' : 'none'; };
@@ -152,7 +183,7 @@ window.renderTempChecklist = () => {
     tempChecklistItems.forEach((item, index) => {
         const div = document.createElement('div');
         div.className = `checklist-item cl-${item.priority || 'low'} ${item.done ? 'done' : ''}`;
-        div.innerHTML = `<input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleTempItem(${index})"><span>${item.text}</span><i class="fas fa-times text-danger" style="cursor:pointer" onclick="removeTempItem(${index})"></i>`;
+        div.innerHTML = `<i class="fas fa-grip-vertical checklist-handle"></i><input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleTempItem(${index})"><span>${item.text}</span><i class="fas fa-times text-danger" style="cursor:pointer" onclick="removeTempItem(${index})"></i>`;
         container.appendChild(div);
     });
 };
@@ -178,7 +209,7 @@ window.editSubCard = (id, data) => {
 };
 function initSubCardSortable() {
     const el = document.getElementById('tempChecklistList');
-    if(el) { new Sortable(el, { animation: 150, onEnd: function(evt) { const item = tempChecklistItems.splice(evt.oldIndex, 1)[0]; tempChecklistItems.splice(evt.newIndex, 0, item); } }); }
+    if(el) { new Sortable(el, { animation: 150, handle: '.checklist-handle', onEnd: function(evt) { const item = tempChecklistItems.splice(evt.oldIndex, 1)[0]; tempChecklistItems.splice(evt.newIndex, 0, item); } }); }
 }
 window.selectSubColor = (el, color) => { document.querySelectorAll('#subCardModal .color-dot').forEach(d => d.classList.remove('selected')); el.classList.add('selected'); document.getElementById('subCardColor').value = color; };
 document.getElementById('btnSaveSubCard').onclick = async () => { const id = document.getElementById('subCardId').value; const title = document.getElementById('subCardTitle').value; const content = document.getElementById('subCardContent').value; const type = document.getElementById('subCardType').value; const color = document.getElementById('subCardColor').value; if(!title) return; const data = { title, content, type, color, items: tempChecklistItems, projectId: activeProjectId, updatedAt: new Date(), position: 99999 }; if(id) await updateDoc(doc(db, `users/${currentUser.uid}/subcards`, id), data); else { data.createdAt = new Date(); await addDoc(collection(db, `users/${currentUser.uid}/subcards`), data); } subCardModal.hide(); };
