@@ -47,7 +47,6 @@
     </div>
 
     <main class="main-container custom-scrollbar">
-        
         <section id="view-projects" class="fade-in pb-5">
             <div class="section-block">
                 <div class="d-flex justify-content-between align-items-center mb-2 px-1">
@@ -79,12 +78,15 @@
                     <option value="cards">🃏 Só Cards</option>
                     <option value="kanban">✅ Só Checklist</option>
                 </select>
-                <button class="btn btn-sm btn-primary rounded-circle" onclick="openSubCardModal()" title="Novo Recurso"><i class="fas fa-plus"></i></button>
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-sm btn-outline-secondary rounded-pill small-btn" onclick="addSubSpacer()">+ Espaço</button>
+                    <button class="btn btn-sm btn-primary rounded-circle" onclick="openSubCardModal()" title="Novo Recurso"><i class="fas fa-plus"></i></button>
+                </div>
             </div>
 
             <div id="area-resources">
                 <h6 class="fw-bold text-muted mb-2 small ps-1">RECURSOS & LISTAS</h6>
-                <div id="subCardsGrid" class="sub-card-grid mb-4"></div>
+                <div id="subCardsGrid" class="sub-card-grid mb-4 min-h-100"></div>
                 <hr class="border-secondary opacity-10 my-4">
             </div>
 
