@@ -299,7 +299,7 @@ document.getElementById('btnTrash').onclick = () => {
     }); 
 };
 
-// --- LÓGICA DE RESTAURAÇÃO APRIMORADA ---
+// --- RESTAURAÇÃO DE ITENS DE CHECKLIST ---
 window.restoreFromTrash = async (trashId) => {
     try {
         const trashRef = doc(db, `users/${currentUser.uid}/trash`, trashId); const trashDoc = await getDoc(trashRef);
@@ -307,51 +307,68 @@ window.restoreFromTrash = async (trashId) => {
         const data = trashDoc.data(); const collectionName = data.originalCollection; const originalId = data.originalId; const type = data.itemType;
         delete data.deletedAt; delete data.originalCollection; delete data.originalId; delete data.itemType;
 
-        // RESTAURAÇÃO DE ITENS INTERNOS (Checklist, Link, Texto)
-        if ((type === 'Item Lista' || type === 'Item Link' || type === 'Item Texto') && data.originalCardId) {
+        if (type === 'Item Lista' && data.originalCardId) {
             const cardRef = doc(db, `users/${currentUser.uid}/subcards`, data.originalCardId); const cardSnap = await getDoc(cardRef);
             if (cardSnap.exists()) {
                 const currentData = cardSnap.data();
+                const currentItems = currentData.items || [];
+                const restoredItem = { text: data.title, priority: data.priority || 'low', done: false };
+                currentItems.push(restoredItem);
                 
-                if (type === 'Item Lista') {
-                    const currentItems = currentData.items || [];
-                    currentItems.push({ text: data.title, priority: data.priority || 'low', done: false });
-                    await updateDoc(cardRef, { items: currentItems }); 
-                } else if (type === 'Item Link') {
-                    const currentLinks = currentData.links || [];
-                    currentLinks.push({ name: data.title, url: data.content });
-                    await updateDoc(cardRef, { links: currentLinks });
-                } else if (type === 'Item Texto') {
-                    const currentTexts = currentData.texts || [];
-                    currentTexts.push({ title: data.title, content: data.content });
-                    await updateDoc(cardRef, { texts: currentTexts });
-                }
-                addToHistory('RESTAURAÇÃO', `${type} restaurado em Card`);
-                alert("Restaurado para dentro do Card original.");
+                await updateDoc(cardRef, { items: currentItems }); 
+                addToHistory('RESTAURAÇÃO', `Item de lista restaurado em Card`);
+                alert("Item restaurado dentro do Card original.");
             } else {
-                // FALLBACK: Se o card não existe mais, vira tarefa solta
-                let orphanTitle = `[Orfão ${type}] ${data.title}`;
-                let orphanDesc = '';
-                
-                // SE FOR LINK, O TÍTULO VIRA A URL (PARA FICAR CLICÁVEL) E O NOME VAI PRO DESC
-                if (type === 'Item Link' && data.content) {
-                    orphanTitle = data.content; // URL
-                    orphanDesc = `[Restaurado] ${data.title}`; // Nome
-                } else {
-                    if (data.content) orphanTitle += ` - ${data.content}`;
-                }
-
+                await addDoc(collection(db, `users/${currentUser.uid}/tasks`), { title: `[Orfão] ${data.title}`, priority: data.priority || 'low', projectId: activeProjectId || 'root', createdAt: new Date() });
+                alert("Card original excluído. Item voltou como Tarefa Solta."); addToHistory('RESTAURAÇÃO', `Item restaurado como Tarefa (Órfão)`);
+            }
+        } 
+        
+        // --- NOVA LÓGICA: RESTAURAR LINKS ÓRFÃOS ---
+        else if (type === 'Item Link' && data.originalCardId) {
+            const cardRef = doc(db, `users/${currentUser.uid}/subcards`, data.originalCardId); const cardSnap = await getDoc(cardRef);
+            if (cardSnap.exists()) {
+                const currentData = cardSnap.data();
+                const currentLinks = currentData.links || [];
+                currentLinks.push({ name: data.title, url: data.content });
+                await updateDoc(cardRef, { links: currentLinks });
+                alert("Link restaurado dentro do Card original.");
+            } else {
+                // FALLBACK LINK ÓRFÃO
                 await addDoc(collection(db, `users/${currentUser.uid}/tasks`), { 
-                    title: orphanTitle, 
-                    desc: orphanDesc,
+                    title: data.content, // URL no Título para ser clicável
+                    desc: `[Link Orfão] ${data.title}`, // Nome na descrição
                     priority: 'low', 
                     projectId: activeProjectId || 'root', 
                     createdAt: new Date() 
                 });
-                alert("Card original excluído. Item voltou como Tarefa Solta (Link Clicável)."); 
-                addToHistory('RESTAURAÇÃO', `Item restaurado como Tarefa (Órfão)`);
+                alert("Card excluído. Link voltou como Tarefa (URL no título).");
             }
-        } else if (collectionName && originalId) {
+        }
+
+        // --- NOVA LÓGICA: RESTAURAR NOTAS ÓRFÃS ---
+        else if (type === 'Item Texto' && data.originalCardId) {
+            const cardRef = doc(db, `users/${currentUser.uid}/subcards`, data.originalCardId); const cardSnap = await getDoc(cardRef);
+            if (cardSnap.exists()) {
+                const currentData = cardSnap.data();
+                const currentTexts = currentData.texts || [];
+                currentTexts.push({ title: data.title, content: data.content });
+                await updateDoc(cardRef, { texts: currentTexts });
+                alert("Nota restaurada dentro do Card original.");
+            } else {
+                // FALLBACK NOTA ÓRFÃ
+                await addDoc(collection(db, `users/${currentUser.uid}/tasks`), { 
+                    title: `[Nota Órfã] ${data.title}`, 
+                    desc: data.content, // Conteúdo na descrição
+                    priority: 'low', 
+                    projectId: activeProjectId || 'root', 
+                    createdAt: new Date() 
+                });
+                alert("Card excluído. Nota voltou como Tarefa.");
+            }
+        }
+
+        else if (collectionName && originalId) {
             await setDoc(doc(db, `users/${currentUser.uid}/${collectionName}`, originalId), data); addToHistory('RESTAURAÇÃO', `Item restaurado: ${data.title}`);
             alert("Restaurado com sucesso!");
         } else { alert("Erro de origem."); return; }
