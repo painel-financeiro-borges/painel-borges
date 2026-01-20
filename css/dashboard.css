@@ -1,150 +1,162 @@
-:root { --bg-color: #f4f6f8; --text-primary: #2c3e50; --card-bg: #ffffff; --header-height: 60px; --radius: 18px; }
-body.dark-mode { --bg-color: #121212; --text-primary: #e0e0e0; --card-bg: #1e1e1e; }
-body { font-family: 'Outfit', sans-serif; background-color: var(--bg-color); color: var(--text-primary); padding-top: var(--header-height); transition: background-color 0.3s; overflow-x: hidden; }
+/* TEMA BASE VIBRANTE */
+:root {
+    --bg-color: #eef2f5;
+    --text-primary: #1a1a1a;
+    --card-bg: #ffffff;
+    --header-height: 70px;
+    --radius: 24px;
+    --shadow-soft: 8px 8px 16px #d1d9e6, -8px -8px 16px #ffffff;
+}
 
-/* TEXTOS E VISIBILIDADE */
+body.dark-mode {
+    --bg-color: #0f0f12;
+    --text-primary: #ffffff;
+    --card-bg: #1c1c1e;
+    --shadow-soft: 0 10px 20px rgba(0,0,0,0.5);
+}
+
+body {
+    font-family: 'Outfit', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    padding-top: var(--header-height);
+    transition: background-color 0.3s;
+    overflow-x: hidden;
+}
+
+/* UTILITÁRIOS VISUAIS */
 .theme-text { color: var(--text-primary) !important; }
-.text-white-force { color: white !important; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+.text-white-force { color: #fff !important; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+.glass-effect {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255,255,255,0.3);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+}
+body.dark-mode .glass-effect {
+    background: rgba(18, 18, 18, 0.8);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
 
-/* GLASSMORPHISM GLOBAL */
-.glass-effect { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(0,0,0,0.05); }
-body.dark-mode .glass-effect { background: rgba(20, 20, 20, 0.85); border-bottom: 1px solid rgba(255,255,255,0.1); }
-.glass-panel { background: rgba(255,255,255,0.7); backdrop-filter: blur(5px); }
-body.dark-mode .glass-panel { background: rgba(30,30,30,0.7); }
+/* LOGIN */
+#loginScreen {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2c3e50 100%);
+    z-index: 9999; display: flex; align-items: center; justify-content: center;
+}
+.login-card {
+    text-align: center; max-width: 400px; padding: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 30px;
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+}
 
-.fade-in { animation: fadeIn 0.4s ease-in; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-/* LOGIN & LOAD */
-#loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 9999; display: flex; align-items: center; justify-content: center; }
-.login-card { text-align: center; max-width: 400px; padding: 30px; border-radius: 20px; background: var(--card-bg); box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
-#loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; display: none; align-items: center; justify-content: center; }
-
-/* SCROLLBAR MODERNA */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.3); border-radius: 10px; }
-
-/* SEÇÕES */
-.section-block { margin-bottom: 40px; }
-.section-title { font-weight: 800; letter-spacing: 1.5px; font-size: 0.85rem; opacity: 0.9; text-transform: uppercase; }
-.small-btn { font-size: 0.7rem; padding: 4px 12px; font-weight: 600; border-width: 2px; }
-
-/* GRIDS */
+/* GRID E CARDS 3D REALISTA */
 .project-grid, .sub-card-grid {
-    display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 10px;
-    background: rgba(0,0,0,0.02); border-radius: var(--radius); border: 2px dashed rgba(0,0,0,0.05); min-height: 160px;
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 15px;
+    background: rgba(0,0,0,0.03); border-radius: var(--radius);
+    border: 2px dashed rgba(100,100,100,0.1);
+    min-height: 180px;
 }
 @media(min-width: 768px) { .project-grid, .sub-card-grid { grid-template-columns: repeat(4, 1fr); } }
 
-/* CARDS ESTILO 3D & NEON */
 .project-card, .sub-card {
-    height: 160px; /* Mesma altura pra todos */
-    border-radius: var(--radius); padding: 20px; color: white;
-    position: relative; cursor: pointer;
+    height: 170px;
+    border-radius: var(--radius);
+    padding: 20px;
+    color: white;
+    position: relative;
+    cursor: grab;
     
-    /* 3D Depth */
-    box-shadow: 0 10px 20px rgba(0,0,0,0.15), inset 0 0 0 1px rgba(255,255,255,0.2);
-    transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.2s;
+    /* EFEITO 3D PODEROSO */
+    box-shadow: 
+        0 10px 20px rgba(0,0,0,0.2), 
+        inset 0 2px 0 rgba(255,255,255,0.3),
+        inset 0 -2px 0 rgba(0,0,0,0.1);
+    transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     
     display: flex; flex-direction: column; justify-content: space-between;
     overflow: hidden; border: none; touch-action: pan-y !important; user-select: none;
 }
 
-.sub-card { min-height: 120px; } /* Subcards podem ser um pouco menores se quiser, mas mantive padrão */
+.project-card:active, .sub-card:active {
+    transform: scale(0.95);
+    box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+    cursor: grabbing;
+}
 
-/* Efeito Hover 3D */
-.project-card:active, .sub-card:active { transform: scale(0.96); box-shadow: 0 5px 10px rgba(0,0,0,0.1); }
-
-/* Borda Brilhante no Dark Mode */
+/* Bordas Vibrantes no Dark Mode */
 body.dark-mode .project-card, body.dark-mode .sub-card {
-    box-shadow: 0 10px 25px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.1);
+    box-shadow: 0 0 15px rgba(255,255,255,0.1), inset 0 0 0 1px rgba(255,255,255,0.2);
 }
 
-/* Fundo Gradiente "Vidro" */
-.project-card::before, .sub-card::before {
-    content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background: linear-gradient(to bottom right, rgba(255,255,255,0.2), rgba(0,0,0,0.1));
-    z-index: 0;
-}
-.project-card > *, .sub-card > * { z-index: 1; position: relative; } /* Garante que texto fique acima */
-
-/* SPACER (CASINHA VAZIA) */
+/* ESPAÇO VAZIO (CASINHA) */
 .spacer-card {
-    min-height: 160px; width: 100%; border-radius: var(--radius);
-    border: 3px dashed rgba(128, 128, 128, 0.3);
-    background: rgba(128, 128, 128, 0.05);
-    display: flex; align-items: center; justify-content: center; cursor: move; position: relative;
+    min-height: 170px; width: 100%; border-radius: var(--radius);
+    border: 3px dashed rgba(150, 150, 150, 0.3);
+    background: rgba(150, 150, 150, 0.05);
+    display: flex; align-items: center; justify-content: center;
+    cursor: grab; position: relative;
     transition: 0.2s;
 }
+.spacer-card:hover { border-color: rgba(100, 100, 100, 0.6); background: rgba(100, 100, 100, 0.1); }
 .spacer-icon { font-size: 2rem; opacity: 0.2; color: var(--text-primary); }
-.spacer-delete { position: absolute; top: 8px; right: 8px; background: rgba(255,0,0,0.1); color: #ff4757; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0.6; transition: 0.2s; }
-.spacer-delete:hover { opacity: 1; background: rgba(255,0,0,0.2); transform: scale(1.1); }
-body.dark-mode .spacer-card { border-color: rgba(255,255,255,0.15); background: rgba(255,255,255,0.02); }
+.spacer-delete { 
+    position: absolute; top: 10px; right: 10px; 
+    background: #ff4757; color: white; 
+    width: 32px; height: 32px; border-radius: 50%; 
+    display: flex; align-items: center; justify-content: center; 
+    cursor: pointer; box-shadow: 0 5px 10px rgba(255,71,87,0.4);
+}
 
-/* SORTABLE */
-.sortable-ghost { opacity: 0.4; background: rgba(255,255,255,0.1); border: 2px dashed #fff; transform: scale(0.95); }
+/* CORES VIBRANTES (GRADIENTES NEON) */
+.bg-grad-1 { background: linear-gradient(135deg, #FF3CAC 0%, #784BA0 50%, #2B86C5 100%); } /* Cyberpunk */
+.bg-grad-2 { background: linear-gradient(135deg, #FA8BFF 0%, #2BD2FF 52%, #2BFF88 90%); } /* Unicorn */
+.bg-grad-3 { background: linear-gradient(135deg, #0093E9 0%, #80D0C7 100%); } /* Aqua */
+.bg-grad-4 { background: linear-gradient(135deg, #FEE140 0%, #FA709A 100%); } /* Sunset */
+.bg-grad-5 { background: linear-gradient(135deg, #8EC5FC 0%, #E0C3FC 100%); } /* Dream */
+.bg-grad-6 { background: linear-gradient(135deg, #D9AFD9 0%, #97D9E1 100%); } /* Mint */
+.bg-grad-7 { background: linear-gradient(45deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%); } /* Peach */
+.bg-grad-8 { background: linear-gradient(to top, #30cfd0 0%, #330867 100%); } /* Deep Sea */
+.bg-grad-9 { background: linear-gradient(to top, #cfd9df 0%, #e2ebf0 100%); color: #333 !important; } /* Silver */
+.bg-grad-10 { background: linear-gradient(120deg, #f6d365 0%, #fda085 100%); } /* Mango */
 
-/* --- PALETA DE CORES EXPANDIDA (12 VIBRANTES) --- */
-.bg-grad-1 { background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%); } /* Rosa Doce */
-.bg-grad-2 { background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); } /* Lilás */
-.bg-grad-3 { background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); } /* Aqua */
-.bg-grad-4 { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); } /* Sunset */
-.bg-grad-5 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); } /* Roxo Deep */
-.bg-grad-6 { background: linear-gradient(to right, #43e97b 0%, #38f9d7 100%); } /* Neon Green */
-.bg-grad-7 { background: linear-gradient(to top, #09203f 0%, #537895 100%); } /* Midnight Blue */
-.bg-grad-8 { background: linear-gradient(to right, #f83600 0%, #f9d423 100%); } /* Fire */
-.bg-grad-9 { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); } /* Jungle */
-.bg-grad-10 { background: linear-gradient(135deg, #FC466B 0%, #3F5EFB 100%); } /* Synthwave */
-.bg-grad-11 { background: linear-gradient(135deg, #232526 0%, #414345 100%); } /* Carbon (Dark) */
-.bg-grad-12 { background: linear-gradient(135deg, #FDC830 0%, #F37335 100%); } /* Citrus */
-
-/* SUB-CARD ESPECÍFICO */
-.sub-card-icon { position: absolute; top: 15px; right: 15px; opacity: 0.4; font-size: 1.4rem; }
-.sub-card-title { font-weight: 700; font-size: 1.1rem; line-height: 1.2; padding-right: 20px; text-shadow: 0 1px 3px rgba(0,0,0,0.2); }
-
-/* KANBAN/CHECKLIST VISUAL */
-.kanban-col-wrapper { margin-bottom: 20px; }
-.kanban-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; border-radius: 12px; margin-bottom: 12px; font-weight: 700; font-size: 0.9rem; letter-spacing: 0.5px; }
-.kanban-header.urgent { background: rgba(255, 71, 87, 0.15); color: #ff4757; }
-.kanban-header.medium { background: rgba(255, 165, 2, 0.15); color: #ffa502; }
-.kanban-header.low { background: rgba(46, 213, 115, 0.15); color: #2ed573; }
+/* CHECKLIST & KANBAN */
+.kanban-header { 
+    padding: 15px; border-radius: 15px; margin-bottom: 15px; font-weight: 800; font-size: 0.85rem; letter-spacing: 1px; text-transform: uppercase;
+}
+.kanban-header.urgent { background: rgba(255, 71, 87, 0.1); color: #ff4757; border: 1px solid rgba(255, 71, 87, 0.2); }
+.kanban-header.medium { background: rgba(255, 165, 2, 0.1); color: #ffa502; border: 1px solid rgba(255, 165, 2, 0.2); }
+.kanban-header.low { background: rgba(46, 213, 115, 0.1); color: #2ed573; border: 1px solid rgba(46, 213, 115, 0.2); }
 
 .task-card { 
-    background: var(--card-bg); border-radius: 12px; padding: 15px; margin-bottom: 10px; 
-    box-shadow: 0 4px 6px rgba(0,0,0,0.02); border-left: 5px solid transparent; 
-    transition: transform 0.2s; touch-action: pan-y;
+    background: var(--card-bg); border-radius: 15px; padding: 18px; margin-bottom: 12px; 
+    box-shadow: 0 5px 15px rgba(0,0,0,0.03); border-left: 6px solid transparent; 
+    transition: transform 0.2s; touch-action: pan-y; cursor: pointer;
 }
-.task-card:active { transform: scale(0.98); }
 .task-card.priority-urgent { border-left-color: #ff4757; }
 .task-card.priority-medium { border-left-color: #ffa502; }
 .task-card.priority-low { border-left-color: #2ed573; }
 
-/* CHECKLIST ITEM (3D STYLE) */
+/* CHECKLIST ITEM INTERNO */
 .checklist-item {
-    display: flex; align-items: center; gap: 12px;
-    padding: 12px; border-bottom: 1px solid rgba(0,0,0,0.05); 
-    background: var(--card-bg); margin-bottom: 8px; border-radius: 10px;
-    border-left: 5px solid transparent; 
-    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+    display: flex; align-items: center; gap: 12px; padding: 12px; 
+    background: var(--card-bg); margin-bottom: 8px; border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 2px 5px rgba(0,0,0,0.02);
     cursor: grab;
 }
-/* Correção de cor de texto no dark mode */
-body.dark-mode .checklist-item { color: #fff; background: #2a2a35; border-bottom: none; }
-.checklist-handle { cursor: grab; color: #999; padding: 5px; }
-.checklist-item span { flex-grow: 1; font-weight: 500; }
+body.dark-mode .checklist-item { background: #25252b; border-color: rgba(255,255,255,0.05); color: white; }
 .checklist-item.done span { text-decoration: line-through; opacity: 0.5; }
-.cl-urgent { border-left-color: #ff4757; }
-.cl-medium { border-left-color: #ffa502; }
-.cl-low { border-left-color: #2ed573; }
+.checklist-item.cl-urgent { border-left: 4px solid #ff4757; }
+.checklist-item.cl-medium { border-left: 4px solid #ffa502; }
+.checklist-item.cl-low { border-left: 4px solid #2ed573; }
 
-/* GERAIS */
-.fab { position: fixed; bottom: 25px; right: 25px; width: 65px; height: 65px; border-radius: 50%; border: none; background: #2c3e50; color: white; font-size: 26px; cursor: pointer; z-index: 99; box-shadow: 0 10px 25px rgba(0,0,0,0.4); transition: transform 0.2s; }
-.color-dot { width: 35px; height: 35px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: 0.2s; }
-.color-dot:hover { transform: scale(1.1); }
-.color-dot.selected { border-color: #fff; box-shadow: 0 0 0 2px #333; transform: scale(1.1); }
-body.dark-mode .color-dot.selected { box-shadow: 0 0 0 2px #fff; }
+.fab { position: fixed; bottom: 30px; right: 30px; width: 70px; height: 70px; border-radius: 50%; border: none; background: linear-gradient(135deg, #1a1a1a 0%, #000 100%); color: white; font-size: 28px; cursor: pointer; z-index: 99; box-shadow: 0 15px 30px rgba(0,0,0,0.3); transition: transform 0.2s; }
+.fab:active { transform: scale(0.9); }
+.color-dot { width: 40px; height: 40px; border-radius: 50%; cursor: pointer; border: 3px solid rgba(255,255,255,0.5); transition: 0.2s; box-shadow: 0 5px 10px rgba(0,0,0,0.1); }
+.color-dot.selected { border-color: #333; transform: scale(1.15); box-shadow: 0 0 0 3px rgba(0,0,0,0.2); }
+body.dark-mode .color-dot.selected { border-color: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,0.5); }
 .full-frame { position: fixed; top: var(--header-height); left: 0; width: 100%; height: calc(100% - var(--header-height)); border: none; background: var(--bg-color); z-index: 50; display: none; }
-.task-done-text { text-decoration: line-through; color: #999; opacity: 0.8; }
-.task-actions i { opacity: 0.4; transition: 0.2s; padding: 5px; }
-.task-actions i:hover { opacity: 1; transform: scale(1.2); }
