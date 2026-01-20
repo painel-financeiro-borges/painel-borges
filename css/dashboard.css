@@ -18,14 +18,7 @@ body.dark-mode .glass-effect { background: rgba(18, 18, 18, 0.8); border-bottom:
 .small-btn { font-size: 0.7rem; padding: 4px 12px; font-weight: 600; border-width: 2px; }
 .project-grid, .sub-card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 15px; background: rgba(0,0,0,0.03); border-radius: var(--radius); border: 2px dashed rgba(100,100,100,0.1); min-height: 180px; }
 @media(min-width: 768px) { .project-grid, .sub-card-grid { grid-template-columns: repeat(4, 1fr); } }
-
-/* CRÍTICO: PERMITE SCROLL E ARRASTE CORRETO */
-.project-card, .sub-card, .spacer-card {
-    touch-action: pan-y !important;
-    user-select: none;
-    -webkit-user-select: none;
-}
-
+.project-card, .sub-card, .spacer-card { touch-action: pan-y !important; user-select: none; -webkit-user-select: none; }
 .project-card, .sub-card { height: 170px; border-radius: var(--radius); padding: 20px; color: white; position: relative; cursor: grab; box-shadow: 0 10px 20px rgba(0,0,0,0.2), inset 0 2px 0 rgba(255,255,255,0.3), inset 0 -2px 0 rgba(0,0,0,0.1); transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; border: none; }
 .project-card:active, .sub-card:active { transform: scale(0.95); box-shadow: 0 5px 10px rgba(0,0,0,0.1); cursor: grabbing; }
 body.dark-mode .project-card, body.dark-mode .sub-card { box-shadow: 0 0 15px rgba(255,255,255,0.1), inset 0 0 0 1px rgba(255,255,255,0.2); }
@@ -38,6 +31,10 @@ body.dark-mode .project-card, body.dark-mode .sub-card { box-shadow: 0 0 15px rg
 .spacer-delete:hover { opacity: 1; background: rgba(255,0,0,0.2); transform: scale(1.1); }
 body.dark-mode .spacer-card { border-color: rgba(255,255,255,0.15); background: rgba(255,255,255,0.02); }
 .sortable-ghost { opacity: 0.4; background: rgba(255,255,255,0.1); border: 2px dashed #fff; transform: scale(0.95); }
+
+/* NOVA COR ESCURA */
+.bg-grad-dark { background: linear-gradient(135deg, #2b2b2b 0%, #0c0c0c 100%); }
+
 .bg-grad-1 { background: linear-gradient(135deg, #FF3CAC 0%, #784BA0 50%, #2B86C5 100%); }
 .bg-grad-2 { background: linear-gradient(135deg, #FA8BFF 0%, #2BD2FF 52%, #2BFF88 90%); }
 .bg-grad-3 { background: linear-gradient(135deg, #0093E9 0%, #80D0C7 100%); }
