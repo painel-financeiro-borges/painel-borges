@@ -114,7 +114,7 @@ body.dark-mode .color-dot.selected { border-color: #fff; box-shadow: 0 0 0 3px r
     cursor: pointer;
     opacity: 0.4;
     transition: all 0.3s;
-    z-index: 20; /* Aumentado para garantir clique em cima de tudo */
+    z-index: 20; 
     text-shadow: 0 1px 2px rgba(0,0,0,0.3);
     padding: 5px; 
 }
@@ -127,3 +127,31 @@ body.dark-mode .color-dot.selected { border-color: #fff; box-shadow: 0 0 0 3px r
     transform: scale(1.1);
     text-shadow: 0 0 10px rgba(255,255,255,0.8);
 }
+
+/* --- HISTÓRICO (NOVO) --- */
+.history-container {
+    background: rgba(0, 0, 0, 0.03);
+    border-radius: 12px;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 10px;
+    border: 1px solid rgba(0,0,0,0.05);
+    font-family: monospace;
+}
+body.dark-mode .history-container {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255,255,255,0.05);
+}
+.history-item {
+    font-size: 0.8rem;
+    padding: 4px 8px;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    display: flex;
+    justify-content: space-between;
+    color: var(--text-primary);
+    opacity: 0.8;
+}
+body.dark-mode .history-item { border-bottom-color: rgba(255,255,255,0.05); }
+.history-item:last-child { border-bottom: none; }
+.history-time { font-weight: bold; margin-right: 10px; color: #888; }
+.history-action { font-weight: bold; margin-right: 5px; }
