@@ -17,7 +17,6 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 let currentUser = null;
 let activeProjectId = null;
-// Arrays temporários para o modal de sub-card
 let tempChecklistItems = [];
 let tempLinks = [];
 let tempTexts = [];
@@ -114,13 +113,22 @@ document.getElementById('btnDelProj').onclick = async () => { if(confirm("Lixeir
 window.addSubSpacer = async () => { if (!activeProjectId) return; await addDoc(collection(db, `users/${currentUser.uid}/subcards`), { title: "Spacer", projectId: activeProjectId, isSpacer: true, position: 99999, createdAt: new Date() }); addToHistory('LAYOUT', 'Spacer Subcard'); };
 window.togglePin = async (e, id, currentState) => { e.stopPropagation(); await updateDoc(doc(db, `users/${currentUser.uid}/subcards`, id), { pinned: !currentState }); addToHistory('FIXAR', `Subcard ${currentState ? 'desafixado' : 'fixado'}`); };
 
-// --- LÓGICA DE SUB-CARDS MULTI-CONTEÚDO ---
 const subCardModal = new bootstrap.Modal(document.getElementById('subCardModal'));
+
+// Helper para URL segura
+const formatUrl = (url) => {
+    if (!url) return '#';
+    if (!/^https?:\/\//i.test(url)) return 'https://' + url;
+    return url;
+};
 
 // Renderiza a lista de LINKS temporários no modal
 window.renderTempLinks = () => {
     const container = document.getElementById('tempLinkList'); container.innerHTML = '';
     tempLinks.forEach((link, index) => {
+        // Botão de abrir link adicionado
+        const openBtn = link.url ? `<a href="${formatUrl(link.url)}" target="_blank" class="btn btn-outline-secondary border-0" title="Abrir Link"><i class="fas fa-external-link-alt"></i></a>` : '';
+        
         container.innerHTML += `
             <div class="resource-item">
                 <i class="fas fa-times resource-delete" onclick="removeTempLink(${index})"></i>
@@ -131,6 +139,7 @@ window.renderTempLinks = () => {
                 <div class="input-group input-group-sm">
                     <span class="input-group-text bg-transparent border-0"><i class="fas fa-link"></i></span>
                     <input type="text" class="form-control text-primary" placeholder="URL (https://...)" value="${link.url}" onchange="updateTempLink(${index}, 'url', this.value)">
+                    ${openBtn}
                 </div>
             </div>`;
     });
@@ -139,7 +148,6 @@ window.addTempLink = () => { tempLinks.push({name: '', url: ''}); renderTempLink
 window.removeTempLink = (index) => { tempLinks.splice(index, 1); renderTempLinks(); };
 window.updateTempLink = (index, field, value) => { tempLinks[index][field] = value; };
 
-// Renderiza a lista de TEXTOS temporários no modal
 window.renderTempTexts = () => {
     const container = document.getElementById('tempTextList'); container.innerHTML = '';
     tempTexts.forEach((text, index) => {
@@ -164,13 +172,12 @@ window.renderTempChecklist = () => {
     });
 };
 window.addTempItem = () => { const input = document.getElementById('newCheckItem'); const priority = document.getElementById('newCheckPriority').value; if(!input.value.trim()) return; tempChecklistItems.push({ text: input.value, done: false, priority: priority }); input.value = ''; renderTempChecklist(); };
-window.removeTempItem = (index) => { tempChecklistItems.splice(index, 1); renderTempChecklist(); }; // Apenas remove visualmente, save persiste
+window.removeTempItem = (index) => { tempChecklistItems.splice(index, 1); renderTempChecklist(); };
 window.toggleTempItem = (index) => { tempChecklistItems[index].done = !tempChecklistItems[index].done; renderTempChecklist(); };
 
 window.openSubCardModal = () => { 
     document.getElementById('subCardId').value = ''; 
     document.getElementById('subCardTitle').value = ''; 
-    // Limpa arrays globais
     tempChecklistItems = []; tempLinks = []; tempTexts = [];
     renderTempChecklist(); renderTempLinks(); renderTempTexts();
     document.getElementById('btnDelSubCard').style.display = 'none'; 
@@ -183,25 +190,14 @@ window.editSubCard = (id, data) => {
     document.getElementById('subCardTitle').value = data.title; 
     document.getElementById('subCardColor').value = data.color; 
     
-    // CARREGA DADOS DO BANCO PARA OS ARRAYS
     tempChecklistItems = data.items || [];
     tempLinks = data.links || [];
     tempTexts = data.texts || [];
 
-    // --- LÓGICA DE MIGRAÇÃO (COMPATIBILIDADE COM CARDS ANTIGOS) ---
-    // Se o card antigo era tipo 'link' e não tem array de links, cria um
-    if (data.type === 'link' && tempLinks.length === 0 && data.content) {
-        tempLinks.push({ name: 'Link Principal', url: data.content });
-    }
-    // Se era 'text' e não tem array, cria um
-    if (data.type === 'text' && tempTexts.length === 0 && data.content) {
-        tempTexts.push({ title: 'Nota Principal', content: data.content });
-    }
+    if (data.type === 'link' && tempLinks.length === 0 && data.content) { tempLinks.push({ name: 'Link Principal', url: data.content }); }
+    if (data.type === 'text' && tempTexts.length === 0 && data.content) { tempTexts.push({ title: 'Nota Principal', content: data.content }); }
     
-    renderTempChecklist(); 
-    renderTempLinks();
-    renderTempTexts();
-    
+    renderTempChecklist(); renderTempLinks(); renderTempTexts();
     document.getElementById('btnDelSubCard').style.display = 'block'; 
     initSubCardSortable(); 
     subCardModal.show(); 
@@ -215,31 +211,12 @@ function initSubCardSortable() {
 window.selectSubColor = (el, color) => { document.querySelectorAll('#subCardModal .color-dot').forEach(d => d.classList.remove('selected')); el.classList.add('selected'); document.getElementById('subCardColor').value = color; };
 
 document.getElementById('btnSaveSubCard').onclick = async () => { 
-    const id = document.getElementById('subCardId').value; 
-    const title = document.getElementById('subCardTitle').value; 
-    const color = document.getElementById('subCardColor').value; 
-    
-    if(!title) return; 
-    
-    // Agora salvamos TODAS as listas no objeto
-    const data = { 
-        title, color, 
-        items: tempChecklistItems, 
-        links: tempLinks,
-        texts: tempTexts,
-        projectId: activeProjectId, 
-        updatedAt: new Date(),
-        // Mantemos 'type' apenas para compatibilidade visual básica, definindo como 'mixed' ou o predominante
-        type: (tempLinks.length > 0 && tempTexts.length === 0 && tempChecklistItems.length === 0) ? 'link' : 
-              (tempTexts.length > 0 && tempLinks.length === 0 && tempChecklistItems.length === 0) ? 'text' : 
-              (tempChecklistItems.length > 0 && tempLinks.length === 0 && tempTexts.length === 0) ? 'checklist' : 'mixed'
-    }; 
-    
+    const id = document.getElementById('subCardId').value; const title = document.getElementById('subCardTitle').value; const color = document.getElementById('subCardColor').value; if(!title) return; 
+    const data = { title, color, items: tempChecklistItems, links: tempLinks, texts: tempTexts, projectId: activeProjectId, updatedAt: new Date(), type: (tempLinks.length > 0 && tempTexts.length === 0 && tempChecklistItems.length === 0) ? 'link' : (tempTexts.length > 0 && tempLinks.length === 0 && tempChecklistItems.length === 0) ? 'text' : (tempChecklistItems.length > 0 && tempLinks.length === 0 && tempTexts.length === 0) ? 'checklist' : 'mixed' }; 
     if(id) { await updateDoc(doc(db, `users/${currentUser.uid}/subcards`, id), data); addToHistory('EDIÇÃO', `Sub-card: ${title}`); } 
     else { data.createdAt = new Date(); data.position = 99999; data.pinned = false; await addDoc(collection(db, `users/${currentUser.uid}/subcards`), data); addToHistory('CRIAÇÃO', `Sub-card: ${title}`); } 
     subCardModal.hide(); 
 };
-
 document.getElementById('btnDelSubCard').onclick = async () => { if(confirm("Lixeira?")) { const id = document.getElementById('subCardId').value; const docRef = doc(db, `users/${currentUser.uid}/subcards`, id); const docSnap = await getDoc(docRef); await moveToTrash('subcards', id, docSnap.data(), 'Recurso'); subCardModal.hide(); } };
 
 let subCardUnsub = null;
@@ -259,19 +236,11 @@ function initSubCards(projectId) {
                 grid.appendChild(spacer); return;
             }
             const el = document.createElement('div'); el.className = `sub-card ${data.color || 'bg-grad-1'} animate-in`; el.setAttribute('data-id', data.id);
-            
-            // ÍCONE DINÂMICO BASEADO NO CONTEÚDO
-            let icon = 'fa-layer-group'; // Padrão misto
-            if (data.type === 'link') icon = 'fa-link';
-            else if (data.type === 'text') icon = 'fa-align-left';
-            else if (data.type === 'checklist') icon = 'fa-tasks';
-            
+            let icon = 'fa-layer-group';
+            if (data.type === 'link') icon = 'fa-link'; else if (data.type === 'text') icon = 'fa-align-left'; else if (data.type === 'checklist') icon = 'fa-tasks';
             const pinnedClass = data.pinned ? 'active' : '';
             el.innerHTML = `<i class="fas fa-thumbtack pin-btn ${pinnedClass}" onclick="togglePin(event, '${data.id}', ${data.pinned || false})"></i><i class="fas ${icon} sub-card-icon"></i><div class="sub-card-title text-white-force">${data.title}</div><small class="opacity-75 mt-2" style="font-size:0.7rem">${data.type ? data.type.toUpperCase() : 'MISTO'}</small>`;
-            
-            // CLIQUE NO CARD ABRE O MODAL DE EDIÇÃO DIRETAMENTE
             el.onclick = () => { editSubCard(data.id, data); };
-            
             grid.appendChild(el);
         });
         if(subCardSortableInstance) subCardSortableInstance.destroy();
@@ -303,7 +272,7 @@ window.deleteTaskDirect = async (id, title) => { if(confirm("Excluir?")) { const
 const taskModal = new bootstrap.Modal(document.getElementById('taskModal'));
 window.openTaskModal = () => { document.getElementById('taskId').value = ''; document.getElementById('taskTitle').value = ''; document.getElementById('taskDesc').value = ''; document.getElementById('taskPriority').value = 'low'; document.getElementById('btnDelTask').style.display = 'none'; taskModal.show(); };
 window.editTask = (id, data) => { document.getElementById('taskId').value = id; document.getElementById('taskTitle').value = data.title; document.getElementById('taskDesc').value = data.desc || ''; let p = data.priority; if(p === 'none') p = 'low'; document.getElementById('taskPriority').value = p; document.getElementById('btnDelTask').style.display = 'block'; taskModal.show(); };
-document.getElementById('btnSaveTask').onclick = async () => { const id = document.getElementById('taskId').value; const title = document.getElementById('taskTitle').value; const desc = document.getElementById('taskDesc').value; const priority = document.getElementById('taskPriority').value; if(!title) return; const data = { title, desc, priority, projectId: activeProjectId, deleted: false, updatedAt: new Date() }; if(id) { await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, id), data); addToHistory('EDIÇÃO', `Tarefa: ${title}`); } else { data.createdAt = new Date(); await addDoc(collection(db, `users/${currentUser.uid}/tasks`), data); addToHistory('CRIAÇÃO', `Tarefa: ${title}`); } taskModal.hide(); };
+document.getElementById('btnSaveTask').onclick = async () => { const id = document.getElementById('taskId').value; const title = document.getElementById('taskTitle').value; const desc = document.getElementById('taskDesc').value; const priority = document.getElementById('taskPriority').value; if(!title) return; const data = { title, desc, priority, projectId: activeProjectId, deleted: false, updatedAt: new Date() }; if(id) { await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, id), data); addToHistory('EDIÇÃO', `Tarefa editada: ${title}`); } else { data.createdAt = new Date(); await addDoc(collection(db, `users/${currentUser.uid}/tasks`), data); addToHistory('CRIAÇÃO', `Tarefa: ${title}`); } taskModal.hide(); };
 document.getElementById('btnDelTask').onclick = async () => { const id = document.getElementById('taskId').value; const title = document.getElementById('taskTitle').value; await deleteTaskDirect(id, title); taskModal.hide(); };
 document.getElementById('taskSearch').onkeyup = (e) => { const term = e.target.value.toLowerCase(); document.querySelectorAll('.task-card').forEach(card => card.style.display = card.innerText.toLowerCase().includes(term) ? 'block' : 'none'); };
 
@@ -330,13 +299,13 @@ window.restoreFromTrash = async (trashId) => {
             const cardRef = doc(db, `users/${currentUser.uid}/subcards`, data.originalCardId); const cardSnap = await getDoc(cardRef);
             if (cardSnap.exists()) {
                 const currentItems = cardSnap.data().items || []; currentItems.push({ text: data.title, priority: data.priority || 'low', done: false });
-                await updateDoc(cardRef, { items: currentItems }); addToHistory('RESTAURAÇÃO', `Item de lista em Card`);
+                await updateDoc(cardRef, { items: currentItems }); addToHistory('RESTAURAÇÃO', `Item de lista restaurado em Card`);
             } else {
                 await addDoc(collection(db, `users/${currentUser.uid}/tasks`), { title: `[Orfão] ${data.title}`, priority: data.priority || 'low', projectId: activeProjectId || 'root', createdAt: new Date() });
-                alert("Card original excluído. Item voltou como Tarefa Solta."); addToHistory('RESTAURAÇÃO', `Item virou tarefa`);
+                alert("Card original excluído. Item voltou como Tarefa Solta."); addToHistory('RESTAURAÇÃO', `Item restaurado como Tarefa (Órfão)`);
             }
         } else if (collectionName && originalId) {
-            await setDoc(doc(db, `users/${currentUser.uid}/${collectionName}`, originalId), data); addToHistory('RESTAURAÇÃO', `${data.title}`);
+            await setDoc(doc(db, `users/${currentUser.uid}/${collectionName}`, originalId), data); addToHistory('RESTAURAÇÃO', `Item restaurado: ${data.title}`);
         } else { alert("Erro de origem."); return; }
         await deleteDoc(trashRef);
     } catch(e) { console.error("Erro restore", e); alert("Erro ao restaurar: " + e.message); }
