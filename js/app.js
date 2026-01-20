@@ -101,6 +101,7 @@ function initProjects() {
             card.setAttribute('data-type', data.type); targetGrid.appendChild(card);
         });
         ['Profissional', 'Pessoal', 'Ideia'].forEach(type => { const gridEl = document.getElementById(`grid-${type}`); if(gridEl) { 
+            // DELAY PRESERVADO
             new Sortable(gridEl, { group: 'projects', animation: 150, delay: 300, delayOnTouchOnly: true, onEnd: async function(evt) { const itemEl = evt.item; const newType = evt.to.getAttribute('data-type'); const projId = itemEl.getAttribute('data-id'); if (evt.from !== evt.to) { await updateDoc(doc(db, `users/${currentUser.uid}/projects`, projId), { type: newType }); } saveOrderFromDom(evt.to, `users/${currentUser.uid}/projects`); if(evt.from !== evt.to) saveOrderFromDom(evt.from, `users/${currentUser.uid}/projects`); } }); } });
     });
 }
@@ -108,7 +109,7 @@ const projModal = new bootstrap.Modal(document.getElementById('projectModal'));
 document.getElementById('fabBtn').onclick = () => { if(activeProjectId) { const mode = document.getElementById('viewModeSelector').value; if(mode === 'cards') openSubCardModal(); else openTaskModal(); } else { document.getElementById('projId').value = ''; document.getElementById('projTitle').value = ''; document.getElementById('btnDelProj').style.display = 'none'; projModal.show(); } };
 window.editProject = (id, title, type, color) => { document.getElementById('projId').value = id; document.getElementById('projTitle').value = title; document.getElementById('projType').value = type; document.getElementById('selectedColor').value = color; document.getElementById('btnDelProj').style.display = 'block'; document.querySelectorAll('.color-dot').forEach(d => d.classList.toggle('selected', d.classList.contains(color))); projModal.show(); };
 window.selectColor = (el, color) => { document.querySelectorAll('#projectModal .color-dot').forEach(d => d.classList.remove('selected')); el.classList.add('selected'); document.getElementById('selectedColor').value = color; };
-document.getElementById('btnSaveProj').onclick = async () => { const id = document.getElementById('projId').value; const title = document.getElementById('projTitle').value; const type = document.getElementById('projType').value; const color = document.getElementById('selectedColor').value; if(!title) return; const data = { title, type, color, updatedAt: new Date(), isSpacer: false }; if(id) { await updateDoc(doc(db, `users/${currentUser.uid}/projects`, id), data); addToHistory('EDIÇÃO', `Projeto: ${title}`); } else { data.createdAt = new Date(); data.position = 9999; data.pinned = false; data.viewMode = 'hybrid'; await addDoc(collection(db, `users/${currentUser.uid}/projects`), data); addToHistory('CRIAÇÃO', `Projeto: ${title}`); } projModal.hide(); };
+document.getElementById('btnSaveProj').onclick = async () => { const id = document.getElementById('projId').value; const title = document.getElementById('projTitle').value; const type = document.getElementById('projType').value; const color = document.getElementById('selectedColor').value; if(!title) return; const data = { title, type, color, updatedAt: new Date(), isSpacer: false }; if(id) { await updateDoc(doc(db, `users/${currentUser.uid}/projects`, id), data); addToHistory('EDIÇÃO', `Projeto: ${title}`); } else { data.createdAt = new Date(); await addDoc(collection(db, `users/${currentUser.uid}/projects`), data); addToHistory('CRIAÇÃO', `Projeto: ${title}`); } projModal.hide(); };
 document.getElementById('btnDelProj').onclick = async () => { if(confirm("Lixeira?")) { const id = document.getElementById('projId').value; const docRef = doc(db, `users/${currentUser.uid}/projects`, id); const docSnap = await getDoc(docRef); await moveToTrash('projects', id, docSnap.data(), 'Projeto'); projModal.hide(); } };
 
 window.addSubSpacer = async () => { if (!activeProjectId) return; await addDoc(collection(db, `users/${currentUser.uid}/subcards`), { title: "Spacer", projectId: activeProjectId, isSpacer: true, position: 99999, createdAt: new Date() }); addToHistory('LAYOUT', 'Spacer Subcard'); };
@@ -299,7 +300,6 @@ document.getElementById('btnTrash').onclick = () => {
     }); 
 };
 
-// --- RESTAURAÇÃO DE ITENS DE CHECKLIST ---
 window.restoreFromTrash = async (trashId) => {
     try {
         const trashRef = doc(db, `users/${currentUser.uid}/trash`, trashId); const trashDoc = await getDoc(trashRef);
@@ -356,15 +356,15 @@ window.restoreFromTrash = async (trashId) => {
                 await updateDoc(cardRef, { texts: currentTexts });
                 alert("Nota restaurada dentro do Card original.");
             } else {
-                // FALLBACK NOTA ÓRFÃ
+                // FALLBACK NOTA ÓRFÃ - CORRIGIDO
                 await addDoc(collection(db, `users/${currentUser.uid}/tasks`), { 
                     title: `[Nota Órfã] ${data.title}`, 
-                    desc: data.content, // Conteúdo na descrição
+                    desc: data.content, // CONTEÚDO VAI PARA DESCRIÇÃO
                     priority: 'low', 
                     projectId: activeProjectId || 'root', 
                     createdAt: new Date() 
                 });
-                alert("Card excluído. Nota voltou como Tarefa.");
+                alert("Card excluído. Nota voltou como Tarefa (Conteúdo na descrição).");
             }
         }
 
