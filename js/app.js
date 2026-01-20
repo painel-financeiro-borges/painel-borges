@@ -101,7 +101,6 @@ function initProjects() {
             card.setAttribute('data-type', data.type); targetGrid.appendChild(card);
         });
         ['Profissional', 'Pessoal', 'Ideia'].forEach(type => { const gridEl = document.getElementById(`grid-${type}`); if(gridEl) { 
-            // ADICIONADO DELAY PARA SCROLL MOBILE
             new Sortable(gridEl, { group: 'projects', animation: 150, delay: 300, delayOnTouchOnly: true, onEnd: async function(evt) { const itemEl = evt.item; const newType = evt.to.getAttribute('data-type'); const projId = itemEl.getAttribute('data-id'); if (evt.from !== evt.to) { await updateDoc(doc(db, `users/${currentUser.uid}/projects`, projId), { type: newType }); } saveOrderFromDom(evt.to, `users/${currentUser.uid}/projects`); if(evt.from !== evt.to) saveOrderFromDom(evt.from, `users/${currentUser.uid}/projects`); } }); } });
     });
 }
@@ -117,7 +116,6 @@ window.togglePin = async (e, id, currentState) => { e.stopPropagation(); await u
 
 const subCardModal = new bootstrap.Modal(document.getElementById('subCardModal'));
 
-// Helper para URL segura
 const formatUrl = (url) => {
     if (!url) return '#';
     if (!/^https?:\/\//i.test(url)) return 'https://' + url;
@@ -128,9 +126,7 @@ const formatUrl = (url) => {
 window.renderTempLinks = () => {
     const container = document.getElementById('tempLinkList'); container.innerHTML = '';
     tempLinks.forEach((link, index) => {
-        // Botão de abrir link adicionado
         const openBtn = link.url ? `<a href="${formatUrl(link.url)}" target="_blank" class="btn btn-outline-secondary border-0" title="Abrir Link"><i class="fas fa-external-link-alt"></i></a>` : '';
-        
         container.innerHTML += `
             <div class="resource-item">
                 <i class="fas fa-times resource-delete" onclick="removeTempLink(${index})"></i>
@@ -147,7 +143,6 @@ window.renderTempLinks = () => {
     });
 };
 window.addTempLink = () => { tempLinks.push({name: '', url: ''}); renderTempLinks(); };
-// ATUALIZADO: ENVIA O LINK PARA A LIXEIRA CORRETAMENTE
 window.removeTempLink = async (index) => { 
     const removedItem = tempLinks[index]; 
     await moveToTrash(null, null, { title: removedItem.name, content: removedItem.url, originalCardId: document.getElementById('subCardId').value }, 'Item Link'); 
@@ -168,7 +163,6 @@ window.renderTempTexts = () => {
     });
 };
 window.addTempText = () => { tempTexts.push({title: '', content: ''}); renderTempTexts(); };
-// ATUALIZADO: ENVIA A NOTA PARA A LIXEIRA CORRETAMENTE
 window.removeTempText = async (index) => { 
     const removedItem = tempTexts[index]; 
     await moveToTrash(null, null, { title: removedItem.title, content: removedItem.content, originalCardId: document.getElementById('subCardId').value }, 'Item Texto'); 
@@ -258,7 +252,7 @@ function initSubCards(projectId) {
             grid.appendChild(el);
         });
         if(subCardSortableInstance) subCardSortableInstance.destroy();
-        // ADICIONADO DELAY TAMBÉM NOS SUB-CARDS
+        // DELAY PRESERVADO
         subCardSortableInstance = new Sortable(grid, { animation: 150, ghostClass: 'sortable-ghost', delay: 300, delayOnTouchOnly: true, onEnd: async function(evt) { saveOrderFromDom(grid, `users/${currentUser.uid}/subcards`); } });
     });
 }
@@ -336,9 +330,26 @@ window.restoreFromTrash = async (trashId) => {
                 alert("Restaurado para dentro do Card original.");
             } else {
                 // FALLBACK: Se o card não existe mais, vira tarefa solta
-                const contentText = data.content ? ` - ${data.content}` : '';
-                await addDoc(collection(db, `users/${currentUser.uid}/tasks`), { title: `[Orfão ${type}] ${data.title}${contentText}`, priority: 'low', projectId: activeProjectId || 'root', createdAt: new Date() });
-                alert("Card original excluído. Item voltou como Tarefa Solta."); addToHistory('RESTAURAÇÃO', `Item restaurado como Tarefa (Órfão)`);
+                let orphanTitle = `[Orfão ${type}] ${data.title}`;
+                let orphanDesc = '';
+                
+                // SE FOR LINK, O TÍTULO VIRA A URL (PARA FICAR CLICÁVEL) E O NOME VAI PRO DESC
+                if (type === 'Item Link' && data.content) {
+                    orphanTitle = data.content; // URL
+                    orphanDesc = `[Restaurado] ${data.title}`; // Nome
+                } else {
+                    if (data.content) orphanTitle += ` - ${data.content}`;
+                }
+
+                await addDoc(collection(db, `users/${currentUser.uid}/tasks`), { 
+                    title: orphanTitle, 
+                    desc: orphanDesc,
+                    priority: 'low', 
+                    projectId: activeProjectId || 'root', 
+                    createdAt: new Date() 
+                });
+                alert("Card original excluído. Item voltou como Tarefa Solta (Link Clicável)."); 
+                addToHistory('RESTAURAÇÃO', `Item restaurado como Tarefa (Órfão)`);
             }
         } else if (collectionName && originalId) {
             await setDoc(doc(db, `users/${currentUser.uid}/${collectionName}`, originalId), data); addToHistory('RESTAURAÇÃO', `Item restaurado: ${data.title}`);
