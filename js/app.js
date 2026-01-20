@@ -276,11 +276,9 @@ document.getElementById('btnSaveSubCard').onclick = async () => {
     subCardModal.hide(); 
 };
 
-// --- CORREÇÃO: BUSCAR DADOS COMPLETOS DO SUB-CARD ANTES DE DELETAR ---
 document.getElementById('btnDelSubCard').onclick = async () => { 
     if(confirm("Mover para lixeira?")) { 
         const id = document.getElementById('subCardId').value;
-        // Pega os dados direto do banco para garantir que tudo (incluindo projectId) vá para o lixo
         const docRef = doc(db, `users/${currentUser.uid}/subcards`, id);
         const docSnap = await getDoc(docRef);
         
@@ -309,7 +307,6 @@ function initKanban(projectId) {
 }
 window.toggleTaskDone = async (id, isDone) => { await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, id), { done: isDone }); };
 
-// --- CORREÇÃO: BUSCAR DADOS COMPLETOS DA TAREFA ANTES DE DELETAR ---
 window.deleteTaskDirect = async (id, title) => { 
     if(confirm("Excluir esta tarefa?")) { 
         const docRef = doc(db, `users/${currentUser.uid}/tasks`, id);
@@ -324,7 +321,6 @@ window.openTaskModal = () => { document.getElementById('taskId').value = ''; doc
 window.editTask = (id, data) => { document.getElementById('taskId').value = id; document.getElementById('taskTitle').value = data.title; document.getElementById('taskDesc').value = data.desc || ''; let p = data.priority; if(p === 'none') p = 'low'; document.getElementById('taskPriority').value = p; document.getElementById('btnDelTask').style.display = 'block'; taskModal.show(); };
 document.getElementById('btnSaveTask').onclick = async () => { const id = document.getElementById('taskId').value; const title = document.getElementById('taskTitle').value; const desc = document.getElementById('taskDesc').value; const priority = document.getElementById('taskPriority').value; if(!title) return; const data = { title, desc, priority, projectId: activeProjectId, deleted: false, updatedAt: new Date() }; if(id) await updateDoc(doc(db, `users/${currentUser.uid}/tasks`, id), data); else { data.createdAt = new Date(); await addDoc(collection(db, `users/${currentUser.uid}/tasks`), data); } taskModal.hide(); };
 
-// CORREÇÃO: DELETAR TAREFA DENTRO DO MODAL TAMBÉM SEGUE A REGRA
 document.getElementById('btnDelTask').onclick = async () => { 
     const id = document.getElementById('taskId').value;
     const title = document.getElementById('taskTitle').value;
@@ -364,6 +360,7 @@ document.getElementById('btnTrash').onclick = () => {
     }); 
 };
 
+// --- FUNÇÃO DE RESTAURAÇÃO INTELIGENTE ---
 window.restoreFromTrash = async (trashId) => {
     try {
         const trashRef = doc(db, `users/${currentUser.uid}/trash`, trashId);
@@ -382,22 +379,49 @@ window.restoreFromTrash = async (trashId) => {
         delete data.originalId; 
         delete data.itemType;
 
-        if (type === 'Item Lista') {
-            await addDoc(collection(db, `users/${currentUser.uid}/tasks`), { 
-                title: `[Recuperado] ${data.title}`, 
-                priority: 'low', 
-                projectId: activeProjectId || 'root', 
-                createdAt: new Date() 
-            });
-            alert("Item recuperado como uma Tarefa Pendente.");
-        } else if (collectionName && originalId) {
-            // Como salvamos o objeto COMPLETO (incluindo projectId), ele volta para o lugar certo
+        // SE FOR UM ITEM DE CHECKLIST (DENTRO DE CARD)
+        if (type === 'Item Lista' && data.originalCardId) {
+            // Verifica se o Card original ainda existe
+            const cardRef = doc(db, `users/${currentUser.uid}/subcards`, data.originalCardId);
+            const cardSnap = await getDoc(cardRef);
+
+            if (cardSnap.exists()) {
+                // Card existe: Devolve o item para dentro do array 'items' do card
+                const cardData = cardSnap.data();
+                const currentItems = cardData.items || [];
+                
+                // Reconstrói o objeto do item (pois o 'data' da lixeira tem campos extras)
+                const restoredItem = {
+                    text: data.title, // Na lixeira o texto vira 'title'
+                    priority: data.priority || 'low',
+                    done: false
+                };
+                
+                currentItems.push(restoredItem);
+                await updateDoc(cardRef, { items: currentItems });
+                alert("Item restaurado para dentro do Card original.");
+            } else {
+                // Card não existe mais: Recupera como uma Tarefa Solta (Fallback)
+                await addDoc(collection(db, `users/${currentUser.uid}/tasks`), { 
+                    title: `[Orfão] ${data.title}`, 
+                    priority: data.priority || 'low', 
+                    projectId: activeProjectId || 'root', 
+                    createdAt: new Date() 
+                });
+                alert("O Card original foi excluído. O item voltou como uma Tarefa Solta.");
+            }
+        } 
+        // SE FOR OUTRA COISA (PROJETO, TAREFA, SUB-CARD)
+        else if (collectionName && originalId) {
+            // Usa setDoc para restaurar com o ID original exato
             await setDoc(doc(db, `users/${currentUser.uid}/${collectionName}`, originalId), data);
+            alert("Item restaurado com sucesso.");
         } else {
             alert("Erro: Não foi possível identificar a origem deste item.");
             return;
         }
 
+        // Remove da lixeira
         await deleteDoc(trashRef);
 
     } catch(e) {
