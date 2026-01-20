@@ -20,21 +20,50 @@ body.dark-mode .glass-panel { background: rgba(30,30,30,0.7); }
 .section-title { font-weight: 900; letter-spacing: 1.5px; font-size: 0.9rem; opacity: 1; text-transform: uppercase; text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
 .small-btn { font-size: 0.7rem; padding: 4px 12px; font-weight: 700; border-width: 2px; transition: 0.2s; }
 .small-btn:active { transform: scale(0.95); }
-.project-grid, .sub-card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 15px; background: rgba(0,0,0,0.03); border-radius: var(--radius); border: 2px dashed rgba(100,100,100,0.15); min-height: 180px; transition: background 0.3s; }
-@media(min-width: 768px) { .project-grid, .sub-card-grid { grid-template-columns: repeat(4, 1fr); } }
-.project-card, .sub-card, .spacer-card { touch-action: pan-y !important; user-select: none; -webkit-user-select: none; }
-.project-card, .sub-card { height: 170px; border-radius: var(--radius); padding: 20px; color: white; position: relative; cursor: grab; box-shadow: 0 15px 30px rgba(0,0,0,0.3), inset 0 2px 0 rgba(255,255,255,0.5), inset 0 -2px 0 rgba(0,0,0,0.3); transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; border: none; }
-.project-card:active, .sub-card:active { transform: scale(0.95) !important; box-shadow: 0 5px 10px rgba(0,0,0,0.2); cursor: grabbing; }
+
+/* --- GRIDS SEPARADOS PARA PROJETOS E SUB-CARDS --- */
+/* Estilos base compartilhados */
+.project-grid, .sub-card-grid { display: grid; padding: 15px; background: rgba(0,0,0,0.03); border-radius: var(--radius); border: 2px dashed rgba(100,100,100,0.15); min-height: 180px; transition: background 0.3s; }
+
+/* Grid de Projetos (Grandes: 2 por linha mobile, 4 desktop) */
+.project-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
+@media(min-width: 768px) { .project-grid { grid-template-columns: repeat(4, 1fr); } }
+
+/* Grid de Sub-cards (Pequenos: SEMPRE 4 por linha) */
+.sub-card-grid { grid-template-columns: repeat(4, 1fr); gap: 8px; min-height: 120px; }
+
+/* --- CARDS GERAIS (Correção do Toque Mobile Aqui) --- */
+.project-card, .sub-card, .spacer-card { 
+    touch-action: manipulation; /* MELHORA O SCROLL NO MOBILE */
+    user-select: none; -webkit-user-select: none; 
+}
+
+/* --- PROJECT CARD (GRANDE) --- */
+.project-card { height: 170px; border-radius: var(--radius); padding: 20px; color: white; position: relative; cursor: grab; box-shadow: 0 15px 30px rgba(0,0,0,0.3), inset 0 2px 0 rgba(255,255,255,0.5), inset 0 -2px 0 rgba(0,0,0,0.3); transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; border: none; }
+.project-card:active { transform: scale(0.95) !important; box-shadow: 0 5px 10px rgba(0,0,0,0.2); cursor: grabbing; }
+
+/* --- SUB-CARD (PEQUENO/MINI) --- */
+.sub-card { 
+    height: 110px; /* Altura reduzida */
+    border-radius: 16px; /* Raio menor */
+    padding: 10px; /* Padding reduzido */
+    color: white; position: relative; cursor: grab; 
+    box-shadow: 0 8px 15px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.4); 
+    transition: all 0.3s; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; border: none; 
+}
+.sub-card:active { transform: scale(0.95) !important; cursor: grabbing; }
+
 body.dark-mode .project-card, body.dark-mode .sub-card { box-shadow: 0 0 20px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.3); }
 .project-card::before, .sub-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom right, rgba(255,255,255,0.15), rgba(0,0,0,0.2)); z-index: 0; }
 .project-card > *, .sub-card > * { z-index: 1; position: relative; }
+
 .spacer-card { min-height: 170px; width: 100%; border-radius: var(--radius); border: 3px dashed rgba(100, 100, 100, 0.3); background: rgba(100, 100, 100, 0.08); display: flex; align-items: center; justify-content: center; cursor: grab; position: relative; transition: 0.2s; }
 .spacer-card:hover { border-color: rgba(100, 100, 100, 0.6); background: rgba(100, 100, 100, 0.15); transform: scale(1.02); }
 .spacer-icon { font-size: 2rem; opacity: 0.4; color: var(--text-primary); transition: 0.3s; }
 .spacer-card:hover .spacer-icon { transform: rotate(90deg); opacity: 0.8; }
 .spacer-delete { position: absolute; top: 10px; right: 10px; background: #ff4757; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 5px 10px rgba(255,71,87,0.4); transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 .spacer-delete:hover { opacity: 1; background: #ff6b81; transform: scale(1.2) rotate(90deg); }
-#subCardsGrid .spacer-card { min-height: 100px; height: auto; }
+#subCardsGrid .spacer-card { min-height: 110px; height: auto; /* Ajuste para o spacer pequeno */ }
 body.dark-mode .spacer-card { border-color: rgba(255,255,255,0.15); background: rgba(255,255,255,0.02); }
 .sortable-ghost { opacity: 0.4; background: rgba(255,255,255,0.1); border: 2px dashed #fff; transform: scale(0.95); }
 .bg-grad-dark { background: linear-gradient(135deg, #2b2b2b 0%, #000000 100%); }
@@ -50,8 +79,12 @@ body.dark-mode .spacer-card { border-color: rgba(255,255,255,0.15); background: 
 .bg-grad-10 { background: linear-gradient(135deg, #FC466B 0%, #3F5EFB 100%); }
 .bg-grad-11 { background: linear-gradient(135deg, #232526 0%, #414345 100%); }
 .bg-grad-12 { background: linear-gradient(135deg, #FDC830 0%, #F37335 100%); }
-.sub-card-icon { position: absolute; top: 15px; right: 15px; opacity: 0.5; font-size: 1.4rem; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
-.sub-card-title { font-weight: 800; font-size: 1.1rem; line-height: 1.2; padding-right: 20px; padding-left: 30px; }
+
+/* Icone e Título do Sub-card (Reduzidos) */
+.sub-card-icon { position: absolute; top: 10px; right: 10px; opacity: 0.5; font-size: 1.1rem; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+.sub-card-title { font-weight: 800; font-size: 0.85rem; line-height: 1.1; padding-right: 15px; padding-left: 22px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sub-card small { font-size: 0.6rem !important; }
+
 .kanban-header { padding: 15px; border-radius: 15px; margin-bottom: 15px; font-weight: 800; font-size: 0.85rem; letter-spacing: 1px; text-transform: uppercase; border: 2px solid transparent; transition: 0.3s; }
 .kanban-header:hover { transform: translateY(-2px); filter: brightness(1.1); }
 .kanban-header.urgent { background: rgba(255, 71, 87, 0.1); color: #ff4757; border-color: rgba(255, 71, 87, 0.3); }
@@ -63,8 +96,6 @@ body.dark-mode .spacer-card { border-color: rgba(255,255,255,0.15); background: 
 .task-card.priority-urgent { border-left-color: #ff4757; }
 .task-card.priority-medium { border-left-color: #ffa502; }
 .task-card.priority-low { border-left-color: #2ed573; }
-
-/* --- CHECKLIST ITEMS --- */
 .checklist-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--card-bg); margin-bottom: 8px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.05); border-left-width: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); cursor: grab; transition: all 0.2s; }
 .checklist-item:active { cursor: grabbing; transform: scale(0.98); }
 .checklist-item.cl-urgent { border-left-color: #ff4757; background: rgba(255, 71, 87, 0.05); }
@@ -76,13 +107,10 @@ body.dark-mode .checklist-item.cl-medium { border-left-color: #ffa502; backgroun
 body.dark-mode .checklist-item.cl-low { border-left-color: #2ed573; background: linear-gradient(90deg, rgba(46, 213, 115, 0.25) 0%, rgba(44, 44, 46, 0) 100%); box-shadow: 0 4px 15px rgba(46, 213, 115, 0.15); }
 .checklist-item.done { opacity: 0.6; background: rgba(0,0,0,0.02); filter: grayscale(1); }
 .checklist-item.done span { text-decoration: line-through; }
-
-/* --- RESOURCE ITEMS (LINKS E TEXTOS) --- */
 .resource-item { display: flex; flex-direction: column; padding: 12px; background: var(--card-bg); margin-bottom: 8px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 4px 10px rgba(0,0,0,0.03); position: relative; }
 body.dark-mode .resource-item { background: #2c2c2e; border-color: rgba(255,255,255,0.1); color: white; }
 .resource-delete { position: absolute; top: 10px; right: 10px; cursor: pointer; color: #ff4757; opacity: 0.6; }
 .resource-delete:hover { opacity: 1; transform: scale(1.1); }
-
 .fab { position: fixed; bottom: 30px; right: 30px; width: 70px; height: 70px; border-radius: 50%; border: none; background: linear-gradient(135deg, #1a1a1a 0%, #000 100%); color: white; font-size: 28px; cursor: pointer; z-index: 99; box-shadow: 0 15px 30px rgba(0,0,0,0.4), inset 0 2px 0 rgba(255,255,255,0.3); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 .fab:active { transform: scale(0.9); }
 .fab:hover { transform: scale(1.1) rotate(90deg); }
@@ -99,7 +127,11 @@ body.dark-mode .color-dot.selected { border-color: #fff; box-shadow: 0 0 0 3px r
 .checklist-handle { cursor: grab; padding: 10px; margin-right: 5px; color: #aaa; touch-action: none; }
 .checklist-handle:active { cursor: grabbing; color: var(--text-primary); }
 .checklist-container { padding-bottom: 30px; min-height: 60px; }
-.pin-btn { position: absolute; top: 15px; left: 15px; color: white; font-size: 1.1rem; cursor: pointer; opacity: 0.4; transition: all 0.3s; z-index: 20; text-shadow: 0 1px 2px rgba(0,0,0,0.3); padding: 5px; }
+
+/* Pino menor para o sub-card */
+.pin-btn { position: absolute; top: 10px; left: 10px; color: white; font-size: 0.9rem; cursor: pointer; opacity: 0.4; transition: all 0.3s; z-index: 20; text-shadow: 0 1px 2px rgba(0,0,0,0.3); padding: 5px; }
+.project-card .pin-btn { top: 15px; left: 15px; font-size: 1.1rem; } /* Pino normal para projetos */
+
 .pin-btn:hover { transform: scale(1.2); opacity: 1; }
 .pin-btn.active { opacity: 1; transform: scale(1.1); text-shadow: 0 0 10px rgba(255,255,255,0.8); }
 .history-container { background: rgba(0, 0, 0, 0.03); border-radius: 12px; max-height: 200px; overflow-y: auto; padding: 10px; border: 1px solid rgba(0,0,0,0.05); font-family: monospace; }
