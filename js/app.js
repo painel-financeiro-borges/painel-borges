@@ -136,6 +136,12 @@ document.getElementById('btnDelProj').onclick = async () => {
 // --- SUB-CARDS ---
 window.addSubSpacer = async () => { if (!activeProjectId) return; await addDoc(collection(db, `users/${currentUser.uid}/subcards`), { title: "Spacer", projectId: activeProjectId, isSpacer: true, position: 99999, createdAt: new Date() }); };
 
+// --- NOVA FUNÇÃO: TOGGLE PIN (FIXAR) ---
+window.togglePin = async (e, id, currentState) => {
+    e.stopPropagation(); // Impede que o clique no alfinete abra o modal de edição
+    await updateDoc(doc(db, `users/${currentUser.uid}/subcards`, id), { pinned: !currentState });
+};
+
 let subCardUnsub = null;
 function initSubCards(projectId) {
     if(subCardUnsub) subCardUnsub();
@@ -144,7 +150,15 @@ function initSubCards(projectId) {
         const grid = document.getElementById('subCardsGrid'); grid.innerHTML = '';
         if(snap.empty) { grid.innerHTML = '<div class="text-muted small text-center w-100 py-3">Sem recursos.</div>'; return; }
         let items = []; snap.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
-        items.sort((a, b) => (a.position || 0) - (b.position || 0));
+        
+        // ORDENAÇÃO ROBUSTA: PRIMEIRO PINNED, DEPOIS POSIÇÃO
+        items.sort((a, b) => {
+            if (a.pinned === b.pinned) {
+                return (a.position || 0) - (b.position || 0); // Se o estado de pin for igual, usa a posição
+            }
+            return a.pinned ? -1 : 1; // Se 'a' for pinned, vem primeiro
+        });
+
         items.forEach(data => {
             if(data.isSpacer) {
                 const spacer = document.createElement('div'); spacer.className = 'spacer-card animate-in'; spacer.setAttribute('data-id', data.id);
@@ -154,7 +168,15 @@ function initSubCards(projectId) {
             }
             const el = document.createElement('div'); el.className = `sub-card ${data.color || 'bg-grad-1'} animate-in`; el.setAttribute('data-id', data.id);
             let icon = 'fa-align-left'; if (data.type === 'link') icon = 'fa-link'; if (data.type === 'checklist') icon = 'fa-tasks';
-            el.innerHTML = `<i class="fas ${icon} sub-card-icon"></i><div class="sub-card-title text-white-force">${data.title}</div><small class="opacity-75 mt-2" style="font-size:0.7rem">${data.type.toUpperCase()}</small>`;
+            
+            // RENDERIZAÇÃO COM O BOTÃO DE ALFINETE
+            const pinnedClass = data.pinned ? 'active' : '';
+            el.innerHTML = `
+                <i class="fas fa-thumbtack pin-btn ${pinnedClass}" onclick="togglePin(event, '${data.id}', ${data.pinned || false})"></i>
+                <i class="fas ${icon} sub-card-icon"></i>
+                <div class="sub-card-title text-white-force">${data.title}</div>
+                <small class="opacity-75 mt-2" style="font-size:0.7rem">${data.type.toUpperCase()}</small>`;
+            
             el.onclick = () => { if(data.type === 'link' && !confirm("Editar?")) window.open(data.content, '_blank'); else editSubCard(data.id, data); };
             grid.appendChild(el);
         });
@@ -214,7 +236,6 @@ function initSubCardSortable() {
 
 window.selectSubColor = (el, color) => { document.querySelectorAll('#subCardModal .color-dot').forEach(d => d.classList.remove('selected')); el.classList.add('selected'); document.getElementById('subCardColor').value = color; };
 
-// --- CORREÇÃO NO BOTÃO SALVAR CARD INTERNO ---
 document.getElementById('btnSaveSubCard').onclick = async () => { 
     const id = document.getElementById('subCardId').value; 
     const title = document.getElementById('subCardTitle').value; 
@@ -224,16 +245,15 @@ document.getElementById('btnSaveSubCard').onclick = async () => {
     
     if(!title) return; 
     
-    // Objeto base SEM a posição (para não sobrescrever em edições)
     const data = { title, content, type, color, items: tempChecklistItems, projectId: activeProjectId, updatedAt: new Date() }; 
     
     if(id) { 
-        // EDIÇÃO: Mantém a posição original (não envia campo position)
+        // Edição mantém posição e status de pin
         await updateDoc(doc(db, `users/${currentUser.uid}/subcards`, id), data); 
     } else { 
-        // CRIAÇÃO: Adiciona data de criação e posição (vai para o final)
         data.createdAt = new Date(); 
         data.position = 99999;
+        data.pinned = false; // Novo card nasce desfixado
         await addDoc(collection(db, `users/${currentUser.uid}/subcards`), data); 
     } 
     subCardModal.hide(); 
