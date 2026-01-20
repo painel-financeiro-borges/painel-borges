@@ -27,7 +27,7 @@ body.dark-mode .glass-panel { background: rgba(30,30,30,0.7); }
 @media(min-width: 768px) { .project-grid { grid-template-columns: repeat(4, 1fr); } }
 .sub-card-grid { grid-template-columns: repeat(4, 1fr); gap: 6px; min-height: 120px; }
 
-/* --- CARDS GERAIS (Scroll Fix) --- */
+/* --- CARDS GERAIS --- */
 .project-card, .sub-card, .spacer-card { touch-action: pan-y; user-select: none; -webkit-user-select: none; }
 
 /* --- PROJECT CARD --- */
@@ -65,7 +65,6 @@ body.dark-mode .spacer-card { border-color: rgba(255,255,255,0.15); background: 
 .bg-grad-11 { background: linear-gradient(135deg, #232526 0%, #414345 100%); }
 .bg-grad-12 { background: linear-gradient(135deg, #FDC830 0%, #F37335 100%); }
 
-/* --- ÍCONE E TÍTULO --- */
 .sub-card-icon { position: absolute; top: 8px; right: 8px; opacity: 0.5; font-size: 1rem; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
 .sub-card-title { font-weight: 800; font-size: 0.75rem; line-height: 1.1; padding-right: 2px; padding-left: 0px; margin-top: 25px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; word-break: break-word; }
 .sub-card small { font-size: 0.55rem !important; margin-top: auto; }
@@ -82,7 +81,6 @@ body.dark-mode .spacer-card { border-color: rgba(255,255,255,0.15); background: 
 .task-card.priority-medium { border-left-color: #ffa502; }
 .task-card.priority-low { border-left-color: #2ed573; }
 
-/* --- CHECKLIST ITEMS --- */
 .checklist-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--card-bg); margin-bottom: 8px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.05); border-left-width: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); cursor: grab; transition: all 0.2s; }
 .checklist-item:active { cursor: grabbing; transform: scale(0.98); }
 .checklist-item.cl-urgent { border-left-color: #ff4757; background: rgba(255, 71, 87, 0.05); }
@@ -98,7 +96,17 @@ body.dark-mode .checklist-item.cl-low { border-left-color: #2ed573; background: 
 /* --- RESOURCE ITEMS --- */
 .resource-item { display: flex; flex-direction: column; padding: 12px; background: var(--card-bg); margin-bottom: 8px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 4px 10px rgba(0,0,0,0.03); position: relative; }
 body.dark-mode .resource-item { background: #2c2c2e; border-color: rgba(255,255,255,0.1); color: white; }
-.resource-delete { position: absolute; top: 10px; right: 10px; cursor: pointer; color: #ff4757; opacity: 0.6; }
+
+/* --- CORREÇÃO DO Z-INDEX DO BOTÃO X --- */
+.resource-delete { 
+    position: absolute; 
+    top: 10px; 
+    right: 10px; 
+    cursor: pointer; 
+    color: #ff4757; 
+    opacity: 0.6; 
+    z-index: 1050; /* AQUI ESTÁ A CORREÇÃO CRÍTICA */
+}
 .resource-delete:hover { opacity: 1; transform: scale(1.1); }
 
 .fab { position: fixed; bottom: 30px; right: 30px; width: 70px; height: 70px; border-radius: 50%; border: none; background: linear-gradient(135deg, #1a1a1a 0%, #000 100%); color: white; font-size: 28px; cursor: pointer; z-index: 99; box-shadow: 0 15px 30px rgba(0,0,0,0.4), inset 0 2px 0 rgba(255,255,255,0.3); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
@@ -129,47 +137,13 @@ body.dark-mode .history-item { border-bottom-color: rgba(255,255,255,0.05); }
 .history-time { font-weight: bold; margin-right: 10px; color: #888; }
 .history-action { font-weight: bold; margin-right: 5px; }
 
-/* --- CORREÇÕES DE CONTRASTE E VISIBILIDADE (DARK MODE & LIXEIRA) --- */
-/* Força cor escura e texto branco em todos os modais no modo escuro */
-body.dark-mode .modal-content { 
-    background-color: #1c1c1e !important; 
-    color: #ffffff !important; 
-    border: 1px solid rgba(255,255,255,0.1); 
-}
-body.dark-mode .modal-header, 
-body.dark-mode .modal-footer { 
-    border-color: rgba(255,255,255,0.1); 
-}
-body.dark-mode .btn-close { 
-    filter: invert(1) grayscale(100%) brightness(200%); /* Torna o X branco */
-}
-/* Inputs em Dark Mode */
-body.dark-mode .form-control, 
-body.dark-mode .form-select, 
-body.dark-mode .input-group-text { 
-    background-color: #2c2c2e !important; 
-    border-color: rgba(255,255,255,0.1) !important; 
-    color: white !important; 
-}
-body.dark-mode .form-control::placeholder { 
-    color: #aaa !important; 
-}
-/* Textos Muted em Dark Mode (para não sumir) */
-body.dark-mode .text-muted { 
-    color: #b0b0b0 !important; 
-}
-/* Cards da Lixeira em Dark Mode */
-body.dark-mode #trashList .card { 
-    background-color: #2c2c2e; 
-    color: white; 
-    border: 1px solid rgba(255,255,255,0.1); 
-}
-/* Botões de Exportação */
-body.dark-mode .btn-outline-dark { 
-    color: #e0e0e0; 
-    border-color: rgba(255,255,255,0.2); 
-}
-body.dark-mode .btn-outline-dark:hover { 
-    background-color: rgba(255,255,255,0.1); 
-    color: #fff; 
-}
+/* --- CORREÇÕES DE CONTRASTE (DARK MODE) --- */
+body.dark-mode .modal-content { background-color: #1c1c1e !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.1); }
+body.dark-mode .modal-header, body.dark-mode .modal-footer { border-color: rgba(255,255,255,0.1); }
+body.dark-mode .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
+body.dark-mode .form-control, body.dark-mode .form-select, body.dark-mode .input-group-text { background-color: #2c2c2e !important; border-color: rgba(255,255,255,0.1) !important; color: white !important; }
+body.dark-mode .form-control::placeholder { color: #aaa !important; }
+body.dark-mode .text-muted { color: #b0b0b0 !important; }
+body.dark-mode #trashList .card { background-color: #2c2c2e; color: white; border: 1px solid rgba(255,255,255,0.1); }
+body.dark-mode .btn-outline-dark { color: #e0e0e0; border-color: rgba(255,255,255,0.2); }
+body.dark-mode .btn-outline-dark:hover { background-color: rgba(255,255,255,0.1); color: #fff; }
