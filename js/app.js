@@ -254,7 +254,8 @@ function initProjects() {
                 card = document.createElement('div'); card.className = `project-card ${data.color} animate-in`; card.setAttribute('data-id', data.id);
                 card.addEventListener('click', (e) => { if(!e.target.closest('.fa-pen') && !e.target.closest('.pin-btn')) window.navigate('kanban', data.title, { id: data.id, viewMode: data.viewMode }); });
                 const pinnedClass = data.pinned ? 'active' : '';
-                card.innerHTML = `<i class="fas fa-thumbtack pin-btn ${pinnedClass}" onclick="toggleProjectPin(event, '${data.id}', ${data.pinned || false})"></i><div class="d-flex w-100 justify-content-between ps-4"><span class="badge bg-white text-dark opacity-75">${data.type}</span><i class="fas fa-pen" style="opacity:0.6; cursor:pointer; padding:5px;" onclick="editProject('${data.id}', '${data.title}', '${data.type}', '${data.color}')"></i></div><h4 class="fw-bold text-start mt-2 text-white-force">${data.title}</h4><div class="mt-auto text-end w-100 opacity-75 small"><i class="fas fa-arrow-right"></i></div>`;
+                // CORREÇÃO AQUI: ps-5 na div abaixo para o pin não ficar em cima
+                card.innerHTML = `<i class="fas fa-thumbtack pin-btn ${pinnedClass}" onclick="toggleProjectPin(event, '${data.id}', ${data.pinned || false})"></i><div class="d-flex w-100 justify-content-between ps-5"><span class="badge bg-white text-dark opacity-75">${data.type}</span><i class="fas fa-pen" style="opacity:0.6; cursor:pointer; padding:5px;" onclick="editProject('${data.id}', '${data.title}', '${data.type}', '${data.color}')"></i></div><h4 class="fw-bold text-start mt-2 text-white-force">${data.title}</h4><div class="mt-auto text-end w-100 opacity-75 small"><i class="fas fa-arrow-right"></i></div>`;
             }
             card.setAttribute('data-type', data.type); targetGrid.appendChild(card);
         });
@@ -332,7 +333,7 @@ window.selectSubColor = (el, color) => { document.querySelectorAll('#subCardModa
 document.getElementById('btnSaveSubCard').onclick = async () => { 
     const id = document.getElementById('subCardId').value; const title = document.getElementById('subCardTitle').value; const content = document.getElementById('subCardContent').value; const type = document.getElementById('subCardType').value; const color = document.getElementById('subCardColor').value; if(!title) return; const data = { title, content, type, color, items: tempChecklistItems, projectId: activeProjectId, updatedAt: new Date() }; 
     if(id) { await updateDoc(doc(db, `users/${currentUser.uid}/subcards`, id), data); addToHistory('EDIÇÃO', `Sub-card editado: ${title}`); } 
-    else { data.createdAt = new Date(); data.position = 99999; data.pinned = false; await addDoc(collection(db, `users/${currentUser.uid}/subcards`), data); addToHistory('CRIAÇÃO', `Novo sub-card: ${title}`); } 
+    else { data.createdAt = new Date(); data.position = 9999; data.pinned = false; await addDoc(collection(db, `users/${currentUser.uid}/subcards`), data); addToHistory('CRIAÇÃO', `Novo sub-card: ${title}`); } 
     subCardModal.hide(); 
 };
 document.getElementById('btnDelSubCard').onclick = async () => { if(confirm("Mover para lixeira?")) { const id = document.getElementById('subCardId').value; const docRef = doc(db, `users/${currentUser.uid}/subcards`, id); const docSnap = await getDoc(docRef); await moveToTrash('subcards', id, docSnap.data(), 'Recurso'); subCardModal.hide(); } };
