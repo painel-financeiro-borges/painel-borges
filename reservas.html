@@ -1,116 +1,401 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>Sistema Inteligente de Reserva</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Reserva de Segurança — Sistema Inteligente</title>
+
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background: #0f172a;
-  color: #e5e7eb;
-  padding: 20px;
+/* =========================
+   PALETA E BASE VISUAL
+========================= */
+:root{
+  --bg:#0f172a;
+  --card:#111827;
+  --accent:#3b82f6;
+  --ok:#22c55e;
+  --warn:#f59e0b;
+  --danger:#ef4444;
+  --text:#e5e7eb;
+  --muted:#9ca3af;
+  --border:#1f2937;
 }
-textarea, input, select, button {
-  width: 100%;
-  margin: 6px 0;
-  padding: 10px;
-  border-radius: 6px;
-  border: none;
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background:linear-gradient(180deg,#020617,#020617);
+  color:var(--text);
 }
-textarea { height: 220px; font-family: monospace; }
-button {
-  background: #2563eb;
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
+
+h1,h2,h3{margin:0 0 10px}
+small{color:var(--muted)}
+
+.container{
+  max-width:1100px;
+  margin:auto;
+  padding:20px;
 }
-.card {
-  background: #020617;
-  padding: 15px;
-  border-radius: 10px;
-  margin-bottom: 15px;
+
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:18px;
+  margin-bottom:20px;
+  box-shadow:0 10px 25px rgba(0,0,0,.35);
 }
-.log {
-  background: #020617;
-  padding: 10px;
-  border-left: 4px solid #2563eb;
-  margin-top: 10px;
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:16px;
 }
-.block { border-left-color: #dc2626; }
-.ok { border-left-color: #16a34a; }
-.warn { border-left-color: #facc15; }
+
+button{
+  background:var(--accent);
+  border:none;
+  color:white;
+  padding:10px 14px;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:600;
+}
+button.secondary{background:#334155}
+button.warn{background:var(--warn)}
+button.danger{background:var(--danger)}
+button.ok{background:var(--ok)}
+button:disabled{opacity:.5;cursor:not-allowed}
+
+input,select,textarea{
+  width:100%;
+  padding:8px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  background:#020617;
+  color:var(--text);
+}
+
+/* =========================
+   STATUS
+========================= */
+.status{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-weight:700;
+}
+.dot{
+  width:14px;height:14px;border-radius:50%;
+}
+.dot.ok{background:var(--ok)}
+.dot.warn{background:var(--warn)}
+.dot.danger{background:var(--danger)}
+
+/* =========================
+   MODAL
+========================= */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
+}
+.modal .box{
+  background:var(--card);
+  border-radius:14px;
+  padding:20px;
+  max-width:420px;
+  width:90%;
+  border:1px solid var(--border);
+}
+.modal.show{display:flex}
+
+/* =========================
+   TABELA SIMPLES
+========================= */
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+th,td{
+  border-bottom:1px solid var(--border);
+  padding:8px;
+  text-align:left;
+}
+th{color:var(--muted)}
 </style>
 </head>
+
 <body>
+<div class="container">
 
-<h2>🛡️ Sistema de Reserva por Regras</h2>
-
+<!-- =========================
+     CABEÇALHO
+========================= -->
 <div class="card">
-<h3>📥 JSON das Regras</h3>
-<textarea id="jsonInput" placeholder="Cole aqui o JSON da reserva"></textarea>
-<button onclick="loadJSON()">Carregar Sistema</button>
+  <h1>Reserva de Segurança</h1>
+  <small>Sistema financeiro pessoal com regras, decisão e proteção emocional</small>
 </div>
 
-<div class="card">
-<h3>💰 Simulador de Saque</h3>
-<input type="number" id="valor" placeholder="Valor do saque">
-<select id="categoria"></select>
-<button onclick="simularSaque()">Simular Saque</button>
+<!-- =========================
+     ESTADO DA RESERVA
+========================= -->
+<div class="grid">
+  <div class="card">
+    <h3>Saldo Atual</h3>
+    <input type="number" id="saldo" placeholder="Digite o saldo atual"/>
+    <small>Valor real da sua reserva</small>
+  </div>
+
+  <div class="card">
+    <h3>Status do Sistema</h3>
+    <div class="status" id="status">
+      <div class="dot warn"></div>
+      <span>Não calculado</span>
+    </div>
+    <small>Baseado no saldo</small>
+  </div>
 </div>
 
-<div id="resultado"></div>
+<!-- =========================
+     REGRAS
+========================= -->
+<div class="card">
+  <h2>Regras de Uso</h2>
+  <small>Editor visual — nenhuma regra altera sem confirmação</small>
+
+  <table id="rulesTable">
+    <thead>
+      <tr>
+        <th>Regra</th>
+        <th>Prioridade</th>
+        <th>Limite</th>
+        <th>Pode Sacar?</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <br/>
+  <button onclick="openRuleEditor()">+ Nova Regra</button>
+</div>
+
+<!-- =========================
+     SIMULADOR
+========================= -->
+<div class="card">
+  <h2>Simulador de Saque</h2>
+
+  <div class="grid">
+    <div>
+      <label>Valor</label>
+      <input type="number" id="simValor"/>
+    </div>
+    <div>
+      <label>Motivo</label>
+      <select id="simMotivo"></select>
+    </div>
+  </div>
+
+  <br/>
+  <button class="warn" onclick="simular()">Simular</button>
+
+  <div id="resultadoSim" style="margin-top:15px"></div>
+</div>
+
+<!-- =========================
+     JSON
+========================= -->
+<div class="card">
+  <h2>JSON / Backup</h2>
+
+  <textarea id="jsonArea" rows="8" placeholder="Cole o JSON aqui"></textarea>
+  <br/><br/>
+
+  <input type="file" accept=".json" onchange="importFile(event)"/>
+  <br/><br/>
+
+  <button onclick="importJSON()">Importar</button>
+  <button class="secondary" onclick="exportJSON()">Exportar</button>
+</div>
+
+</div>
+
+<!-- =========================
+     MODAL
+========================= -->
+<div class="modal" id="modal">
+  <div class="box">
+    <h3 id="modalTitle"></h3>
+    <p id="modalText"></p>
+    <br/>
+    <button class="danger" onclick="confirmModal()">Confirmar</button>
+    <button class="secondary" onclick="closeModal()">Cancelar</button>
+  </div>
+</div>
 
 <script>
-let sistema = null;
+/* =========================
+   ESTADO GLOBAL
+========================= */
+let data = {
+  saldo: 0,
+  regras: [
+    {nome:"Manutenção", prioridade:"Alta", limite:1000, pode:true},
+    {nome:"Saúde", prioridade:"Alta", limite:800, pode:true},
+    {nome:"Lazer", prioridade:"Baixa", limite:300, pode:false}
+  ]
+};
 
-function loadJSON() {
-  try {
-    sistema = JSON.parse(document.getElementById("jsonInput").value);
-    const select = document.getElementById("categoria");
-    select.innerHTML = "";
-    sistema.usage_categories.forEach(c => {
-      const opt = document.createElement("option");
-      opt.value = c.id;
-      opt.textContent = c.name;
+let modalAction = null;
+
+/* =========================
+   UTIL
+========================= */
+function salvarLocal(){
+  localStorage.setItem("reservaData",JSON.stringify(data));
+}
+function carregarLocal(){
+  const s = localStorage.getItem("reservaData");
+  if(s) data = JSON.parse(s);
+}
+function atualizarStatus(){
+  const s = document.getElementById("status");
+  s.innerHTML="";
+  let dot=document.createElement("div");
+  dot.classList.add("dot");
+  let txt=document.createElement("span");
+
+  if(data.saldo < 500){
+    dot.classList.add("danger");
+    txt.textContent="Crítico";
+  }else if(data.saldo < 2000){
+    dot.classList.add("warn");
+    txt.textContent="Atenção";
+  }else{
+    dot.classList.add("ok");
+    txt.textContent="Confortável";
+  }
+  s.append(dot,txt);
+}
+
+/* =========================
+   REGRAS
+========================= */
+function renderRules(){
+  const tbody=document.querySelector("#rulesTable tbody");
+  tbody.innerHTML="";
+  const select=document.getElementById("simMotivo");
+  select.innerHTML="";
+
+  data.regras.forEach((r,i)=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td>${r.nome}</td>
+      <td>${r.prioridade}</td>
+      <td>R$ ${r.limite}</td>
+      <td>${r.pode?"Sim":"Não"}</td>
+      <td>
+        <button class="secondary" onclick="editRule(${i})">Editar</button>
+        <button class="danger" onclick="askDelete(${i})">Excluir</button>
+      </td>`;
+    tbody.appendChild(tr);
+
+    if(r.pode){
+      const opt=document.createElement("option");
+      opt.value=i;
+      opt.textContent=r.nome;
       select.appendChild(opt);
+    }
+  });
+}
+
+/* =========================
+   SIMULAÇÃO
+========================= */
+function simular(){
+  const valor=Number(document.getElementById("simValor").value);
+  const idx=document.getElementById("simMotivo").value;
+  const r=data.regras[idx];
+  let out="";
+
+  if(valor>data.saldo){
+    out="❌ Bloqueado: saldo insuficiente.";
+  }else if(!r.pode){
+    out="❌ Bloqueado: regra não permite saque.";
+  }else if(valor>r.limite){
+    out="⚠️ Permitido com risco: excede limite da regra.";
+  }else{
+    out="✅ Autorizado: dentro das regras.";
+  }
+  document.getElementById("resultadoSim").textContent=out;
+}
+
+/* =========================
+   JSON
+========================= */
+function importJSON(){
+  try{
+    const obj=JSON.parse(document.getElementById("jsonArea").value);
+    confirmAction(()=>{
+      data=obj;
+      salvarLocal();
+      init();
     });
-    alert("Sistema carregado com sucesso.");
-  } catch {
-    alert("JSON inválido.");
+  }catch{
+    alert("JSON inválido");
   }
 }
-
-function simularSaque() {
-  if (!sistema) return alert("Carregue o sistema primeiro.");
-
-  const valor = Number(document.getElementById("valor").value);
-  const catId = document.getElementById("categoria").value;
-  const reserva = sistema.main_reserve;
-  const categoria = sistema.usage_categories.find(c => c.id === catId);
-
-  let msg = "";
-  let status = "ok";
-
-  if (!categoria.allowed) {
-    msg = "Saque BLOQUEADO. Categoria não permitida.";
-    status = "block";
-  } else if ((reserva.balance - valor) < reserva.meta.minimum_safe) {
-    msg = "Saque NEGADO. Violaria o mínimo de segurança.";
-    status = "block";
-  } else {
-    msg = "Saque APROVADO dentro das regras.";
-  }
-
-  document.getElementById("resultado").innerHTML = `
-    <div class="log ${status}">
-      <strong>Resultado:</strong><br>
-      ${msg}<br><br>
-      <small>Reserva atual: R$ ${reserva.balance.toFixed(2)}</small>
-    </div>
-  `;
+function exportJSON(){
+  document.getElementById("jsonArea").value=JSON.stringify(data,null,2);
 }
+function importFile(e){
+  const f=e.target.files[0];
+  const r=new FileReader();
+  r.onload=()=>document.getElementById("jsonArea").value=r.result;
+  r.readAsText(f);
+}
+
+/* =========================
+   MODAL
+========================= */
+function confirmAction(fn){
+  modalAction=fn;
+  document.getElementById("modalTitle").textContent="Confirmação";
+  document.getElementById("modalText").textContent="Deseja realmente aplicar essa alteração?";
+  document.getElementById("modal").classList.add("show");
+}
+function confirmModal(){
+  if(modalAction) modalAction();
+  closeModal();
+}
+function closeModal(){
+  document.getElementById("modal").classList.remove("show");
+  modalAction=null;
+}
+
+/* =========================
+   INIT
+========================= */
+function init(){
+  document.getElementById("saldo").value=data.saldo;
+  atualizarStatus();
+  renderRules();
+}
+document.getElementById("saldo").addEventListener("change",e=>{
+  data.saldo=Number(e.target.value);
+  salvarLocal();
+  atualizarStatus();
+});
+
+carregarLocal();
+init();
 </script>
-
 </body>
 </html>
