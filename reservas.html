@@ -2,280 +2,113 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<title>Sistema Inteligente de Reserva</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Motor Inteligente de Reservas</title>
-
 <style>
-/* ==========================
-   ESTILO GERAL — MOBILE FIRST
-========================== */
-
 body {
   font-family: Arial, sans-serif;
-  background: #0f1220;
-  color: #eaeaf0;
-  margin: 0;
-  padding: 16px;
+  background: #0f172a;
+  color: #e5e7eb;
+  padding: 20px;
 }
-
-h1, h2, h3 {
-  margin: 8px 0;
-}
-
-.card {
-  background: #1b1f3b;
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 16px;
-  box-shadow: 0 4px 12px rgba(0,0,0,.3);
-}
-
-button {
+textarea, input, select, button {
   width: 100%;
-  padding: 12px;
-  margin-top: 8px;
+  margin: 6px 0;
+  padding: 10px;
+  border-radius: 6px;
   border: none;
-  border-radius: 8px;
-  background: #4f7cff;
+}
+textarea { height: 220px; font-family: monospace; }
+button {
+  background: #2563eb;
   color: white;
   font-weight: bold;
   cursor: pointer;
 }
-
-button.danger {
-  background: #ff4f4f;
+.card {
+  background: #020617;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 15px;
 }
-
-button.secondary {
-  background: #2a2f55;
-}
-
-textarea, input, select {
-  width: 100%;
-  padding: 10px;
-  margin-top: 6px;
-  border-radius: 6px;
-  border: none;
-  background: #2a2f55;
-  color: #fff;
-}
-
-small {
-  color: #aaa;
-}
-
 .log {
-  background: #0b0e1a;
+  background: #020617;
   padding: 10px;
-  border-radius: 8px;
-  font-size: 14px;
+  border-left: 4px solid #2563eb;
   margin-top: 10px;
-  white-space: pre-wrap;
 }
-
-/* RESERVAS */
-.reserve {
-  display: flex;
-  justify-content: space-between;
-  margin: 6px 0;
-  font-size: 14px;
-}
+.block { border-left-color: #dc2626; }
+.ok { border-left-color: #16a34a; }
+.warn { border-left-color: #facc15; }
 </style>
 </head>
-
 <body>
 
-<h1>🧠 Motor Inteligente de Reservas</h1>
-
-<!-- ==========================
-     IMPORTAÇÃO DO JSON
-========================== -->
+<h2>🛡️ Sistema de Reserva por Regras</h2>
 
 <div class="card">
-  <h2>📂 Importar Sistema</h2>
-
-  <input type="file" id="fileInput" accept=".json">
-  <button onclick="loadFromFile()">Carregar arquivo JSON</button>
-
-  <h3>Ou cole o JSON</h3>
-  <textarea id="jsonInput" rows="8"></textarea>
-  <button class="secondary" onclick="loadFromTextarea()">Validar & Integrar</button>
+<h3>📥 JSON das Regras</h3>
+<textarea id="jsonInput" placeholder="Cole aqui o JSON da reserva"></textarea>
+<button onclick="loadJSON()">Carregar Sistema</button>
 </div>
-
-<!-- ==========================
-     STATUS DO SISTEMA
-========================== -->
 
 <div class="card">
-  <h2>📊 Status</h2>
-  <div id="status">Nenhum sistema carregado</div>
+<h3>💰 Simulador de Saque</h3>
+<input type="number" id="valor" placeholder="Valor do saque">
+<select id="categoria"></select>
+<button onclick="simularSaque()">Simular Saque</button>
 </div>
 
-<!-- ==========================
-     RESERVAS
-========================== -->
-
-<div class="card">
-  <h2>💰 Reservas</h2>
-  <div id="reservesList"></div>
-</div>
-
-<!-- ==========================
-     SAQUE INTELIGENTE
-========================== -->
-
-<div class="card">
-  <h2>🔘 Solicitar Saque</h2>
-
-  <label>Reserva</label>
-  <select id="withdrawReserve"></select>
-
-  <label>Valor</label>
-  <input type="number" id="withdrawValue">
-
-  <label>Motivo</label>
-  <select id="withdrawReason">
-    <option value="emergencia">Emergência</option>
-    <option value="renda">Renda</option>
-    <option value="saude">Saúde</option>
-    <option value="lazer">Lazer</option>
-    <option value="outro">Outro</option>
-  </select>
-
-  <button onclick="requestWithdraw()">Solicitar</button>
-
-  <div class="log" id="log"></div>
-</div>
+<div id="resultado"></div>
 
 <script>
-/* ==========================
-   ESTADO GLOBAL
-========================== */
+let sistema = null;
 
-let SYSTEM = null;
-
-/* ==========================
-   FUNÇÕES DE CARGA
-========================== */
-
-function loadFromFile() {
-  const file = document.getElementById('fileInput').files[0];
-  if (!file) return alert("Selecione um arquivo.");
-
-  const reader = new FileReader();
-  reader.onload = e => parseSystem(e.target.result);
-  reader.readAsText(file);
-}
-
-function loadFromTextarea() {
-  const text = document.getElementById('jsonInput').value;
-  parseSystem(text);
-}
-
-function parseSystem(jsonText) {
+function loadJSON() {
   try {
-    const data = JSON.parse(jsonText);
-    validateSystem(data);
-    SYSTEM = data;
-    renderSystem();
-    log("✅ Sistema carregado com sucesso.");
-  } catch (e) {
-    alert("Erro no JSON: " + e.message);
+    sistema = JSON.parse(document.getElementById("jsonInput").value);
+    const select = document.getElementById("categoria");
+    select.innerHTML = "";
+    sistema.usage_categories.forEach(c => {
+      const opt = document.createElement("option");
+      opt.value = c.id;
+      opt.textContent = c.name;
+      select.appendChild(opt);
+    });
+    alert("Sistema carregado com sucesso.");
+  } catch {
+    alert("JSON inválido.");
   }
 }
 
-/* ==========================
-   VALIDAÇÃO
-========================== */
+function simularSaque() {
+  if (!sistema) return alert("Carregue o sistema primeiro.");
 
-function validateSystem(data) {
-  if (!data.reserves || !Array.isArray(data.reserves)) {
-    throw new Error("Estrutura inválida: reserves");
+  const valor = Number(document.getElementById("valor").value);
+  const catId = document.getElementById("categoria").value;
+  const reserva = sistema.main_reserve;
+  const categoria = sistema.usage_categories.find(c => c.id === catId);
+
+  let msg = "";
+  let status = "ok";
+
+  if (!categoria.allowed) {
+    msg = "Saque BLOQUEADO. Categoria não permitida.";
+    status = "block";
+  } else if ((reserva.balance - valor) < reserva.meta.minimum_safe) {
+    msg = "Saque NEGADO. Violaria o mínimo de segurança.";
+    status = "block";
+  } else {
+    msg = "Saque APROVADO dentro das regras.";
   }
 
-  data.reserves.forEach(r => {
-    if (r.balance < 0) throw new Error("Saldo negativo em " + r.name);
-    if (r.floor > r.balance) {
-      console.warn("Piso maior que saldo em " + r.name);
-    }
-  });
-}
-
-/* ==========================
-   RENDERIZAÇÃO
-========================== */
-
-function renderSystem() {
-  document.getElementById('status').innerText =
-    `Modo: ${SYSTEM.meta?.mode || 'normal'} | Última atualização: ${SYSTEM.meta?.lastUpdate || '-'}`;
-
-  const list = document.getElementById('reservesList');
-  list.innerHTML = '';
-
-  const select = document.getElementById('withdrawReserve');
-  select.innerHTML = '';
-
-  SYSTEM.reserves.forEach(r => {
-    const div = document.createElement('div');
-    div.className = 'reserve';
-    div.innerHTML = `<span>${r.name}</span><strong>R$ ${r.balance.toFixed(2)}</strong>`;
-    list.appendChild(div);
-
-    const opt = document.createElement('option');
-    opt.value = r.id;
-    opt.textContent = r.name;
-    select.appendChild(opt);
-  });
-}
-
-/* ==========================
-   MOTOR DE SAQUE
-========================== */
-
-function requestWithdraw() {
-  const reserveId = document.getElementById('withdrawReserve').value;
-  const value = parseFloat(document.getElementById('withdrawValue').value);
-  const reason = document.getElementById('withdrawReason').value;
-
-  if (!value || value <= 0) return log("❌ Valor inválido.");
-
-  const reserve = SYSTEM.reserves.find(r => r.id === reserveId);
-  if (!reserve) return;
-
-  // Regra: saldo suficiente
-  if (reserve.balance - value < 0) {
-    return log("❌ Saldo insuficiente.");
-  }
-
-  // Regra: piso mínimo
-  if (reserve.floor !== undefined && reserve.balance - value < reserve.floor) {
-    return log(`❌ Saque bloqueado: quebra o piso mínimo de ${reserve.name}.`);
-  }
-
-  // Regra: lazer em modo defensivo
-  if (SYSTEM.meta?.mode === "defensivo" && reason === "lazer") {
-    return log("❌ Modo defensivo ativo. Lazer bloqueado.");
-  }
-
-  // Regra: bloqueios específicos
-  if (reserve.blockedFor?.includes(reason)) {
-    return log(`❌ Motivo "${reason}" não permitido nessa reserva.`);
-  }
-
-  // EXECUTA
-  reserve.balance -= value;
-  SYSTEM.meta.lastUpdate = new Date().toISOString().slice(0,10);
-
-  renderSystem();
-  log(`✅ Saque aprovado. Novo saldo: R$ ${reserve.balance.toFixed(2)}`);
-}
-
-/* ==========================
-   LOG
-========================== */
-
-function log(msg) {
-  document.getElementById('log').innerText = msg;
+  document.getElementById("resultado").innerHTML = `
+    <div class="log ${status}">
+      <strong>Resultado:</strong><br>
+      ${msg}<br><br>
+      <small>Reserva atual: R$ ${reserva.balance.toFixed(2)}</small>
+    </div>
+  `;
 }
 </script>
 
