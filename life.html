@@ -257,21 +257,26 @@
                 error.classList.remove('hidden');
             }
         };
+       // Função de Carregamento Inteligente: Identifica erros reais de permissão ou rede
         async function loadDataFromFirebase() {
             try {
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
+                    // Mescla os dados da nuvem com os locais, mantendo o que for novo
                     window.data = { ...window.data, ...docSnap.data() };
                     if(!window.data.yieldBalance) window.data.yieldBalance = 0; 
                     checkCompoundInterest(); 
-                } else { saveDataToFirebase(); }
+                } else { 
+                    // Se o documento sumir por algum motivo, ele recria com os R$ 3M padrão
+                    saveDataToFirebase(); 
+                }
                 updateUI(false); 
             } catch (e) { 
-                console.error(e); 
-                alert("Erro de conexão. Verifique sua internet."); 
+                console.error("Erro detalhado do Firebase:", e); 
+                // Agora o alerta te diz o erro real (ex: 'permission-denied') em vez de mentir sobre a internet
+                alert("Falha ao acessar o Cofre: " + (e.code === 'permission-denied' ? "O Firebase bloqueou o acesso. Verifique se publicou as Regras 'if true'." : "Erro de conexão ou servidor.")); 
             }
         }
-
         async function saveDataToFirebase() {
             try { window.data.lastLogin = new Date().toISOString(); await setDoc(docRef, window.data); updateUI(); } catch (e) { console.error("Erro ao salvar:", e); }
         }
