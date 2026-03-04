@@ -181,13 +181,10 @@
     <div id="config-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4"><div class="glass w-full max-w-sm p-6 rounded-2xl"><button onclick="closeModal('config-modal')" class="absolute top-4 right-4 text-zinc-500"><i class="fa-solid fa-xmark"></i></button><h3 class="text-lg font-bold text-white mb-4">Custo de Vida</h3><input type="number" id="monthly-cost" class="w-full bg-zinc-900 rounded-xl p-3 text-white outline-none mb-4"><button onclick="saveConfig()" class="w-full bg-white text-black font-bold py-2 rounded-xl">Salvar</button></div></div>
 
     <script type="module">
+        // Importações unificadas: Motor Principal, Banco de Dados e Segurança por E-mail
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        // Importamos o Firestore para dados e o Auth para identificação oficial do usuário
-// Importamos o Firestore e o Auth para garantir que o login do Google seja reconhecido
-import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-// Importamos o método de login por e-mail e senha, que é o mais seguro para larga escala
-import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         // CHAVES REAIS DO PROJETO
         const firebaseConfig = {
