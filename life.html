@@ -207,33 +207,37 @@ import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/fir
 
         // SISTEMA DE LOGIN SEGURO
        // Função que valida sua senha e abre o sistema
+       // Sistema de Login Profissional: Vincula a senha do painel ao seu e-mail no Firebase
         window.checkPassword = async () => {
-            const input = document.getElementById('password-input').value; // Pega o que você digitou
-            const error = document.getElementById('auth-error'); // Lugar da mensagem de erro
+            const input = document.getElementById('password-input').value; // Pega a senha digitada no campo
+            const error = document.getElementById('auth-error'); // Referência para exibir erro de senha
+            const emailAdmin = "contatogilborges@gmail.com"; // Seu e-mail oficial de administrador
             
             if (input === "Liberdade@123456") {
                 try {
-                    // CRUCIAL: Identifica o acesso para o Firebase para evitar bloqueios de segurança
-                    await signInAnonymously(auth); 
+                    // Tenta a autenticação oficial com E-mail e Senha no Firebase. 
+                    // Isso garante que os dados fiquem amarrados à sua conta permanentemente.
+                    await signInWithEmailAndPassword(auth, emailAdmin, input);
                     
-                    document.getElementById('auth-gate').style.opacity = '0'; // Esconde a tela de senha
+                    document.getElementById('auth-gate').style.opacity = '0'; // Inicia o efeito de sumir a tela de login
                     setTimeout(() => document.getElementById('auth-gate').classList.add('hidden'), 500);
-                    document.getElementById('app-content').classList.remove('hidden'); // Mostra o conteúdo
-                    document.getElementById('loading-screen').classList.remove('hidden'); // Tela de carregamento
+                    document.getElementById('app-content').classList.remove('hidden'); // Libera o painel principal
+                    document.getElementById('loading-screen').classList.remove('hidden'); // Mostra tela de carregamento
                     
-                    await loadDataFromFirebase(); // Busca seus dados na nuvem
+                    await loadDataFromFirebase(); // Busca os dados protegidos na nuvem
                     
-                    document.getElementById('loading-screen').classList.add('hidden'); // Esconde carregamento
-                    setInterval(rotateAfformation, 10000); // Inicia frases de efeito
+                    document.getElementById('loading-screen').classList.add('hidden'); // Finaliza o carregamento
+                    setInterval(rotateAfformation, 10000); // Inicia as frases de reprogramação mental
                     rotateAfformation(); 
-                    setInterval(rotateSlide, 8000); // Inicia troca de fundos
-                    animateValue("display-principal", 0, window.data.principal, 1500); // Anima o saldo subindo
+                    setInterval(rotateSlide, 8000); // Inicia o carrossel de fundos de tela
+                    animateValue("display-principal", 0, window.data.principal, 1500); // Faz o saldo subir animado
                 } catch (e) {
-                    console.error("Erro na autenticação de segurança:", e);
-                    alert("Falha técnica ao contatar o servidor de segurança.");
+                    console.error("Erro de Autenticação:", e);
+                    // Caso o login falhe no servidor (ex: usuário não criado no console do Firebase)
+                    alert("Acesso Negado: Verifique se o usuário " + emailAdmin + " já foi criado no Firebase Auth.");
                 }
             } else {
-                error.classList.remove('hidden'); // Mostra "Senha Incorreta"
+                error.classList.remove('hidden'); // Exibe a mensagem de "Senha Incorreta" na tela
             }
         };
         async function loadDataFromFirebase() {
