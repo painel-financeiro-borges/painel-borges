@@ -212,40 +212,37 @@
                 console.log("Aguardando login oficial...");
             }
         });
-        // SISTEMA DE LOGIN SEGURO
-       // Função que valida sua senha e abre o sistema
-       // Sistema de Login Profissional: Vincula a senha do painel ao seu e-mail no Firebase
-      2- E COLA ESSE NO LUGAR:
-
-JavaScript
-
-        // Função que valida sua senha e sincroniza com a segurança do Google
+        // Sistema Profissional: Login direto via código para liberar o banco de dados
         window.checkPassword = async () => {
-            const input = document.getElementById('password-input').value;
-            const error = document.getElementById('auth-error');
+            const input = document.getElementById('password-input').value.trim(); // Pega a senha e remove espaços
+            const error = document.getElementById('auth-error'); // Mensagem de erro visual
+            const emailAdmin = "contatogilborges@gmail.com"; // E-mail administrador vinculado ao Firebase
             
             if (input === "Liberdade@123456") {
-                // Bloqueia a entrada se o login do Google ainda não tiver sido validado
-                if (!auth.currentUser) {
-                    alert("Acesso negado pelo Firebase: Você precisa estar logado com sua conta Google no painel.");
-                    return;
+                try {
+                    // Realiza o login oficial no Firebase Authentication
+                    // Isso é o que impede o erro de 'Missing or insufficient permissions'
+                    await signInWithEmailAndPassword(auth, emailAdmin, input);
+                    
+                    document.getElementById('auth-gate').style.opacity = '0'; // Esconde tela de bloqueio
+                    setTimeout(() => document.getElementById('auth-gate').classList.add('hidden'), 500);
+                    document.getElementById('app-content').classList.remove('hidden'); // Abre o sistema
+                    document.getElementById('loading-screen').classList.remove('hidden'); // Tela de "Conectando..."
+                    
+                    await loadDataFromFirebase(); // Puxa os dados (R$ 3M e histórico) da nuvem
+                    
+                    document.getElementById('loading-screen').classList.add('hidden'); // Fecha o carregamento
+                    setInterval(rotateAfformation, 10000); // Inicia afirmações
+                    rotateAfformation(); 
+                    setInterval(rotateSlide, 8000); // Inicia slides de fundo
+                    animateValue("display-principal", 0, window.data.principal, 1500); // Anima o saldo principal
+                } catch (e) {
+                    console.error("Erro no Servidor de Autenticação:", e);
+                    // Se der erro aqui, você precisa conferir se o e-mail/senha estão idênticos no site do Firebase
+                    alert("Acesso Negado: O e-mail " + emailAdmin + " não foi autenticado pelo servidor.");
                 }
-
-                document.getElementById('auth-gate').style.opacity = '0'; 
-                setTimeout(() => document.getElementById('auth-gate').classList.add('hidden'), 500);
-                document.getElementById('app-content').classList.remove('hidden');
-                document.getElementById('loading-screen').classList.remove('hidden');
-                
-                // Busca os dados (agora o Firebase permite a leitura pois você está logado)
-                await loadDataFromFirebase();
-                
-                document.getElementById('loading-screen').classList.add('hidden');
-                setInterval(rotateAfformation, 10000); 
-                rotateAfformation(); 
-                setInterval(rotateSlide, 8000);
-                animateValue("display-principal", 0, window.data.principal, 1500);
             } else {
-                error.classList.remove('hidden');
+                error.classList.remove('hidden'); // Erro de senha digitada incorretamente
             }
         };
         async function loadDataFromFirebase() {
