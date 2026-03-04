@@ -200,8 +200,8 @@
 
         window.data = { principal: 3000000, wallet: 0, yieldBalance: 0, monthlyCost: 5000, history: [], assets: [], habits: [{ id: 1, text: "Natação de Levy (Presença)", done: false }, { id: 2, text: "Capoeira / Academia", done: false }, { id: 3, text: "Casa da Mainha (Cuidado)", done: false }, { id: 4, text: "Inglês (30min)", done: false }], lastLogin: new Date().toISOString() };
 
-        // SISTEMA DIRETO: A senha no navegador libera os dados da nuvem
-        window.checkPassword = async () => {
+        // SISTEMA DIRETO: Senha local libera os dados sem exigir login de e-mail
+        const checkPassword = async () => {
             const input = document.getElementById('password-input').value;
             const error = document.getElementById('auth-error');
             
@@ -211,18 +211,20 @@
                 document.getElementById('app-content').classList.remove('hidden');
                 document.getElementById('loading-screen').classList.remove('hidden');
                 
-                // Vai direto buscar os dados porque as REGRAS lá no site permitem
+                // Tenta carregar os dados (Requer que as 'Rules' do Firebase estejam 'if true')
                 await loadDataFromFirebase();
                 
                 document.getElementById('loading-screen').classList.add('hidden');
-                setInterval(rotateAfformation, 10000); 
-                rotateAfformation(); 
+                setInterval(rotateAfformation, 10000); rotateAfformation(); 
                 setInterval(rotateSlide, 8000);
                 animateValue("display-principal", 0, window.data.principal, 1500);
             } else {
                 error.classList.remove('hidden');
             }
         };
+
+        // EXPOSTO PARA O HTML: Garante que o botão onclick="checkPassword()" funcione
+        window.checkPassword = checkPassword;
 
         window.data = { principal: 3000000, wallet: 0, yieldBalance: 0, monthlyCost: 5000, history: [], assets: [], habits: [{ id: 1, text: "Natação de Levy (Presença)", done: false }, { id: 2, text: "Capoeira / Academia", done: false }, { id: 3, text: "Casa da Mainha (Cuidado)", done: false }, { id: 4, text: "Inglês (30min)", done: false }], lastLogin: new Date().toISOString() };
 
