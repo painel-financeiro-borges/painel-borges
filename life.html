@@ -226,30 +226,33 @@
         // EXPOSTO PARA O HTML: Garante que o botão onclick="checkPassword()" funcione
         window.checkPassword = checkPassword;
 
+        // 1. Dados de Backup: Entram em ação se o Firebase falhar
         window.data = { principal: 3000000, wallet: 0, yieldBalance: 0, monthlyCost: 5000, history: [], assets: [], habits: [{ id: 1, text: "Natação de Levy (Presença)", done: false }, { id: 2, text: "Capoeira / Academia", done: false }, { id: 3, text: "Casa da Mainha (Cuidado)", done: false }, { id: 4, text: "Inglês (30min)", done: false }], lastLogin: new Date().toISOString() };
 
-       window.checkPassword = checkPassword;
-        // Sistema Direto: Senha local libera o acesso aos dados da nuvem
+        // 2. Trava de Segurança: Apenas a senha local abre o portal
         window.checkPassword = async () => {
             const input = document.getElementById('password-input').value;
             const error = document.getElementById('auth-error');
             
             if (input === "Liberdade@123456") {
-                // Remove a tela de bloqueio instantaneamente
+                // Efeito visual de transição
                 document.getElementById('auth-gate').style.opacity = '0';
                 setTimeout(() => document.getElementById('auth-gate').classList.add('hidden'), 500);
                 document.getElementById('app-content').classList.remove('hidden');
                 document.getElementById('loading-screen').classList.remove('hidden');
                 
-                // Tenta carregar os dados direto
+                // Busca os dados na nuvem (Requer Regra 'if true' no site do Firebase)
                 await loadDataFromFirebase();
                 
+                // Inicia rituais e animações após carregar os dados
                 document.getElementById('loading-screen').classList.add('hidden');
                 setInterval(rotateAfformation, 10000); rotateAfformation();
                 setInterval(rotateSlide, 8000);
+                
+                // Anima o saldo principal de R$ 0,00 até o valor real do Gil
                 animateValue("display-principal", 0, window.data.principal, 1500);
             } else {
-                error.classList.remove('hidden');
+                error.classList.remove('hidden'); // Exibe "Senha Incorreta"
             }
         };
        // Função de Carregamento Inteligente: Identifica erros reais de permissão ou rede
