@@ -184,7 +184,7 @@
         // Importações unificadas: Motor Principal, Banco de Dados e Segurança por E-mail
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        
 
         // CHAVES REAIS DO PROJETO
         const firebaseConfig = {
@@ -199,7 +199,6 @@
 
         const app = initializeApp(firebaseConfig); // Inicializa o motor principal do Firebase
         const db = getFirestore(app); // Conecta ao banco de dados Firestore
-        const auth = getAuth(app); // Ativa o sistema de segurança e login
         const docRef = doc(db, "life_os", "main_data");
 
         window.data = { principal: 3000000, wallet: 0, yieldBalance: 0, monthlyCost: 5000, history: [], assets: [], habits: [{ id: 1, text: "Natação de Levy (Presença)", done: false }, { id: 2, text: "Capoeira / Academia", done: false }, { id: 3, text: "Casa da Mainha (Cuidado)", done: false }, { id: 4, text: "Inglês (30min)", done: false }], lastLogin: new Date().toISOString() };
