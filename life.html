@@ -205,26 +205,36 @@ import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/1
         window.data = { principal: 3000000, wallet: 0, yieldBalance: 0, monthlyCost: 5000, history: [], assets: [], habits: [{ id: 1, text: "Natação de Levy (Presença)", done: false }, { id: 2, text: "Capoeira / Academia", done: false }, { id: 3, text: "Casa da Mainha (Cuidado)", done: false }, { id: 4, text: "Inglês (30min)", done: false }], lastLogin: new Date().toISOString() };
 
         // SISTEMA DE LOGIN SEGURO
+       // Função que valida sua senha e abre o sistema
         window.checkPassword = async () => {
-            const input = document.getElementById('password-input').value;
-            const error = document.getElementById('auth-error');
+            const input = document.getElementById('password-input').value; // Pega o que você digitou
+            const error = document.getElementById('auth-error'); // Lugar da mensagem de erro
+            
             if (input === "Liberdade@123456") {
-                document.getElementById('auth-gate').style.opacity = '0';
-                setTimeout(() => document.getElementById('auth-gate').classList.add('hidden'), 500);
-                document.getElementById('app-content').classList.remove('hidden');
-                document.getElementById('loading-screen').classList.remove('hidden');
-                
-                await loadDataFromFirebase();
-                
-                document.getElementById('loading-screen').classList.add('hidden');
-                setInterval(rotateAfformation, 10000); rotateAfformation();
-                setInterval(rotateSlide, 8000);
-                animateValue("display-principal", 0, window.data.principal, 1500);
+                try {
+                    // CRUCIAL: Identifica o acesso para o Firebase para evitar bloqueios de segurança
+                    await signInAnonymously(auth); 
+                    
+                    document.getElementById('auth-gate').style.opacity = '0'; // Esconde a tela de senha
+                    setTimeout(() => document.getElementById('auth-gate').classList.add('hidden'), 500);
+                    document.getElementById('app-content').classList.remove('hidden'); // Mostra o conteúdo
+                    document.getElementById('loading-screen').classList.remove('hidden'); // Tela de carregamento
+                    
+                    await loadDataFromFirebase(); // Busca seus dados na nuvem
+                    
+                    document.getElementById('loading-screen').classList.add('hidden'); // Esconde carregamento
+                    setInterval(rotateAfformation, 10000); // Inicia frases de efeito
+                    rotateAfformation(); 
+                    setInterval(rotateSlide, 8000); // Inicia troca de fundos
+                    animateValue("display-principal", 0, window.data.principal, 1500); // Anima o saldo subindo
+                } catch (e) {
+                    console.error("Erro na autenticação de segurança:", e);
+                    alert("Falha técnica ao contatar o servidor de segurança.");
+                }
             } else {
-                error.classList.remove('hidden');
+                error.classList.remove('hidden'); // Mostra "Senha Incorreta"
             }
         };
-
         async function loadDataFromFirebase() {
             try {
                 const docSnap = await getDoc(docRef);
