@@ -204,6 +204,14 @@
 
         window.data = { principal: 3000000, wallet: 0, yieldBalance: 0, monthlyCost: 5000, history: [], assets: [], habits: [{ id: 1, text: "Natação de Levy (Presença)", done: false }, { id: 2, text: "Capoeira / Academia", done: false }, { id: 3, text: "Casa da Mainha (Cuidado)", done: false }, { id: 4, text: "Inglês (30min)", done: false }], lastLogin: new Date().toISOString() };
 
+        // Observador que detecta se você está logado no Firebase para liberar os dados
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                console.log("Sistema reconheceu o usuário:", user.email);
+            } else {
+                console.log("Aguardando login oficial...");
+            }
+        });
         // SISTEMA DE LOGIN SEGURO
        // Função que valida sua senha e abre o sistema
        // Sistema de Login Profissional: Vincula a senha do painel ao seu e-mail no Firebase
