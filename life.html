@@ -184,7 +184,8 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         // Importamos o Firestore para dados e o Auth para identificação oficial do usuário
 import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+// Importamos o método de login por e-mail e senha, que é o mais seguro para larga escala
+import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         // CHAVES REAIS DO PROJETO
         const firebaseConfig = {
