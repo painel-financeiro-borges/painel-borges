@@ -215,36 +215,37 @@
         // SISTEMA DE LOGIN SEGURO
        // Função que valida sua senha e abre o sistema
        // Sistema de Login Profissional: Vincula a senha do painel ao seu e-mail no Firebase
+      2- E COLA ESSE NO LUGAR:
+
+JavaScript
+
+        // Função que valida sua senha e sincroniza com a segurança do Google
         window.checkPassword = async () => {
-            const input = document.getElementById('password-input').value; // Pega a senha digitada no campo
-            const error = document.getElementById('auth-error'); // Referência para exibir erro de senha
-            const emailAdmin = "contatogilborges@gmail.com"; // Seu e-mail oficial de administrador
+            const input = document.getElementById('password-input').value;
+            const error = document.getElementById('auth-error');
             
             if (input === "Liberdade@123456") {
-                try {
-                    // Tenta a autenticação oficial com E-mail e Senha no Firebase. 
-                    // Isso garante que os dados fiquem amarrados à sua conta permanentemente.
-                    await signInWithEmailAndPassword(auth, emailAdmin, input);
-                    
-                    document.getElementById('auth-gate').style.opacity = '0'; // Inicia o efeito de sumir a tela de login
-                    setTimeout(() => document.getElementById('auth-gate').classList.add('hidden'), 500);
-                    document.getElementById('app-content').classList.remove('hidden'); // Libera o painel principal
-                    document.getElementById('loading-screen').classList.remove('hidden'); // Mostra tela de carregamento
-                    
-                    await loadDataFromFirebase(); // Busca os dados protegidos na nuvem
-                    
-                    document.getElementById('loading-screen').classList.add('hidden'); // Finaliza o carregamento
-                    setInterval(rotateAfformation, 10000); // Inicia as frases de reprogramação mental
-                    rotateAfformation(); 
-                    setInterval(rotateSlide, 8000); // Inicia o carrossel de fundos de tela
-                    animateValue("display-principal", 0, window.data.principal, 1500); // Faz o saldo subir animado
-                } catch (e) {
-                    console.error("Erro de Autenticação:", e);
-                    // Caso o login falhe no servidor (ex: usuário não criado no console do Firebase)
-                    alert("Acesso Negado: Verifique se o usuário " + emailAdmin + " já foi criado no Firebase Auth.");
+                // Bloqueia a entrada se o login do Google ainda não tiver sido validado
+                if (!auth.currentUser) {
+                    alert("Acesso negado pelo Firebase: Você precisa estar logado com sua conta Google no painel.");
+                    return;
                 }
+
+                document.getElementById('auth-gate').style.opacity = '0'; 
+                setTimeout(() => document.getElementById('auth-gate').classList.add('hidden'), 500);
+                document.getElementById('app-content').classList.remove('hidden');
+                document.getElementById('loading-screen').classList.remove('hidden');
+                
+                // Busca os dados (agora o Firebase permite a leitura pois você está logado)
+                await loadDataFromFirebase();
+                
+                document.getElementById('loading-screen').classList.add('hidden');
+                setInterval(rotateAfformation, 10000); 
+                rotateAfformation(); 
+                setInterval(rotateSlide, 8000);
+                animateValue("display-principal", 0, window.data.principal, 1500);
             } else {
-                error.classList.remove('hidden'); // Exibe a mensagem de "Senha Incorreta" na tela
+                error.classList.remove('hidden');
             }
         };
         async function loadDataFromFirebase() {
