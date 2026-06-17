@@ -501,6 +501,12 @@ window.renderGithubCalendar = function() {
     container.style.gap = '8px';
     container.style.width = '100%';
 
+    // NOVO: Adiciona um cabeçalho de título para indicar qual mês está ativo na tela
+    const titleHeader = document.createElement('div');
+    titleHeader.style.cssText = 'grid-column: span 7; text-align: center; color: #00f5ff; font-weight: bold; font-size: 15px; text-transform: uppercase; letter-spacing: 1px; padding: 5px 0 10px 0; text-shadow: 0 0 8px rgba(0,245,255,0.3);';
+    titleHeader.innerText = `📅 ${NOMES_MESES[DATA_BASE.mes]} / ${DATA_BASE.ano}`;
+    container.appendChild(titleHeader);
+
     DIAS_SEMANA.forEach(d => {
       const dayLabel = document.createElement('div');
       dayLabel.style.cssText = 'color: var(--muted); text-align: center; font-size: 11px; font-weight: bold; padding-bottom: 5px;';
@@ -523,7 +529,6 @@ window.renderGithubCalendar = function() {
       dayCell.style.cssText = 'aspect-ratio: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: var(--text); cursor: pointer; transition: all 0.2s ease;';
       dayCell.innerText = dia;
 
-      // Renderiza as cores salvas no banco
       const eventoItem = appState.eventos.find(e => e.data === dataString);
       if (eventoItem) {
         if (eventoItem.tipo === 'hoje') dayCell.className = 'day-cell c-concluido';
@@ -536,12 +541,10 @@ window.renderGithubCalendar = function() {
         dayCell.className = 'day-cell';
       }
 
-      // Gatilho do clique para abrir a edição visual
       dayCell.addEventListener('click', () => abrirEditorDia(dataString, dia));
       container.appendChild(dayCell);
     }
   } else {
-    // Modo Ano / Semestre compacto em linhas
     container.style.display = 'flex';
     container.style.flexDirection = 'column';
     container.style.gap = '12px';
@@ -549,10 +552,18 @@ window.renderGithubCalendar = function() {
 
     NOMES_MESES.forEach((nomeMes, indexMes) => {
       const row = document.createElement('div');
-      row.style.cssText = 'display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.01); padding: 6px 8px; border-radius: 8px; border-left: 3px solid rgba(160,32,240,0.3); width: 100%;';
+      // NOVO: Cursor pointer e transição de hover para indicar que a linha é clicável
+      row.style.cssText = 'display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.01); padding: 6px 8px; border-radius: 8px; border-left: 3px solid rgba(160,32,240,0.3); width: 100%; cursor: pointer; transition: background 0.2s;';
+      
+      // NOVO: Gatilho que altera o mês ativo e dá o "Zoom" ao clicar na linha do mês
+      row.addEventListener('click', () => {
+        DATA_BASE.mes = indexMes;
+        calendarMode = 'mes';
+        renderGithubCalendar();
+      });
 
       const label = document.createElement('div');
-      label.style.cssText = 'width: 45px; font-size: 11px; font-weight: bold; color: var(--muted); text-transform: uppercase; text-align: left;';
+      label.style.cssText = 'width: 45px; font-size: 11px; font-weight: bold; color: #00f5ff; text-transform: uppercase; text-align: left;';
       label.innerText = nomeMes.substring(0, 3);
       row.appendChild(label);
 
