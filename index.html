@@ -2084,11 +2084,11 @@
   <!-- Google Scripts Removed -->
 
   <!-- ===================== FIREBASE LOGIN ===================== -->
-  <script type="module">
+ <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
       from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, collection, getDocs, query, where, orderBy, limit }
+    import { getFirestore, doc, setDoc, onSnapshot }
       from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -2103,118 +2103,125 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    window.auth = auth; // Expose auth globally for security checks
-    window.db = getFirestore(app); // Global database instance for access across functions
+    window.auth = auth;
+    window.db = getFirestore(app);
     const provider = new GoogleAuthProvider();
 
     const btnLogin = document.getElementById("btnLogin");
     const btnLogout = document.getElementById("btnLogout");
+    let unsubscribeFirestore = null; // Guarda o canal de escuta ativo
 
     if (btnLogin) {
       btnLogin.addEventListener("click", () => {
-        signInWithPopup(auth, provider)
-          .catch(err => alert("Erro ao entrar: " + err.message));
+        signInWithPopup(auth, provider).catch(err => alert("Erro ao entrar: " + err.message));
       });
     }
 
     if (btnLogout) {
-      btnLogout.addEventListener("click", () => signOut(auth));
+      btnLogout.addEventListener("click", () => {
+        if (unsubscribeFirestore) unsubscribeFirestore();
+        signOut(auth);
+      });
     }
 
-    // --- FIRESTORE SYNC LOGIC ---
-
+    // --- AUTO-SAVE INTELIGENTE (SALVA SEM POPUPS) ---
     window.saveStateToFirestore = async function () {
-      // STRICT SECURITY CHECK
-      if (!window.auth || !window.auth.currentUser || !window.db) {
-        alert("⚠️ Você precisa estar logado e conectado para salvar na nuvem.");
-        return;
-      }
-
+      if (!window.auth || !window.auth.currentUser || !window.db) return;
       const user = window.auth.currentUser;
 
       try {
         const btn = document.getElementById('btnSyncAll');
-        if (btn) btn.innerText = 'Salvando...';
+        if (btn) btn.innerText = 'Sincronizando...';
 
         const docRef = doc(window.db, "users", user.uid);
-        // Deep copy state to avoid issues, though Firestore handles objects well
         const payload = JSON.parse(JSON.stringify(window.state));
+        
+        // Salva silenciosamente na nuvem
         await setDoc(docRef, payload);
 
-        alert("✅ Dados salvos na nuvem com sucesso!");
-        if (btn) btn.innerText = 'Salvar no Cloud';
+        if (btn) btn.innerText = 'Nuvem Sincronizada';
+        setTimeout(() => { if(btn) btn.innerText = 'Salvar no Cloud'; }, 1500);
       } catch (e) {
-        console.error("Erro ao salvar:", e);
-        alert("❌ Erro ao salvar na nuvem: " + e.message);
-        const btn = document.getElementById('btnSyncAll');
-        if (btn) btn.innerText = 'Salvar no Cloud';
+        console.error("Erro no auto-save:", e);
       }
     };
 
+    // --- GANCHO DE AUTO-SAVE NO PROPRIO MOTOR LOCAL ---
+    // Sobrescrevemos a função local antiga para disparar o cloud automaticamente!
+    const originalSaveLocal = window.saveLocal;
+    window.saveLocal = function() {
+      if (typeof originalSaveLocal === 'function') originalSaveLocal();
+      window.saveStateToFirestore(); // Dispara o gatilho de nuvem na mesma piscada!
+    };
 
+    // --- ESCUTA EM TEMPO REAL (MUDANÇA SILENCIOSA SEM PERGUNTAS) ---
+    function ativarEscutaTempoReal(user) {
+      if (unsubscribeFirestore) unsubscribeFirestore(); // Reseta escutas anteriores
 
+      const docRef = doc(window.db, "users", user.uid);
 
-
-    async function loadStateFromFirestore(user) {
-      // STRICT SECURITY CHECK
-      if (!user || !user.uid || !window.db) {
-        console.error("Erro: Usuário não identificado ou banco de dados não inicializado.");
-        return;
-      }
-      console.log("Carregando dados da nuvem para UID:", user.uid);
-
-      try {
-        const docRef = doc(window.db, "users", user.uid);
-        const docSnap = await getDoc(docRef);
-
+      // Abre canal de transmissão direta da nuvem para a tela
+      unsubscribeFirestore = onSnapshot(docRef, (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data();
+          
+          const defaultState = {
+            reservas: [],
+            isolatedReservas: [],
+            transacoes: [],
+            investimentos: [],
+            fluxo: [],
+            custo: [],
+            planejamento: {},
+            caderno: [],
+            settings: { hideValues: false },
+            assets: [],
+            alertas: []
+          };
 
-          if (confirm("☁️ Backup encontrado na nuvem. Deseja carregar e substituir os dados locais atuais?")) {
-            // Garantir estrutura completa ao carregar da nuvem
-            const defaultState = {
-              reservas: [],
-              isolatedReservas: [],
-              transacoes: [],
-              investimentos: [],
-              fluxo: [],
-              custo: [],
-              planejamento: {},
-              caderno: [],
-              settings: { hideValues: false },
-              assets: [],
-              alertas: []
-            };
-
-            window.state = Object.assign({}, defaultState, window.state, data);
-            window.saveLocal();
+          // Compara para não sobrescrever caso você mesmo esteja digitando
+          const localString = localStorage.getItem('borges_panel_3_v1');
+          const cloudString = JSON.stringify(data);
+          
+          if (localString !== cloudString) {
+            window.state = Object.assign({}, defaultState, data);
+            localStorage.setItem('borges_panel_3_v1', cloudString);
             window.renderAll();
-            alert("✅ Dados carregados da nuvem.");
+            console.log("☁️ [Painel Borges] Interface sincronizada via nuvem de forma transparente.");
           }
-        } else {
-          console.log("Nenhum backup encontrado na nuvem.");
         }
-      } catch (e) {
-        console.error("Erro ao carregar:", e);
-        alert("❌ Erro ao carregar da nuvem: " + e.message);
-      }
+      }, (error) => {
+        console.error("Erro na escuta em tempo real:", error);
+      });
     }
 
+    // --- GERENCIADOR DE ESTADO DE LOGIN ---
     onAuthStateChanged(auth, user => {
+      const driveStatus = document.getElementById("driveStatus");
+      
       if (user) {
         console.log("Logado como:", user.email);
         if (btnLogin) btnLogin.style.display = "none";
         if (btnLogout) btnLogout.style.display = "inline-block";
+        if (driveStatus) {
+          driveStatus.innerText = "Conectado à Nuvem";
+          driveStatus.style.color = "var(--success)";
+        }
         window.userEmail = user.email;
 
-        // Attempt to load data ONLY if user exists
-        loadStateFromFirestore(user);
+        // Liga o motor de sincronização em tempo real
+        ativarEscutaTempoReal(user);
 
       } else {
         console.log("Deslogado");
         if (btnLogin) btnLogin.style.display = "inline-block";
         if (btnLogout) btnLogout.style.display = "none";
+        if (driveStatus) {
+          driveStatus.innerText = "Desconectado";
+          driveStatus.style.color = "var(--danger)";
+        }
         window.userEmail = null;
+        if (unsubscribeFirestore) unsubscribeFirestore();
       }
     });
   </script>
