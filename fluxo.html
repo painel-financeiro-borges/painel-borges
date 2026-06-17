@@ -683,45 +683,6 @@ window.renderGithubCalendar = function() {
 
 // Nova Janela Flutuante Premium para Gerenciamento de Cores e Notas
 // Janela de Edição com Seleção Livre de Cores Neon e Táticas
-window.abrirEditorDia = function(dataString, numeroDia) {
-  const antigo = document.getElementById('popupCalendario');
-  if (antigo) antigo.remove();
-
-  const eventoItem = appState.eventos.find(e => e.data === dataString) || { titulo: '', tipo: 'nenhum' };
-
-  const popup = document.createElement('div');
-  popup.id = 'popupCalendario';
-  popup.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:#0b0813; border:2px solid rgba(160,32,240,0.5); border-radius:16px; padding:20px; z-index:2000; width:90%; max-width:340px; box-shadow:0 0 30px rgba(160,32,240,0.4); backdrop-filter:blur(15px); color:#fff; font-family:sans-serif;';
-
-  popup.innerHTML = `
-    <div style="font-weight:bold; margin-bottom:12px; font-size:14px; text-transform:uppercase; color:#00f5ff; letter-spacing:0.5px;">Configurar Dia ${numeroDia}</div>
-    
-    <div style="font-size:11px; color:var(--muted); margin-bottom:6px; text-transform:uppercase;">O que vai acontecer neste dia?</div>
-    <input type="text" id="popTexto" value="${eventoItem.titulo}" placeholder="Ex: Feriado, Evento Barman, Plantão..." style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:10px; color:#fff; font-size:13px; margin-bottom:15px; outline:none;">
-    
-    <div style="font-size:11px; color:var(--muted); margin-bottom:8px; text-transform:uppercase;">Escolha a Cor Alvo:</div>
-    
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;">
-      <button class="add-tab-btn" style="background:#ff007f; color:#fff !important; padding:8px; font-size:12px; font-weight:bold;" onclick="salvarCorDia('${dataString}', '#ff007f')">🔴 Crítico</button>
-      <button class="add-tab-btn" style="background:#39ff14; color:#000 !important; padding:8px; font-size:12px; font-weight:bold;" onclick="salvarCorDia('${dataString}', '#39ff14')">🟢 Concluído</button>
-    </div>
-    
-    <div style="font-size:11px; color:var(--muted); margin-bottom:6px; text-transform:uppercase;">Outras Cores Disponíveis:</div>
-    <div style="display:flex; justify-content:space-between; gap:6px; margin-bottom:20px; background:rgba(255,255,255,0.02); padding:8px; border-radius:8px;">
-      <div title="Amarelo Neon" style="width:32px; height:32px; background:#fffb00; border-radius:6px; cursor:pointer; box-shadow:0 0 5px #fffb00;" onclick="salvarCorDia('${dataString}', '#fffb00')"></div>
-      <div title="Laranja Alerta" style="width:32px; height:32px; background:#ff6a00; border-radius:6px; cursor:pointer; box-shadow:0 0 5px #ff6a00;" onclick="salvarCorDia('${dataString}', '#ff6a00')"></div>
-      <div title="Ciano Elétrico" style="width:32px; height:32px; background:#00f5ff; border-radius:6px; cursor:pointer; box-shadow:0 0 5px #00f5ff;" onclick="salvarCorDia('${dataString}', '#00f5ff')"></div>
-      <div title="Roxo Noturno" style="width:32px; height:32px; background:#a020f0; border-radius:6px; cursor:pointer; box-shadow:0 0 5px #a020f0;" onclick="salvarCorDia('${dataString}', '#a020f0')"></div>
-      <div title="Cinza Feriado" style="width:32px; height:32px; background:#5a5a66; border-radius:6px; cursor:pointer; box-shadow:0 0 5px #5a5a66;" onclick="salvarCorDia('${dataString}', '#5a5a66')"></div>
-    </div>
-    
-    <div style="display:flex; gap:10px; justify-content:flex-end; border-top:1px solid rgba(255,255,255,0.05); padding-top:12px;">
-      <button class="add-tab-btn" style="background:rgba(255,255,255,0.05); color:#fff !important; font-size:11px; padding:6px 12px;" onclick="document.getElementById('popupCalendario').remove()">Cancelar</button>
-      <button class="add-tab-btn" style="background:none; border:1px solid #ff0055 !important; color:#ff0055 !important; font-size:11px; padding:6px 12px;" onclick="salvarCorDia('${dataString}', 'limpar')">Limpar</button>
-    </div>
-  `;
-  document.body.appendChild(popup);
-};
 
 window.salvarCorDia = function(dataString, hexCor) {
   const txt = document.getElementById('popTexto').value;
