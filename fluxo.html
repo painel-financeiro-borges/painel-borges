@@ -1375,6 +1375,7 @@ function ativarArrastoHorizontesSuperiores() {
 
 // Injeção assíncrona controlada e segura para burlar o HTMLPreview
 // Injeção assíncrona controlada e segura para burlar o HTMLPreview com trava de DOM
+// Injeção assíncrona controlada com varredura ativa de escopo global para o HTMLPreview
 (function garantirCarregamentoSortable() {
   const registrarGatilho = () => {
     const originalInit = init;
@@ -1393,17 +1394,17 @@ function ativarArrastoHorizontesSuperiores() {
   const script = document.createElement('script');
   script.src = "https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js";
   script.onload = () => {
-    console.log("✅ Sortable carregado com sucesso. Aguardando inicialização estável.");
+    console.log("✅ Sortable carregado com sucesso. Aguardando estabilização das funções globais...");
     registrarGatilho();
     
-    // 🔥 Trava de segurança: Se o documento já carregou, roda o init, se não, espera o DOM ficar pronto
-    if (document.readyState === 'complete' || document.readyState === 'interactive') {
-      if (typeof init === 'function') init();
-    } else {
-      window.addEventListener('DOMContentLoaded', () => {
-        if (typeof init === 'function') init();
-      });
-    }
+    // 🔥 ENGENHARIA DO ROBÔ: Fica monitorando a memória de forma ativa até o Firebase indexar as funções
+    let checarFuncoes = setInterval(() => {
+      if (typeof loadLocalStorage === 'function' && typeof init === 'function') {
+        clearInterval(checarFuncoes);
+        console.log("⚡ [SISTEMA] Barramento estabilizado na memória. Disparando ignição.");
+        init();
+      }
+    }, 100);
   };
   document.head.appendChild(script);
 })();
