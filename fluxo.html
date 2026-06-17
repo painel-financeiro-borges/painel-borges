@@ -794,10 +794,29 @@ function assignHorizon(horizonName) {
   const db = firebase.firestore(firebaseApp);
   const docRef = db.collection("fluxo_os").doc("dados_prioridades");
 
-  // 3. Métodos Globais de Transmissão de Dados
+ // 3. Métodos Globais de Transmissão de Dados com LED Inteligente
   window.saveLocalStorage = async function() {
     try {
+      const led = document.getElementById('cloudLed');
+      const statusText = document.getElementById('cloudStatus');
+      if(led && statusText) {
+        led.style.backgroundColor = '#ffcc00';
+        led.style.boxShadow = '0 0 8px #ffcc00';
+        statusText.style.color = '#ffcc00';
+        statusText.childNodes[2].textContent = ' Salvando na Nuvem...';
+      }
+
       await docRef.set(appState);
+      
+      setTimeout(() => {
+        if(led && statusText) {
+          led.style.backgroundColor = 'var(--concluido)';
+          led.style.boxShadow = '0 0 8px var(--concluido)';
+          statusText.style.color = 'var(--concluido)';
+          statusText.childNodes[2].textContent = ' Nuvem Sincronizada';
+        }
+      }, 400);
+
       console.log("☁️ Alteração enviada à nuvem!");
     } catch (e) {
       console.error("❌ Falha na sincronização do Firebase:", e);
