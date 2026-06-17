@@ -459,9 +459,10 @@ function init() {
 }
 
 function updateMetricsUI() {
+  // Inicializa apenas os horizontes estratégicos de tempo
   let contadores = { hoje: 0, semana: 0, mes: 0, semestre: 0, algumDia: 0 };
-  let topoMetrics = { criticos: 0, importantes: 0, normais: 0, semData: 0 };
 
+  // Varre todas as abas e soma o volume de bolinhas de tarefas ativas
   if (appState.abas && appState.abas.length > 0) {
     appState.abas.forEach(aba => {
       if (!aba.conteudo) return;
@@ -471,22 +472,13 @@ function updateMetricsUI() {
 
       linhas.forEach(linhaLimpa => {
         const linha = linhaLimpa.trim().toLowerCase();
+        // Conta marcadores válidos de tarefas ativos (•, - ou *)
         if (linha.startsWith('•') || linha.startsWith('-') || linha.startsWith('*')) {
           totalLinhasAtivasNaAba++;
-
-          if (linha.includes('crítico') || linha.includes('critico') || linha.includes('[c]')) {
-            topoMetrics.criticos++;
-          } else if (linha.includes('importante') || linha.includes('import') || linha.includes('[i]')) {
-            topoMetrics.importantes++;
-          } else if (linha.includes('normal') || linha.includes('[n]')) {
-            topoMetrics.normais++;
-          } else {
-            topoMetrics.semData++;
-          }
         }
       });
 
-      // Aplica dinamicamente as tarefas baseadas no Horizonte escolhido para a aba
+      // Vincula o montante total de linhas ao horizonte que a aba pertence
       const hz = aba.horizonte || 'algumDia';
       if (contadores[hz] !== undefined) {
         contadores[hz] += totalLinhasAtivasNaAba;
@@ -494,27 +486,18 @@ function updateMetricsUI() {
     });
   }
 
-  const lblCritico = document.getElementById('lblCritico');
-  const lblImportante = document.getElementById('lblImportante');
-  const lblNormal = document.getElementById('lblNormal');
-  const lblSemData = document.getElementById('lblSemData');
+  // Alvos de Injeção: Novos IDs do Painel Premium do Topo
+  const lblHzHoje = document.getElementById('lblHzHoje');
+  const lblHzSemana = document.getElementById('lblHzSemana');
+  const lblHzMes = document.getElementById('lblHzMes');
+  const lblHzSemestre = document.getElementById('lblHzSemestre');
+  const lblHzAlgumDia = document.getElementById('lblHzAlgumDia');
 
-  if (lblCritico) lblCritico.textContent = `${topoMetrics.criticos} Críticos`;
-  if (lblImportante) lblImportante.textContent = `${topoMetrics.importantes} Imports.`;
-  if (lblNormal) lblNormal.textContent = `${topoMetrics.normais} Normais`;
-  if (lblSemData) lblSemData.textContent = `${topoMetrics.semData} S/ Data`;
-
-  const hzHoje = document.getElementById('hzHoje');
-  const hzSemana = document.getElementById('hzSemana');
-  const hzMes = document.getElementById('hzMes');
-  const hzSemestre = document.getElementById('hzSemestre');
-  const hzAlgumDia = document.getElementById('hzAlgumDia');
-
-  if (hzHoje) hzHoje.textContent = contadores.hoje;
-  if (hzSemana) hzSemana.textContent = contadores.semana;
-  if (hzMes) hzMes.textContent = contadores.mes;
-  if (hzSemestre) hzSemestre.textContent = contadores.semestre;
-  if (hzAlgumDia) hzAlgumDia.textContent = contadores.algumDia;
+  if (lblHzHoje) lblHzHoje.textContent = contadores.hoje;
+  if (lblHzSemana) lblHzSemana.textContent = contadores.semana;
+  if (lblHzMes) lblHzMes.textContent = contadores.mes;
+  if (lblHzSemestre) lblHzSemestre.textContent = contadores.semestre;
+  if (lblHzAlgumDia) lblHzAlgumDia.textContent = contadores.algumDia;
 }
 
 /* ==========================================================================
