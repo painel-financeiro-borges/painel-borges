@@ -349,13 +349,17 @@ body {
 
   <!-- SEÇÃO 2: CALENDÁRIO DE PRIORIDADES & HORIZONTE (AGORA ABAIXO) -->
   <div class="section-title">Calendário de Prioridades & Horizonte</div>
+  
+  <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+    <button class="add-tab-btn" style="padding: 6px 12px; font-size: 12px; background: var(--card-bg);" onclick="mudarZoomCalendario('mes')">📅 Visão Mês</button>
+    <button class="add-tab-btn" style="padding: 6px 12px; font-size: 12px; background: var(--card-bg);" onclick="mudarZoomCalendario('ano')">🗺️ Visão Ano/Semestre</button>
+  </div>
+
   <div class="calendar-panel">
-    <div class="calendar-scroll">
-      <!-- Grid de Carga gerado dinamicamente via JS -->
+    <div class="calendar-scroll" style="overflow-x: auto; display: flex; padding-bottom: 10px; -webkit-overflow-scrolling: touch;">
       <div class="calendar-grid" id="githubGrid"></div>
     </div>
     
-    <!-- Linha de Fluxo Temporal Cognitivo -->
     <div class="horizon-row">
       <div class="horizon-card"><div class="title">Hoje</div><div class="counter" style="color:var(--critico)" id="hzHoje">0</div></div>
       <div class="horizon-card"><div class="title">Semana</div><div class="counter" style="color:var(--importante)" id="hzSemana">0</div></div>
