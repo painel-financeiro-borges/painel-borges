@@ -1210,18 +1210,56 @@ window.exportarFluxoBackupJSON = function() {
     // 5. Aciona o clique e limpa a memória temporária do navegador
     document.body.appendChild(linkFantasma);
     linkFantasma.click();
-    linkFantasma.remove();
-    URL.revokeObjectURL(url);
-    
-    console.log("💾 Backup do fluxo gerado e baixado com sucesso!");
-  } catch (error) {
-    console.error("❌ Falha ao exportar dados do fluxo:", error);
-    alert("Erro ao gerar o arquivo de backup. Verifique o console.");
-  }
-};
+    window.importarFluxoBackupJSON = function(inputElement) {
+  const arquivo = inputElement.files[0];
+  if (!arquivo) return;
 
-<!-- Importação Universal do Firebase (Compatível com HTMLPreview e Dispositivos Móveis) -->
-<script>
+  const leitor = new FileReader();
+  leitor.onload = function(evento) {
+    try {
+      // 1. Converte o texto lido do arquivo de volta em um Objeto JavaScript
+      const dadosImportados = JSON.parse(evento.target.result);
+      
+      // 2. BLINDAGEM E VALIDAÇÃO: Checa se o arquivo possui a estrutura correta do seu módulo de fluxo
+      if (dadosImportados && Array.isArray(dadosImportados.abas) && dadosImportados.horizontes) {
+        
+        // 3. Substitui o estado atual da memória pelos dados do backup
+        window.appState = dadosImportados;
+        
+        // 4. Força o salvamento imediato e o disparo para a nuvem do Firebase
+        if (typeof saveLocalStorage === 'function') {
+          saveLocalStorage();
+        }
+        
+        // 5. Atualiza todos os componentes visuais da tela na mesma piscada
+        if (typeof renderTabs === 'function') renderTabs();
+        if (typeof renderGithubCalendar === 'function') renderGithubCalendar();
+        if (typeof updateMetricsUI === 'function') updateMetricsUI();
+        
+        // 6. Seleciona automaticamente a primeira aba disponível ou limpa se não houver
+        if (window.appState.abas.length > 0) {
+          selectTab(window.appState.abas[0].id);
+        } else {
+          selectTab('');
+        }
+        
+        alert("✅ Backup do Módulo de Fluxo restaurado e sincronizado com a nuvem!");
+      } else {
+        alert("❌ Erro: Este arquivo não é um backup válido do módulo de fluxo (dados incompatíveis).");
+      }
+    } catch (err) {
+      console.error("❌ Falha crítica no parsing do JSON de importação:", err);
+      alert("❌ Falha ao processar o arquivo. Certifique-se de que ele não está corrompido.");
+    }
+    
+    // Limpa o input de arquivo para permitir subir o mesmo arquivo novamente se precisar
+    inputElement.value = '';
+  };
+  
+  // Inicia a leitura física do arquivo
+  leitor.readAsText(arquivo);
+};
+    
 (async function inicializarEcossistemaFirebase() {
   // 1. Força o carregamento sequencial dos scripts sem depender do HTMLPreview
   if (typeof firebase === 'undefined') {
