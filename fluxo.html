@@ -358,6 +358,24 @@ body {
   transform: scale(1.02);
   background: rgba(255, 255, 255, 0.05);
 }
+
+/* ==========================================================================
+   ESTILO DO PREVIEW DAS ANOTAÇÕES NOS CARDS FIXOS DO TOPO
+   ========================================================================== */
+.horizon-preview-text {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4); /* Branco fosco para não brigar com o número neon */
+  margin-top: 5px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  
+  /* Proteção de segurança contra quebra de layout */
+  white-space: nowrap;       /* Obriga o texto a ficar em uma única linha */
+  overflow: hidden;          /* Corta o texto que sobrar */
+  text-overflow: ellipsis;   /* Coloca automaticamente os "..." no final */
+  display: block;
+  width: 100%;
+}
 </style>
 </head>
 <body>
