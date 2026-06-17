@@ -364,33 +364,32 @@ body {
   
 <div class="topbar" style="height: auto; padding: 10px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;">
   
-  <div style="background: linear-gradient(145deg, #140f2b, #090614); border: 1px solid rgba(57, 255, 20, 0.25); border-radius: 10px; padding: 6px 4px; text-align: center; box-shadow: 2px 2px 6px rgba(0,0,0,0.6), inset 1px 1px 1px rgba(255,255,255,0.05);">
-    <div style="font-size: 10px; text-transform: uppercase; color: #a0a0b0; font-weight: 700; letter-spacing: 0.3px;">Hoje</div>
-    <div id="lblHzHoje" style="font-size: 20px; font-weight: 800; color: #39ff14; text-shadow: 0 0 8px rgba(57, 255, 20, 0.6); margin-top: 2px;">0</div>
+  <div class="horizon-dropzone" data-horizon="hoje" style="background: linear-gradient(145deg, #140f2b, #090614); border: 1px solid rgba(57, 255, 20, 0.25); border-radius: 10px; padding: 6px 4px; text-align: center; box-shadow: 2px 2px 6px rgba(0,0,0,0.6), inset 1px 1px 1px rgba(255,255,255,0.05); transition: all 0.2s ease;">
+    <div style="font-size: 10px; text-transform: uppercase; color: #a0a0b0; font-weight: 700; letter-spacing: 0.3px; pointer-events: none;">Hoje</div>
+    <div id="lblHzHoje" style="font-size: 20px; font-weight: 800; color: #39ff14; text-shadow: 0 0 8px rgba(57, 255, 20, 0.6); margin-top: 2px; pointer-events: none;">0</div>
   </div>
 
-  <div style="background: linear-gradient(145deg, #140f2b, #090614); border: 1px solid rgba(0, 245, 255, 0.25); border-radius: 10px; padding: 6px 4px; text-align: center; box-shadow: 2px 2px 6px rgba(0,0,0,0.6), inset 1px 1px 1px rgba(255,255,255,0.05);">
-    <div style="font-size: 10px; text-transform: uppercase; color: #a0a0b0; font-weight: 700; letter-spacing: 0.3px;">Semana</div>
-    <div id="lblHzSemana" style="font-size: 20px; font-weight: 800; color: #00f5ff; text-shadow: 0 0 8px rgba(0, 245, 255, 0.6); margin-top: 2px;">0</div>
+  <div class="horizon-dropzone" data-horizon="semana" style="background: linear-gradient(145deg, #140f2b, #090614); border: 1px solid rgba(0, 245, 255, 0.25); border-radius: 10px; padding: 6px 4px; text-align: center; box-shadow: 2px 2px 6px rgba(0,0,0,0.6), inset 1px 1px 1px rgba(255,255,255,0.05); transition: all 0.2s ease;">
+    <div style="font-size: 10px; text-transform: uppercase; color: #a0a0b0; font-weight: 700; letter-spacing: 0.3px; pointer-events: none;">Semana</div>
+    <div id="lblHzSemana" style="font-size: 20px; font-weight: 800; color: #00f5ff; text-shadow: 0 0 8px rgba(0, 245, 255, 0.6); margin-top: 2px; pointer-events: none;">0</div>
   </div>
 
-  <div style="background: linear-gradient(145deg, #140f2b, #090614); border: 1px solid rgba(255, 0, 127, 0.25); border-radius: 10px; padding: 6px 4px; text-align: center; box-shadow: 2px 2px 6px rgba(0,0,0,0.6), inset 1px 1px 1px rgba(255,255,255,0.05);">
-    <div style="font-size: 10px; text-transform: uppercase; color: #a0a0b0; font-weight: 700; letter-spacing: 0.3px;">Mês</div>
-    <div id="lblHzMes" style="font-size: 20px; font-weight: 800; color: #ff007f; text-shadow: 0 0 8px rgba(255, 0, 127, 0.6); margin-top: 2px;">0</div>
+  <div class="horizon-dropzone" data-horizon="mes" style="background: linear-gradient(145deg, #140f2b, #090614); border: 1px solid rgba(255, 0, 127, 0.25); border-radius: 10px; padding: 6px 4px; text-align: center; box-shadow: 2px 2px 6px rgba(0,0,0,0.6), inset 1px 1px 1px rgba(255,255,255,0.05); transition: all 0.2s ease;">
+    <div style="font-size: 10px; text-transform: uppercase; color: #a0a0b0; font-weight: 700; letter-spacing: 0.3px; pointer-events: none;">Mês</div>
+    <div id="lblHzMes" style="font-size: 20px; font-weight: 800; color: #ff007f; text-shadow: 0 0 8px rgba(255, 0, 127, 0.6); margin-top: 2px; pointer-events: none;">0</div>
   </div>
 
-  <div style="background: linear-gradient(145deg, #140f2b, #090614); border: 1px solid rgba(160, 32, 240, 0.25); border-radius: 10px; padding: 6px 4px; text-align: center; box-shadow: 2px 2px 6px rgba(0,0,0,0.6), inset 1px 1px 1px rgba(255,255,255,0.05);">
-    <div style="font-size: 10px; text-transform: uppercase; color: #a0a0b0; font-weight: 700; letter-spacing: 0.3px;">Semestre</div>
-    <div id="lblHzSemestre" style="font-size: 20px; font-weight: 800; color: #a020f0; text-shadow: 0 0 8px rgba(160, 32, 240, 0.6); margin-top: 2px;">0</div>
+  <div class="horizon-dropzone" data-horizon="semestre" style="background: linear-gradient(145deg, #140f2b, #090614); border: 1px solid rgba(160, 32, 240, 0.25); border-radius: 10px; padding: 6px 4px; text-align: center; box-shadow: 2px 2px 6px rgba(0,0,0,0.6), inset 1px 1px 1px rgba(255,255,255,0.05); transition: all 0.2s ease;">
+    <div style="font-size: 10px; text-transform: uppercase; color: #a0a0b0; font-weight: 700; letter-spacing: 0.3px; pointer-events: none;">Semestre</div>
+    <div id="lblHzSemestre" style="font-size: 20px; font-weight: 800; color: #a020f0; text-shadow: 0 0 8px rgba(160, 32, 240, 0.6); margin-top: 2px; pointer-events: none;">0</div>
   </div>
 
-  <div style="background: linear-gradient(145deg, #140f2b, #090614); border: 1px solid rgba(255, 251, 0, 0.2); border-radius: 10px; padding: 6px 4px; text-align: center; box-shadow: 2px 2px 6px rgba(0,0,0,0.6), inset 1px 1px 1px rgba(255,255,255,0.05);">
-    <div style="font-size: 10px; text-transform: uppercase; color: #a0a0b0; font-weight: 700; letter-spacing: 0.3px;">Algum Dia</div>
-    <div id="lblHzAlgumDia" style="font-size: 20px; font-weight: 800; color: #fffb00; text-shadow: 0 0 8px rgba(255, 251, 0, 0.6); margin-top: 2px;">0</div>
+  <div class="horizon-dropzone" data-horizon="algumDia" style="background: linear-gradient(145deg, #140f2b, #090614); border: 1px solid rgba(255, 251, 0, 0.2); border-radius: 10px; padding: 6px 4px; text-align: center; box-shadow: 2px 2px 6px rgba(0,0,0,0.6), inset 1px 1px 1px rgba(255,255,255,0.05); transition: all 0.2s ease;">
+    <div style="font-size: 10px; text-transform: uppercase; color: #a0a0b0; font-weight: 700; letter-spacing: 0.3px; pointer-events: none;">Algum Dia</div>
+    <div id="lblHzAlgumDia" style="font-size: 20px; font-weight: 800; color: #fffb00; text-shadow: 0 0 8px rgba(255, 251, 0, 0.6); margin-top: 2px; pointer-events: none;">0</div>
   </div>
 
 </div>
-
 <div class="container" style="margin-top: 40px;">
  <div class="section-title" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
   <span>Abas de Anotação Ativa</span>
