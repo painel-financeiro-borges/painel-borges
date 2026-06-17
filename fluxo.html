@@ -793,19 +793,21 @@ window.renderTabs = function() {
     // CANAL DE ARRASTO REESTRUTURADO (DRAG & DROP)
     // ==========================================================================
     btn.addEventListener('dragstart', (e) => {
-      // Se o usuário estiver tentando arrastar pelo botão de fechar ou editar, cancela o arrasto
       if (e.target.classList.contains('tab-close') || e.target.classList.contains('tab-edit-icon')) {
         e.preventDefault();
         return;
       }
       e.target.classList.add('dragging');
+      // Passa tanto o index da ordenação quanto o ID real da aba para os horizontes lerem
       e.dataTransfer.setData('text/plain', index);
+      e.dataTransfer.setData('tab-id', aba.id);
       e.dataTransfer.effectAllowed = 'move';
     });
 
     btn.addEventListener('dragend', (e) => {
       e.target.classList.remove('dragging');
       document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('drag-over'));
+      document.querySelectorAll('.horizon-dropzone').forEach(el => el.style.transform = 'none');
     });
 
     btn.addEventListener('dragover', (e) => {
