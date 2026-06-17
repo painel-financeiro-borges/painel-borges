@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Borges - Simulador Apê Térreo V4</title>
+    <title>Painel Borges - Simulador Apê Térreo V5</title>
     <style>
         * { box-sizing: border-box; }
         body { margin: 0; padding: 0; overflow: hidden; background-color: #090909; font-family: 'Outfit', sans-serif; color: white; }
@@ -28,6 +28,10 @@
 
         .instrucoes { background: rgba(0, 255, 136, 0.05); border-left: 3px solid #00ff88; padding: 8px; border-radius: 4px; font-size: 0.7rem; color: #bbb; margin-bottom: 10px; line-height: 1.3; }
         
+        .botoes-zoom { display: flex; gap: 6px; margin-bottom: 10px; }
+        .btn-zoom { flex: 1; padding: 10px; background: #111; border: 1px solid #00ff88; color: #00ff88; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+        .btn-zoom:hover { background: #00ff88; color: #000; }
+
         label { display: block; font-size: 0.68rem; color: #999; margin: 5px 0 2px 0; text-transform: uppercase; }
         select, input, button, textarea {
             width: 100%; padding: 7px; background: #141414; border: 1px solid #2a2a2a;
@@ -54,13 +58,17 @@
 <body>
 
     <div class="painel-lateral">
-        <h5>🛠️ SIMULADOR BORGES V4</h5>
+        <h5>🛠️ SIMULADOR BORGES V5</h5>
         <subtitle>Mapeamento Térreo & Área Externa</subtitle>
         
         <div class="instrucoes">
-            <strong>Zoom:</strong> Role a rodinha do mouse ou faça pinça na tela. <br>
-            <strong>Arrastar Base:</strong> Segure o Botão Direito do Mouse. <br>
-            <strong>Girar Cenário:</strong> Segure o Botão Esquerdo do Mouse.
+            <strong>Mouse Ruim / Sem Scroll:</strong> Use os botões abaixo! <br>
+            <strong>No Celular:</strong> Use dois dedos abrindo/fechando na tela.
+        </div>
+
+        <div class="botoes-zoom">
+            <button class="btn-zoom" onclick="controlarZoomManual(0.85)">➕ APROXIMAR</button>
+            <button class="btn-zoom" onclick="controlarZoomManual(1.15)">➖ AFASTAR</button>
         </div>
 
         <button class="btn-clear-all" onclick="limparTodoOCenarioDoAp()">💥 Limpar Todo o Cenário</button>
@@ -157,14 +165,12 @@
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
-        // Permite zoom por scroll e pinça livremente sem travas
         controls.enableZoom = true; 
         controls.mouseButtons = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN };
 
         const transformControls = new THREE.TransformControls(camera, renderer.domElement);
         scene.add(transformControls);
 
-        // ESSENCIAL: Impede que o controle de mover trave o zoom e os movimentos do OrbitControls
         transformControls.addEventListener('dragging-changed', function (event) {
             controls.enabled = !event.value;
         });
@@ -245,7 +251,6 @@
 
         window.addEventListener('click', (e) => {
             if (transformControls.dragging) return;
-            // Evita disparar seleção ao clicar nos botões do menu lateral
             if (e.clientX < 360 && e.clientY < window.innerHeight) return; 
 
             mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
@@ -256,6 +261,15 @@
                 selecionarObjetoPorId(interseccoes[0].object.userData.id);
             }
         });
+
+        // FUNÇÃO DE ZOOM PARA QUEM NÃO TEM SCROLL NO MOUSE
+        function controlarZoomManual(fator) {
+            camera.position.x *= fator;
+            camera.position.y *= fator;
+            camera.position.z *= fator;
+            controls.target.set(0,0,0);
+            controls.update();
+        }
 
         function mudarModoGizmo(modo) {
             transformControls.setMode(modo);
@@ -344,7 +358,7 @@
             }
         }
 
-        function executarImportacaoEmMassa() {
+        function ejecutarImportacaoEmMassa() {
             const raw = document.getElementById("txtImportar").value;
             if(!raw) return alert("Cole os dados JSON primeiro!");
             try {
