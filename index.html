@@ -2090,35 +2090,37 @@
 
   <!-- ===================== FIREBASE LOGIN ===================== -->
 <script>
-    (async function motorAutenticacaoAutonomo() {
-      console.log("🤖 [Painel Borges] Iniciando carga de dependências isoladas...");
+    (function motorFirebaseEstavel() {
+      console.log("🤖 [Painel Borges] Iniciando carga de dependências controlada...");
 
-      // Força a criação sequencial e síncrona dos scripts na marra para burlar o HTMLPreview
-      const carregarScriptSeAusente = (url) => {
-        return new Promise((resolve) => {
-          const script = document.createElement('script');
-          script.src = url;
-          script.type = 'text/javascript';
-          script.onload = resolve;
-          script.onerror = resolve; // Avança mesmo se houver soluço de rede
-          document.head.appendChild(script);
-        });
+      // Cria a fila de carregamento sequencial usando os eventos nativos (onload) dos elementos
+      const scriptApp = document.createElement('script');
+      scriptApp.src = "https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js";
+      
+      scriptApp.onload = () => {
+        const scriptAuth = document.createElement('script');
+        scriptAuth.src = "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js";
+        
+        scriptAuth.onload = () => {
+          const scriptFS = document.createElement('script');
+          scriptFS.src = "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js";
+          
+          scriptFS.onload = () => {
+            console.log("🚀 [Painel Borges] Todos os scripts carregados via evento. Inicializando sistema...");
+            inicializarSistemaSincronizacao();
+          };
+          document.head.appendChild(scriptFS);
+        };
+        document.head.appendChild(scriptAuth);
       };
+      document.head.appendChild(scriptApp);
 
-      try {
-        if (typeof firebase === 'undefined') {
-          await carregarScriptSeAusente("https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js");
-          await carregarScriptSeAusente("https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js");
-          await carregarScriptSeAusente("https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js");
-        }
-
+      function inicializarSistemaSincronizacao() {
         if (typeof firebase === 'undefined' || !firebase.auth || !firebase.firestore) {
-          console.error("❌ Falha crítica ao injetar scripts do Firebase via rede.");
+          console.error("❌ Erro fatal: Firebase indisponível no escopo.");
           return;
         }
 
-        console.log("🚀 [Painel Borges] Firebase carregado com sucesso. Iniciando sincronização tática...");
-        
         const firebaseConfig = {
           apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
           authDomain: "painel-financeiro-borges.firebaseapp.com",
@@ -2182,7 +2184,7 @@
           window.saveStateToFirestore();
         };
 
-        // --- ESCUTA REATIVA ---
+        // --- ESCUTA REATIVA ON-SNAPSHOT ---
         function ativarEscutaTempoReal(user) {
           if (unsubscribeFirestore) unsubscribeFirestore();
           const docRef = db.collection("users").doc(user.uid);
@@ -2231,23 +2233,17 @@
             if (unsubscribeFirestore) unsubscribeFirestore();
           }
         });
-
-      } catch (err) {
-        console.error("Erro na inicialização:", err);
       }
     })();
   </script>
 
-  <!-- ===================== ENHANCEMENTS ===================== -->
   <script src="enhancements.js"></script>
 
-  <!-- ===================== DEBUG HELPERS (FINAL) ===================== -->
   <script>
     window._borges_state = state;
     window.saveLocal = saveLocal;
   </script>
 
 </body>
-
 </html>
 
