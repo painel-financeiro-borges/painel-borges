@@ -111,13 +111,13 @@ body {
 
 .calendar-grid {
   display: grid;
-  grid-template-flow: column;
+  grid-auto-flow: column;
   grid-template-rows: repeat(7, 10px);
   grid-auto-columns: 10px;
   gap: 3px;
   width: max-content;
+  padding: 5px 0;
 }
-
 .day-cell {
   width: 10px;
   height: 10px;
