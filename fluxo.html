@@ -1315,30 +1315,22 @@ function assignHorizon(horizonName) {
 })();
 
 // ==========================================================================
-// 🛡️ 3. O SCRIPT ATIVADOR DO ARRASTE SUPERIOR VIA SORTABLE (MOBILE FRIENDLY + ANTI-BUG)
+// 🛡️ O SCRIPT ATIVADOR DO ARRASTE SUPERIOR VIA SORTABLE (BLINDAGEM TOTAL)
 // ==========================================================================
 function ativarArrastoHorizontesSuperiores() {
-  // 🔥 TRAVA DE SEGURANÇA: Se a biblioteca atrasar para carregar no HTMLPreview, espera e tenta de novo
-  if (typeof Sortable === 'undefined') {
-    console.warn("⏳ Sortable ainda não carregou... Tentando novamente em 200ms.");
-    setTimeout(ativarArrastoHorizontesSuperiores, 200);
-    return;
-  }
-
   const container = document.getElementById('topbarContainer');
-  if (!container) return;
+  if (!container || typeof Sortable === 'undefined') return;
 
-  // Ativa a reordenação dos cards superiores funcionando 100% no mobile e desktop
+  // Inicializa o Sortable oficial sem loops de contagem
   Sortable.create(container, {
     animation: 150,
-    delay: 70,               // Pequeno delay no toque para permitir o scroll de tela do mobile
-    delayOnTouchOnly: true,  // O delay só se aplica em telas touch de celular
+    delay: 70,               
+    delayOnTouchOnly: true,  
     onEnd: function () {
       if (typeof saveLocalStorage === 'function') saveLocalStorage();
     }
   });
 
-  // Mantém a zona ativa para receber o Drop das abas de anotações vindas de baixo
   const dropzones = document.querySelectorAll('.horizon-dropzone');
   dropzones.forEach(zone => {
     zone.addEventListener('dragover', (e) => {
@@ -1381,12 +1373,31 @@ function ativarArrastoHorizontesSuperiores() {
   });
 }
 
-// Injeta o gatilho de execução dentro da inicialização nativa do fluxo
-const originalInit = init;
-init = function() {
-  if (typeof originalInit === 'function') originalInit();
-  ativarArrastoHorizontesSuperiores();
-};
+// Injeção assíncrona controlada e segura para burlar o HTMLPreview
+(function garantirCarregamentoSortable() {
+  if (typeof Sortable !== 'undefined') {
+    const originalInit = init;
+    init = function() {
+      if (typeof originalInit === 'function') originalInit();
+      ativarArrastoHorizontesSuperiores();
+    };
+    return;
+  }
+  
+  console.log("🚀 Injetando Sortable via barramento de segurança...");
+  const script = document.createElement('script');
+  script.src = "https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js";
+  script.onload = () => {
+    console.log("✅ Sortable carregado com sucesso. Inicializando barramento.");
+    const originalInit = init;
+    init = function() {
+      if (typeof originalInit === 'function') originalInit();
+      ativarArrastoHorizontesSuperiores();
+    };
+    if (typeof init === 'function') init();
+  };
+  document.head.appendChild(script);
+})();
   
   let modoChecklistAtivo = false; 
 
