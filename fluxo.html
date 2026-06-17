@@ -377,7 +377,7 @@ body {
 
 <script>
 /* ==========================================================================
-   ESTADO GLOBAL COMPACTO
+   ESTADO GLOBAL COMPACTO CORRIGIDO (V2)
    ========================================================================== */
 let appState = {
   currentTabId: 'planejamento',
@@ -393,7 +393,7 @@ let appState = {
 let selectedLineText = ""; 
 
 /* ==========================================================================
-   INICIALIZAÇÃO & RENDERERS
+   INICIALIZAÇÃO & RENDERERS ATIVOS
    ========================================================================== */
 function init() {
   loadLocalStorage();
@@ -417,43 +417,38 @@ function updateMetricsUI() {
   document.getElementById('hzAlgumDia').textContent = appState.horizontes.AlgumDia;
 }
 
-/* GERADOR DE MAPA ESTILO GITHUB */
-function renderGithubCalendar() {
-  const grid = document.getElementById('githubGrid');
-  grid.innerHTML = '';
-  // Gerando os 365 quadrados representativos de carga ativa
-  for(let i = 0; i < 364; i++) {
-    const cell = document.createElement('div');
-    cell.className = 'day-cell';
-    
-    // Simulação de preenchimento randômico controlado apenas para amostragem visual inicial
-    if(i % 15 === 0) cell.classList.add('c-critico');
-    else if(i % 22 === 0) cell.classList.add('c-importante');
-    else if(i % 9 === 0) cell.classList.add('c-normal');
-    else if(i % 31 === 0) cell.classList.add('c-concluido');
-    
-    grid.appendChild(cell);
-  }
-}
-
-/* GESTÃO DE ABAS (CHROME STYLE) */
 function renderTabs() {
   const container = document.getElementById('tabsContainer');
   container.innerHTML = '';
   
+  if (appState.abas.length === 0) {
+    container.innerHTML = '<span style="color:var(--muted); font-size:12px; padding:10px;">Sem blocos ativos. Crie um no [+]</span>';
+    return;
+  }
+  
   appState.abas.forEach(aba => {
     const btn = document.createElement('button');
     btn.className = `tab-btn ${aba.id === appState.currentTabId ? 'active' : ''}`;
+    
+    // Um clique seleciona a aba
     btn.onclick = () => selectTab(aba.id);
+    
+    // DUPLO CLIQUE EDITA O NOME DA ABA (MUITO RÁPIDO)
+    btn.ondblclick = (e) => {
+      e.stopPropagation();
+      editTabTitle(aba.id);
+    };
     
     const titleSpan = document.createElement('span');
     titleSpan.textContent = aba.titulo;
     
     const closeSpan = document.createElement('span');
     closeSpan.className = 'tab-close';
-    closeSpan.innerHTML = '&times;';
+    closeSpan.innerHTML = ' &times;';
+    
+    // O CLIQUE NO X AGORA APAGA DE VERDADE
     closeSpan.onclick = (e) => {
-      e.stopPropagation();
+      e.stopPropagation(); // Impede de ativar a aba ao clicar no X
       deleteTab(aba.id);
     };
     
@@ -463,18 +458,35 @@ function renderTabs() {
   });
 }
 
+function editTabTitle(id) {
+  const target = appState.abas.find(a => a.id === id);
+  if(!target) return;
+  
+  const novoNome = prompt("Editar nome do Bloco Ativo:", target.titulo);
+  if(novoNome && novoNome.trim() !== "") {
+    target.titulo = novoNome.trim();
+    saveLocalStorage();
+    renderTabs();
+  }
+}
+
 function selectTab(id) {
-  appState.currentTabId = id;
+  if (appState.abas.length === 0) {
+    document.getElementById('mainEditor').value = '';
+    appState.currentTabId = '';
+    renderTabs();
+    return;
+  }
+
   const target = appState.abas.find(a => a.id === id);
   const editor = document.getElementById('mainEditor');
   
   if(target) {
+    appState.currentTabId = id;
     editor.value = target.conteudo;
-  } else if (appState.abas.length > 0) {
+  } else {
     appState.currentTabId = appState.abas[0].id;
     editor.value = appState.abas[0].conteudo;
-  } else {
-    editor.value = '';
   }
   
   renderTabs();
@@ -483,12 +495,14 @@ function selectTab(id) {
 
 function createNewTab() {
   const nome = prompt("Nome do Bloco Ativo / Aba:");
-  if(!nome) return;
-  const id = nome.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-');
+  if(!nome || nome.trim() === "") return;
+  
+  // Cria um ID único limpo baseado no timestamp para evitar conflito se tiver nomes iguais
+  const id = 'aba_' + Date.now();
   
   appState.abas.push({
     id: id,
-    titulo: nome,
+    titulo: nome.trim(),
     conteudo: ''
   });
   
@@ -496,12 +510,18 @@ function createNewTab() {
 }
 
 function deleteTab(id) {
-  if(confirm("Deseja fechar esta aba permanentemente?")) {
+  const target = appState.abas.find(a => a.id === id);
+  if(!target) return;
+
+  if(confirm(`Deseja apagar o bloco "${target.titulo}" e todas as suas anotações permanentemente?`)) {
     appState.abas = appState.abas.filter(a => a.id !== id);
+    
     if(appState.currentTabId === id) {
       appState.currentTabId = appState.abas.length > 0 ? appState.abas[0].id : '';
     }
-    init();
+    
+    saveLocalStorage();
+    selectTab(appState.currentTabId);
   }
 }
 
