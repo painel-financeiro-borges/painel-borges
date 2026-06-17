@@ -737,41 +737,56 @@ window.renderTabs = function() {
   }
 
   appState.abas.forEach((aba, index) => {
+    const isAtiva = aba.id === appState.currentTabId;
     const btn = document.createElement('button');
-    btn.className = `tab-btn ${aba.id === appState.currentTabId ? 'active' : ''}`;
+    btn.className = `tab-btn ${isAtiva ? 'active' : ''}`;
     
-    // Ativa a capacidade de arrastar do HTML5 nesta guia
+    // Gerenciador inteligente de arrasto: desativa temporariamente ao clicar no texto ou botão para não travar a edição
     btn.setAttribute('draggable', 'true');
     btn.setAttribute('data-index', index);
     
-    // Mantém a sua estrutura interna de Spans original
-    const titleSpan = document.createElement('span');
-    titleSpan.textContent = aba.titulo;
+    // Monta o título. Se a aba for a ativa, ganha o botão de lápis para clique rápido
+    const editIcon = isAtiva ? `<span class="tab-edit-icon" style="cursor:pointer; margin-left:4px; opacity:0.6; font-size:11px;" onclick="event.stopPropagation(); if(typeof editTabTitle === 'function') editTabTitle('${aba.id}');">✏️</span>` : '';
     
-    const closeSpan = document.createElement('span');
-    closeSpan.className = 'tab-close';
-    closeSpan.innerHTML = ' &times;';
-    
-    btn.appendChild(titleSpan);
-    btn.appendChild(closeSpan);
+    btn.innerHTML = `
+      <span class="tab-title-text">${aba.titulo}</span>
+      ${editIcon}
+      <span class="tab-close" style="margin-left:8px;">&times;</span>
+    `;
 
-    // [Gatilhos de Clique Originais]
-    btn.addEventListener('click', () => {
+    // Seleção comum da aba com um clique
+    btn.addEventListener('click', (e) => {
+      // Evita disparar se clicou no X ou no lápis
+      if (e.target.classList.contains('tab-close') || e.target.classList.contains('tab-edit-icon')) return;
       if (typeof selectTab === 'function') selectTab(aba.id);
     });
 
+    // DUPLO CLIQUE BLINDADO: Desativa o arrasto por um milissegundo e abre a edição de nome
     btn.addEventListener('dblclick', (e) => {
       e.stopPropagation();
+      btn.setAttribute('draggable', 'false');
       if (typeof editTabTitle === 'function') editTabTitle(aba.id);
+      setTimeout(() => btn.setAttribute('draggable', 'true'), 500);
     });
 
-    closeSpan.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (typeof deleteTab === 'function') deleteTab(aba.id);
-    });
+    // Botão de fechar (X)
+    const closeBtn = btn.querySelector('.tab-close');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (typeof deleteTab === 'function') deleteTab(aba.id);
+      });
+    }
 
-    // [Motores de Arrasto - Drag and Drop]
+    // ==========================================================================
+    // CANAL DE ARRASTO REESTRUTURADO (DRAG & DROP)
+    // ==========================================================================
     btn.addEventListener('dragstart', (e) => {
+      // Se o usuário estiver tentando arrastar pelo botão de fechar ou editar, cancela o arrasto
+      if (e.target.classList.contains('tab-close') || e.target.classList.contains('tab-edit-icon')) {
+        e.preventDefault();
+        return;
+      }
       e.target.classList.add('dragging');
       e.dataTransfer.setData('text/plain', index);
       e.dataTransfer.effectAllowed = 'move';
