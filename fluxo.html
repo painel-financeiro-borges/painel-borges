@@ -448,16 +448,72 @@ function init() {
 }
 
 function updateMetricsUI() {
-  document.getElementById('lblCritico').textContent = `${appState.topbarMetrics.criticos} Críticos`;
-  document.getElementById('lblImportante').textContent = `${appState.topbarMetrics.importantes} Imports.`;
-  document.getElementById('lblNormal').textContent = `${appState.topbarMetrics.normais} Normais`;
-  document.getElementById('lblSemData').textContent = `${appState.topbarMetrics.semData} S/ Data`;
+  // 1. Inicializa os contadores de Horizonte e de Carga do Topo zerados
+  let contadores = { hoje: 0, semana: 0, mes: 0, semestre: 0, algumDia: 0 };
+  let topoMetrics = { criticos: 0, importantes: 0, normais: 0, semData: 0 };
 
-  document.getElementById('hzHoje').textContent = appState.horizontes.Hoje;
-  document.getElementById('hzSemana').textContent = appState.horizontes.Semana;
-  document.getElementById('hzMes').textContent = appState.horizontes.Mês;
-  document.getElementById('hzSemestre').textContent = appState.horizontes.Semestre;
-  document.getElementById('hzAlgumDia').textContent = appState.horizontes.AlgumDia;
+  // 2. Pega a aba ativa e lê o texto dela linha por linha
+  const activeAba = appState.abas.find(a => a.id === appState.currentTabId);
+  
+  if (activeAba && activeAba.conteudo) {
+    const linhas = activeAba.conteudo.split('\n');
+    
+    linhas.forEach(linhaLimpa => {
+      const linha = linhaLimpa.trim().toLowerCase();
+      
+      // Verifica se a linha é uma tarefa ativa
+      if (linha.startsWith('•') || linha.startsWith('-') || linha.startsWith('*')) {
+        
+        // --- PARTE 1: Identificação dos Horizontes de Tempo ---
+        if (linha.includes('[h]') || linha.includes('hoje') || linha.includes('(h)')) {
+          contadores.hoje++;
+        } else if (linha.includes('[s]') || linha.includes('semana') || Math.fround(linha.includes('(s)'))) {
+          contadores.semana++;
+        } else if (linha.includes('[m]') || linha.includes('mes') || linha.includes('mês') || linha.includes('(m)')) {
+          contadores.mes++;
+        } else if (linha.includes('[6]') || linha.includes('semestre') || linha.includes('(6)')) {
+          contadores.semestre++;
+        } else {
+          contadores.algumDia++;
+        }
+
+        // --- PARTE 2: Identificação das Cores/Prioridades do Topo ---
+        if (linha.includes('crítico') || linha.includes('critico') || linha.includes('[c]')) {
+          topoMetrics.criticos++;
+        } else if (linha.includes('importante') || linha.includes('import') || linha.includes('[i]')) {
+          topoMetrics.importantes++;
+        } else if (linha.includes('normal') || linha.includes('[n]')) {
+          topoMetrics.normais++;
+        } else {
+          topoMetrics.semData++;
+        }
+      }
+    });
+  }
+
+  // 3. Atualiza os elementos do Topo usando as suas IDs reais
+  const lblCritico = document.getElementById('lblCritico');
+  const lblImportante = document.getElementById('lblImportante');
+  const lblNormal = document.getElementById('lblNormal');
+  const lblSemData = document.getElementById('lblSemData');
+
+  if (lblCritico) lblCritico.textContent = `${topoMetrics.criticos} Críticos`;
+  if (lblImportante) lblImportante.textContent = `${topoMetrics.importantes} Imports.`;
+  if (lblNormal) lblNormal.textContent = `${topoMetrics.normais} Normais`;
+  if (lblSemData) lblSemData.textContent = `${topoMetrics.semData} S/ Data`;
+
+  // 4. Atualiza os Horizontes do Rodapé usando as suas IDs reais
+  const hzHoje = document.getElementById('hzHoje');
+  const hzSemana = document.getElementById('hzSemana');
+  const hzMes = document.getElementById('hzMes');
+  const hzSemestre = document.getElementById('hzSemestre');
+  const hzAlgumDia = document.getElementById('hzAlgumDia');
+
+  if (hzHoje) hzHoje.textContent = contadores.hoje;
+  if (hzSemana) hzSemana.textContent = contadores.semana;
+  if (hzMes) hzMes.textContent = contadores.mes;
+  if (hzSemestre) hzSemestre.textContent = contadores.semestre;
+  if (hzAlgumDia) hzAlgumDia.textContent = contadores.algumDia;
 }
 
 /* ==========================================================================
