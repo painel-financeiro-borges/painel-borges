@@ -2089,146 +2089,121 @@
   <!-- Google Scripts Removed -->
 
   <!-- ===================== FIREBASE LOGIN ===================== -->
- <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
-      from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, onSnapshot }
-      from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script>
+    (function inicializarSincronizacaoBorges() {
+      const firebaseConfig = {
+        apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
+        authDomain: "painel-financeiro-borges.firebaseapp.com",
+        projectId: "painel-financeiro-borges",
+        storageBucket: "painel-financeiro-borges.firebasestorage.app",
+        messagingSenderId: "354997627208",
+        appId: "1:354997627208:web:90604d0a7dcd45b6e4eb7d"
+      };
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
-      authDomain: "painel-financeiro-borges.firebaseapp.com",
-      projectId: "painel-financeiro-borges",
-      storageBucket: "painel-financeiro-borges.firebasestorage.app",
-      messagingSenderId: "354997627208",
-      appId: "1:354997627208:web:90604d0a7dcd45b6e4eb7d",
-      measurementId: "G-KH9BDWN2WH"
-    };
+      // Inicializa o Firebase no modo compatibilidade universal
+      const firebaseApp = firebase.apps.length ? firebase.app() : firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth(firebaseApp);
+      const db = firebase.firestore(firebaseApp);
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    window.auth = auth;
-    window.db = getFirestore(app);
-    const provider = new GoogleAuthProvider();
+      window.auth = auth;
+      window.db = db;
 
-    const btnLogin = document.getElementById("btnLogin");
-    const btnLogout = document.getElementById("btnLogout");
-    let unsubscribeFirestore = null; // Guarda o canal de escuta ativo
+      const provider = new firebase.auth.GoogleAuthProvider();
+      const btnLogin = document.getElementById("btnLogin");
+      const btnLogout = document.getElementById("btnLogout");
+      let unsubscribeFirestore = null;
 
-    if (btnLogin) {
-      btnLogin.addEventListener("click", () => {
-        signInWithPopup(auth, provider).catch(err => alert("Erro ao entrar: " + err.message));
-      });
-    }
-
-    if (btnLogout) {
-      btnLogout.addEventListener("click", () => {
-        if (unsubscribeFirestore) unsubscribeFirestore();
-        signOut(auth);
-      });
-    }
-
-    // --- AUTO-SAVE INTELIGENTE (SALVA SEM POPUPS) ---
-    window.saveStateToFirestore = async function () {
-      if (!window.auth || !window.auth.currentUser || !window.db) return;
-      const user = window.auth.currentUser;
-
-      try {
-        const btn = document.getElementById('btnSyncAll');
-        if (btn) btn.innerText = 'Sincronizando...';
-
-        const docRef = doc(window.db, "users", user.uid);
-        const payload = JSON.parse(JSON.stringify(window.state));
-        
-        // Salva silenciosamente na nuvem
-        await setDoc(docRef, payload);
-
-        if (btn) btn.innerText = 'Nuvem Sincronizada';
-        setTimeout(() => { if(btn) btn.innerText = 'Salvar no Cloud'; }, 1500);
-      } catch (e) {
-        console.error("Erro no auto-save:", e);
+      if (btnLogin) {
+        btnLogin.addEventListener("click", () => {
+          auth.signInWithPopup(provider).catch(err => alert("Erro ao entrar: " + err.message));
+        });
       }
-    };
 
-    // --- GANCHO DE AUTO-SAVE NO PROPRIO MOTOR LOCAL ---
-    // Sobrescrevemos a função local antiga para disparar o cloud automaticamente!
-    const originalSaveLocal = window.saveLocal;
-    window.saveLocal = function() {
-      if (typeof originalSaveLocal === 'function') originalSaveLocal();
-      window.saveStateToFirestore(); // Dispara o gatilho de nuvem na mesma piscada!
-    };
+      if (btnLogout) {
+        btnLogout.addEventListener("click", () => {
+          if (unsubscribeFirestore) unsubscribeFirestore();
+          auth.signOut();
+        });
+      }
 
-    // --- ESCUTA EM TEMPO REAL (MUDANÇA SILENCIOSA SEM PERGUNTAS) ---
-    function ativarEscutaTempoReal(user) {
-      if (unsubscribeFirestore) unsubscribeFirestore(); // Reseta escutas anteriores
+      // --- AUTO-SAVE SILENCIOSO INTEGRADO ---
+      window.saveStateToFirestore = async function () {
+        if (!auth.currentUser) return;
+        const user = auth.currentUser;
 
-      const docRef = doc(window.db, "users", user.uid);
+        try {
+          const btn = document.getElementById('btnSyncAll');
+          if (btn) btn.innerText = 'Sincronizando...';
 
-      // Abre canal de transmissão direta da nuvem para a tela
-      unsubscribeFirestore = onSnapshot(docRef, (docSnap) => {
-        if (docSnap.exists()) {
-          const data = docSnap.data();
+          const docRef = db.collection("users").doc(user.uid);
+          const payload = JSON.parse(JSON.stringify(window.state));
           
-          const defaultState = {
-            reservas: [],
-            isolatedReservas: [],
-            transacoes: [],
-            investimentos: [],
-            fluxo: [],
-            custo: [],
-            planejamento: {},
-            caderno: [],
-            settings: { hideValues: false },
-            assets: [],
-            alertas: []
-          };
+          await docRef.set(payload);
 
-          // Compara para não sobrescrever caso você mesmo esteja digitando
-          const localString = localStorage.getItem('borges_panel_3_v1');
-          const cloudString = JSON.stringify(data);
-          
-          if (localString !== cloudString) {
-            window.state = Object.assign({}, defaultState, data);
-            localStorage.setItem('borges_panel_3_v1', cloudString);
-            window.renderAll();
-            console.log("☁️ [Painel Borges] Interface sincronizada via nuvem de forma transparente.");
+          if (btn) btn.innerText = 'Nuvem Sincronizada';
+          setTimeout(() => { if(btn) btn.innerText = 'Salvar no Cloud'; }, 1500);
+        } catch (e) {
+          console.error("Erro no auto-save:", e);
+        }
+      };
+
+      // Injeta o gatilho automático nas escritas locais
+      const originalSaveLocal = window.saveLocal;
+      window.saveLocal = function() {
+        if (typeof originalSaveLocal === 'function') originalSaveLocal();
+        window.saveStateToFirestore();
+      };
+
+      // --- ESCUTA REATIVA EM TEMPO REAL ---
+      function ativarEscutaTempoReal(user) {
+        if (unsubscribeFirestore) unsubscribeFirestore();
+        const docRef = db.collection("users").doc(user.uid);
+
+        unsubscribeFirestore = docRef.onSnapshot((docSnap) => {
+          if (docSnap.exists) {
+            const data = docSnap.data();
+            const defaultState = { reservas: [], isolatedReservas: [], transacoes: [], investimentos: [], fluxo: [], custo: [], planejamento: {}, caderno: [], settings: { hideValues: false } };
+
+            const localString = localStorage.getItem('borges_panel_3_v1');
+            const cloudString = JSON.stringify(data);
+            
+            if (localString !== cloudString) {
+              window.state = Object.assign({}, defaultState, data);
+              localStorage.setItem('borges_panel_3_v1', cloudString);
+              window.renderAll();
+              console.log("☁️ [Painel Borges] Sincronização executada.");
+            }
           }
-        }
-      }, (error) => {
-        console.error("Erro na escuta em tempo real:", error);
-      });
-    }
-
-    // --- GERENCIADOR DE ESTADO DE LOGIN ---
-    onAuthStateChanged(auth, user => {
-      const driveStatus = document.getElementById("driveStatus");
-      
-      if (user) {
-        console.log("Logado como:", user.email);
-        if (btnLogin) btnLogin.style.display = "none";
-        if (btnLogout) btnLogout.style.display = "inline-block";
-        if (driveStatus) {
-          driveStatus.innerText = "Conectado à Nuvem";
-          driveStatus.style.color = "var(--success)";
-        }
-        window.userEmail = user.email;
-
-        // Liga o motor de sincronização em tempo real
-        ativarEscutaTempoReal(user);
-
-      } else {
-        console.log("Deslogado");
-        if (btnLogin) btnLogin.style.display = "inline-block";
-        if (btnLogout) btnLogout.style.display = "none";
-        if (driveStatus) {
-          driveStatus.innerText = "Desconectado";
-          driveStatus.style.color = "var(--danger)";
-        }
-        window.userEmail = null;
-        if (unsubscribeFirestore) unsubscribeFirestore();
+        });
       }
-    });
+
+      // --- MONITOR DE LOGIN ---
+      auth.onAuthStateChanged(user => {
+        const driveStatus = document.getElementById("driveStatus");
+        if (user) {
+          if (btnLogin) btnLogin.style.display = "none";
+          if (btnLogout) btnLogout.style.display = "inline-block";
+          if (driveStatus) {
+            driveStatus.innerText = "Conectado à Nuvem";
+            driveStatus.style.color = "var(--success)";
+          }
+          window.userEmail = user.email;
+          ativarEscutaTempoReal(user);
+        } else {
+          if (btnLogin) btnLogin.style.display = "inline-block";
+          if (btnLogout) btnLogout.style.display = "none";
+          if (driveStatus) {
+            driveStatus.innerText = "Desconectado";
+            driveStatus.style.color = "var(--danger)";
+          }
+          window.userEmail = null;
+          if (unsubscribeFirestore) unsubscribeFirestore();
+        }
+      });
+    })();
   </script>
 
   <!-- ===================== ENHANCEMENTS ===================== -->
