@@ -1296,6 +1296,57 @@ function assignHorizon(horizonName) {
   init();
 })();
 
+  // ==========================================================================
+// 🛡️ 3. O SCRIPT ATIVADOR DO ARRASTE SUPERIOR (COLE EXATAMENTE NESTE ESPAÇO)
+// ==========================================================================
+function ativarArrastoHorizontesSuperiores() {
+  const dropzones = document.querySelectorAll('.horizon-dropzone');
+  
+  dropzones.forEach(zone => {
+    zone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      zone.style.transform = 'scale(1.05)';
+      zone.style.background = 'rgba(160, 32, 240, 0.15)';
+    });
+
+    zone.addEventListener('dragleave', () => {
+      zone.style.transform = 'none';
+      zone.style.background = 'linear-gradient(145deg, #140f2b, #090614)';
+    });
+
+    zone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      zone.style.transform = 'none';
+      zone.style.background = 'linear-gradient(145deg, #140f2b, #090614)';
+      
+      const tabId = e.dataTransfer.getData('tab-id');
+      const novoHorizonte = zone.getAttribute('data-horizon');
+      
+      if (tabId) {
+        const abaAlvo = appState.abas.find(a => a.id === tabId);
+        if (abaAlvo) {
+          abaAlvo.horizonte = novoHorizonte;
+          
+          const corOriginalBorder = zone.style.borderColor;
+          zone.style.borderColor = 'var(--concluido)';
+          setTimeout(() => { zone.style.borderColor = corOriginalBorder; }, 600);
+          
+          updateMetricsUI();
+          renderTabs();
+          if (typeof saveLocalStorage === 'function') saveLocalStorage();
+        }
+      }
+    });
+  });
+}
+
+// Injeta o gatilho de execução dentro da inicialização nativa do fluxo
+const originalInit = init;
+init = function() {
+  if (typeof originalInit === 'function') originalInit();
+  ativarArrastoHorizontesSuperiores();
+};
+  
   let modoChecklistAtivo = false;
 
 window.alternarModoChecklist = function() {
