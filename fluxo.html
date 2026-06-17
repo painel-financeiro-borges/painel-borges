@@ -632,74 +632,87 @@ function assignHorizon(horizonName) {
 </script>
 
 <!-- Importação Universal do Firebase (Compatível com HTMLPreview e Dispositivos Móveis) -->
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
 <script>
-// Suas credenciais oficiais
-const firebaseConfig = {
-  apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
-  authDomain: "painel-financeiro-borges.firebaseapp.com",
-  projectId: "painel-financeiro-borges",
-  storageBucket: "painel-financeiro-borges.firebasestorage.app",
-  messagingSenderId: "354997627208",
-  appId: "1:354997627208:web:90604d0a7dcd45b6e4eb7d",
-  measurementId: "G-KH9BDWN2WH"
-};
-
-// Inicialização estável na versão de compatibilidade universal
-const firebaseApp = firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore(firebaseApp);
-const docRef = db.collection("fluxo_os").doc("dados_prioridades");
-
-// Métodos globais de persistência e sincronismo ativo em nuvem
-window.saveLocalStorage = async function() {
-  try {
-    await docRef.set(appState);
-    console.log("☁️ Dados sincronizados no Firebase com sucesso!");
-  } catch (e) {
-    console.error("❌ Erro ao salvar no Firebase:", e);
+(async function inicializarEcossistemaFirebase() {
+  // 1. Força o carregamento sequencial dos scripts sem depender do HTMLPreview
+  if (typeof firebase === 'undefined') {
+    console.log("⚡ Carregando canais de nuvem de forma assíncrona...");
+    await new Promise((resolve) => {
+      const scriptApp = document.createElement('script');
+      scriptApp.src = "https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js";
+      scriptApp.onload = () => {
+        const scriptFS = document.createElement('script');
+        scriptFS.src = "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js";
+        scriptFS.onload = resolve;
+        document.head.appendChild(scriptFS);
+      };
+      document.head.appendChild(scriptApp);
+    });
   }
-};
 
-window.loadLocalStorage = function() {
-  // Escuta ativa em tempo real estável para múltiplos dispositivos
-  docRef.onSnapshot((docSnap) => {
-    if (docSnap.exists) {
-      const cloudData = docSnap.data();
-      
-      const currentTabBackup = appState.currentTabId;
-      appState = cloudData;
-      
-      if (currentTabBackup && appState.abas.some(a => a.id === currentTabBackup)) {
-        appState.currentTabId = currentTabBackup;
-      }
-      
-      // Renderização e atualização dos componentes visuais na tela
-      renderGithubCalendar();
-      renderTabs();
-      updateMetricsUI();
-      
-      // Sincroniza o valor do editor sem roubar o foco ou o cursor de digitação
-      const editor = document.getElementById('mainEditor');
-      const activeAba = appState.abas.find(a => a.id === appState.currentTabId);
-      if (activeAba && editor.value !== activeAba.conteudo) {
-        const start = editor.selectionStart;
-        const end = editor.selectionEnd;
-        editor.value = activeAba.conteudo;
-        editor.setSelectionRange(start, end);
-      }
-    } else {
-      console.log("Nenhum registro em nuvem localizado. Enviando base padrão...");
-      window.saveLocalStorage();
+  // 2. Configuração e Ativação das Credenciais
+  const firebaseConfig = {
+    apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
+    authDomain: "painel-financeiro-borges.firebaseapp.com",
+    projectId: "painel-financeiro-borges",
+    storageBucket: "painel-financeiro-borges.firebasestorage.app",
+    messagingSenderId: "354997627208",
+    appId: "1:354997627208:web:90604d0a7dcd45b6e4eb7d"
+  };
+
+  const firebaseApp = firebase.apps.length ? firebase.app() : firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore(firebaseApp);
+  const docRef = db.collection("fluxo_os").doc("dados_prioridades");
+
+  // 3. Métodos Globais de Transmissão de Dados
+  window.saveLocalStorage = async function() {
+    try {
+      await docRef.set(appState);
+      console.log("☁️ Alteração enviada à nuvem!");
+    } catch (e) {
+      console.error("❌ Falha na sincronização do Firebase:", e);
     }
-  }, (error) => {
-    console.error("Erro no canal de escuta do Firebase:", error);
-  });
-};
+  };
 
-// Ativa a inicialização do sistema com conexão à nuvem
-init();
+  window.loadLocalStorage = function() {
+    // Escuta ativa em tempo real multidispositivos
+    docRef.onSnapshot((docSnap) => {
+      if (docSnap.exists) {
+        const cloudData = docSnap.data();
+        const currentTabBackup = appState.currentTabId;
+        
+        appState = cloudData;
+        
+        if (currentTabBackup && appState.abas.some(a => a.id === currentTabBackup)) {
+          appState.currentTabId = currentTabBackup;
+        }
+        
+        // Atualiza a interface dinâmica da tela
+        renderGithubCalendar();
+        renderTabs();
+        updateMetricsUI();
+        
+        // Sincroniza o editor sem interromper a digitação do cursor
+        const editor = document.getElementById('mainEditor');
+        const activeAba = appState.abas.find(a => a.id === appState.currentTabId);
+        if (activeAba && editor.value !== activeAba.conteudo) {
+          const start = editor.selectionStart;
+          const end = editor.selectionEnd;
+          editor.value = activeAba.conteudo;
+          editor.setSelectionRange(start, end);
+        }
+      } else {
+        console.log("Nenhum dado na nuvem. Gerando primeiro registro...");
+        window.saveLocalStorage();
+      }
+    }, (error) => {
+      console.error("Erro na escuta do Firestore:", error);
+    });
+  };
+
+  // 4. Dá o start no fluxo com as funções mapeadas
+  init();
+})();
 </script>
 </body>
 </html>
