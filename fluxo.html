@@ -1315,19 +1315,25 @@ function assignHorizon(horizonName) {
 })();
 
 // ==========================================================================
-// 🛡️ 3. O SCRIPT ATIVADOR DO ARRASTE SUPERIOR VIA SORTABLE (MOBILE FRIENDLY)
+// 🛡️ 3. O SCRIPT ATIVADOR DO ARRASTE SUPERIOR VIA SORTABLE (MOBILE FRIENDLY + ANTI-BUG)
 // ==========================================================================
 function ativarArrastoHorizontesSuperiores() {
+  // 🔥 TRAVA DE SEGURANÇA: Se a biblioteca atrasar para carregar no HTMLPreview, espera e tenta de novo
+  if (typeof Sortable === 'undefined') {
+    console.warn("⏳ Sortable ainda não carregou... Tentando novamente em 200ms.");
+    setTimeout(ativarArrastoHorizontesSuperiores, 200);
+    return;
+  }
+
   const container = document.getElementById('topbarContainer');
   if (!container) return;
 
   // Ativa a reordenação dos cards superiores funcionando 100% no mobile e desktop
   Sortable.create(container, {
     animation: 150,
-    delay: 70,              // Pequeno delay no toque para permitir o scroll de tela do mobile
+    delay: 70,               // Pequeno delay no toque para permitir o scroll de tela do mobile
     delayOnTouchOnly: true,  // O delay só se aplica em telas touch de celular
     onEnd: function () {
-      // Se você possuir uma rotina para salvar a ordem das colunas/cards no banco, execute-a aqui.
       if (typeof saveLocalStorage === 'function') saveLocalStorage();
     }
   });
