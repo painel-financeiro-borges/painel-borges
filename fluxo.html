@@ -1,54 +1,620 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fluxo</title>
-    <!-- CSS para manter o visual limpo e rápido -->
-    <style>
-        body { font-family: sans-serif; padding: 10px; background: #f9f9f9; }
-        /* Container das abas */
-        #tabBar { display: flex; gap: 5px; overflow-x: auto; padding-bottom: 10px; }
-        .tab-btn { padding: 8px 15px; border: 1px solid #ddd; border-radius: 20px; background: #fff; cursor: pointer; white-space: nowrap; }
-        .tab-btn.active { background: #007bff; color: white; border-color: #007bff; }
-        /* Área de escrita */
-        #noteArea { width: 100%; height: 70vh; border: 1px solid #ddd; padding: 15px; border-radius: 10px; background: #fff; }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Painel Borges — Módulo Fluxo & Horizonte</title>
+
+<style>
+:root {
+  --bg: #020617;
+  --card: #0f172a;
+  --border: #1e293b;
+  --text: #f8fafc;
+  --muted: #64748b;
+  --accent: #3b82f6;
+  
+  /* Cores de Carga Mental/Prioridade */
+  --critico: #ef4444;
+  --importante: #f97316;
+  --normal: #eab308;
+  --evento: #06b6d4;
+  --concluido: #22c55e;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  padding-top: 60px; /* Espaço para o Topbar fixo */
+  padding-bottom: 20px;
+}
+
+/* ==========================================================================
+   TOPBAR FIXO (MÉTRICA DE CONTROLE)
+   ========================================================================== */
+.topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  background-color: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 10px;
+  z-index: 100;
+}
+
+.topbar-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.badge-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.badge-dot.critico { background-color: var(--critico); }
+.badge-dot.importante { background-color: var(--importante); }
+.badge-dot.normal { background-color: var(--normal); }
+.badge-dot.semdata { background-color: var(--muted); }
+
+/* ==========================================================================
+   CONTAINER PRINCIPAL
+   ========================================================================== */
+.container {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 15px;
+}
+
+.section-title {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   CALENDÁRIO GIGANTE (ESTILO GITHUB)
+   ========================================================================== */
+.calendar-panel {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.calendar-scroll {
+  overflow-x: auto;
+  padding-bottom: 5px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-flow: column;
+  grid-template-rows: repeat(7, 10px);
+  grid-auto-columns: 10px;
+  gap: 3px;
+  width: max-content;
+}
+
+.day-cell {
+  width: 10px;
+  height: 10px;
+  background-color: #1e293b;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+/* Classes de Carga Ativa no Calendário */
+.day-cell.c-critico { background-color: var(--critico); }
+.day-cell.c-importante { background-color: var(--importante); }
+.day-cell.c-normal { background-color: var(--normal); }
+.day-cell.c-evento { background-color: var(--evento); }
+.day-cell.c-concluido { background-color: var(--concluido); }
+
+/* HORIZONTES DE TEMPO */
+.horizon-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  margin-top: 15px;
+  padding-bottom: 5px;
+}
+
+.horizon-card {
+  background: #1e293b;
+  padding: 8px 14px;
+  border-radius: 10px;
+  min-width: 105px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.horizon-card .title {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.horizon-card .counter {
+  font-size: 18px;
+  font-weight: 800;
+  margin-top: 2px;
+}
+
+/* ==========================================================================
+   SISTEMA DE ABAS (ESTILO CHROME BROWSER)
+   ========================================================================== */
+.tabs-wrapper {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 15px;
+  overflow-x: auto;
+}
+
+.tabs-container {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+}
+
+.tab-btn {
+  background: #1e293b;
+  color: var(--muted);
+  border: none;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 12px 12px 0 0;
+  cursor: pointer;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.15s ease;
+}
+
+.tab-btn.active {
+  background: var(--card);
+  color: var(--text);
+  border-top: 2px solid var(--accent);
+}
+
+.tab-close {
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+}
+.tab-close:hover { color: var(--critico); }
+
+.add-tab-btn {
+  background: transparent;
+  color: var(--accent);
+  border: none;
+  padding: 10px 14px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   WORKZONE: EDITOR ESTILO WHATSAPP
+   ========================================================================== */
+.editor-panel {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+.editor-area {
+  width: 100%;
+  min-height: 250px;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.6;
+  resize: vertical;
+  outline: none;
+}
+
+/* Quick Input Box */
+.quick-input-container {
+  display: flex;
+  gap: 8px;
+  margin-top: 15px;
+  border-top: 1px solid var(--border);
+  padding-top: 15px;
+}
+
+.quick-input {
+  flex: 1;
+  background-color: #020617;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  color: var(--text);
+  font-size: 15px;
+  outline: none;
+}
+
+.quick-send-btn {
+  background-color: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 0 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   MENU CONTEXTUAL (EXPEDIDOR HORIZONTE)
+   ========================================================================== */
+.context-menu {
+  position: fixed;
+  background: #1e293b;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 1000;
+  min-width: 150px;
+}
+
+.context-item {
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.context-item:hover { background: var(--card); }
+
+/* Responsividade de Toque para Mobile */
+@media(max-width: 480px) {
+  body { padding-top: 55px; }
+  .editor-area { min-height: 300px; }
+  .horizon-card { min-width: 90px; padding: 6px 10px; }
+}
+</style>
 </head>
 <body>
 
-    <!-- Área de abas -->
-    <div id="tabBar">
-        <button class="tab-btn active" onclick="loadTab('Planejamento')">Planejamento</button>
-        <button class="tab-btn" onclick="loadTab('Afazeres')">Afazeres</button>
-        <button class="tab-btn" onclick="addTab()">+</button>
+<div class="topbar">
+  <div class="topbar-badge"><div class="badge-dot critico"></div> <span id="lblCritico">0 Críticos</span></div>
+  <div class="topbar-badge"><div class="badge-dot importante"></div> <span id="lblImportante">0 Imports.</span></div>
+  <div class="topbar-badge"><div class="badge-dot normal"></div> <span id="lblNormal">0 Normais</span></div>
+  <div class="topbar-badge"><div class="badge-dot semdata"></div> <span id="lblSemData">0 S/ Data</span></div>
+</div>
+
+<div class="container">
+
+  <div class="section-title">Calendário de Prioridades & Horizonte</div>
+  <div class="calendar-panel">
+    <div class="calendar-scroll">
+      <div class="calendar-grid" id="githubGrid"></div>
     </div>
+    
+    <div class="horizon-row">
+      <div class="horizon-card"><div class="title">Hoje</div><div class="counter" style="color:var(--critico)" id="hzHoje">0</div></div>
+      <div class="horizon-card"><div class="title">Semana</div><div class="counter" style="color:var(--importante)" id="hzSemana">0</div></div>
+      <div class="horizon-card"><div class="title">Mês</div><div class="counter" style="color:var(--normal)" id="hzMes">0</div></div>
+      <div class="horizon-card"><div class="title">Semestre</div><div class="counter" style="color:var(--evento)" id="hzSemestre">0</div></div>
+      <div class="horizon-card"><div class="title">Algum Dia</div><div class="counter" style="color:var(--muted)" id="hzAlgumDia">0</div></div>
+    </div>
+  </div>
 
-    <!-- Área de texto (onde a mágica acontece) -->
-    <textarea id="noteArea" placeholder="Digite aqui... use '-' no início da linha para criar listas"></textarea>
+  <div class="section-title">Abas de Anotação Ativa</div>
+  
+  <div class="tabs-wrapper">
+    <div class="tabs-container" id="tabsContainer"></div>
+    <button class="add-tab-btn" onclick="createNewTab()">+</button>
+  </div>
 
-    <script>
-        // Lógica para transformar tracinho em bullet point visualmente
-        const noteArea = document.getElementById('noteArea');
-        noteArea.addEventListener('input', (e) => {
-            const value = e.target.value;
-            // Detecta '-' seguido de espaço e substitui por símbolo de lista (pode ser ajustado)
-            if (value.endsWith('- ')) {
-                e.target.value = value.replace(/- $/, '• '); 
-            }
-        });
+  <div class="editor-panel">
+    <textarea 
+      id="mainEditor" 
+      class="editor-area" 
+      placeholder="Digite suas anotações aqui...&#10;Use hífens (-) para criar listas dinâmicas automáticas como no WhatsApp."
+      oninput="handleEditorInput(this)"
+    ></textarea>
+    
+    <div class="quick-input-container">
+      <input type="text" id="quickBox" class="quick-input" placeholder="➕ Captura rápida (Ex: Comprar rodapé)" onkeydown="if(event.key==='Enter') dispatchQuickInput()" />
+      <button class="quick-send-btn" onclick="dispatchQuickInput()">Ok</button>
+    </div>
+  </div>
 
-        // Função para trocar de aba instantaneamente
-        function loadTab(tabName) {
-            console.log("Carregando aba:", tabName);
-            // Aqui carregaremos o conteúdo via Firebase no futuro
-        }
+</div>
 
-        // Função simples para criar nova aba
-        function addTab() {
-            const name = prompt("Nome da nova aba:");
-            if (name) { alert("Nova aba '" + name + "' criada!"); }
-        }
-    </script>
+<div class="context-menu" id="contextMenu">
+  <div class="context-item" onclick="assignHorizon('Hoje')" style="color:var(--critico)">🔴 Hoje</div>
+  <div class="context-item" onclick="assignHorizon('Semana')" style="color:var(--importante)">🟠 Semana</div>
+  <div class="context-item" onclick="assignHorizon('Mês')" style="color:var(--normal)">🟡 Mês</div>
+  <div class="context-item" onclick="assignHorizon('Semestre')" style="color:var(--evento)">🔵 Semestre</div>
+  <div class="context-item" onclick="assignHorizon('Algum Dia')" style="color:var(--muted)">📥 Algum Dia</div>
+</div>
+
+<script>
+/* ==========================================================================
+   ESTADO GLOBAL COMPACTO
+   ========================================================================== */
+let appState = {
+  currentTabId: 'planejamento',
+  topbarMetrics: { criticos: 3, importantes: 12, normais: 27, semData: 14 },
+  horizontes: { Hoje: 3, Semana: 7, Mês: 15, Semestre: 22, AlgumDia: 41 },
+  abas: [
+    { id: 'planejamento', titulo: 'Planejamento', conteudo: '• Juntar para apartamento\n• Organizar compras previstas' },
+    { id: 'afazeres', titulo: 'Afazeres', conteudo: '• Marcar consulta\n• Contrato Juninho\n• Cobrar GOI' },
+    { id: 'compras', titulo: 'Compras', conteudo: '• Argamassa\n• Massa Quartzolit\n• Rodapé\n• Torneira banheiro' }
+  ]
+};
+
+let selectedLineText = ""; 
+
+/* ==========================================================================
+   INICIALIZAÇÃO & RENDERERS
+   ========================================================================== */
+function init() {
+  loadLocalStorage();
+  renderGithubCalendar();
+  renderTabs();
+  selectTab(appState.currentTabId);
+  updateMetricsUI();
+  setupContextMenus();
+}
+
+function updateMetricsUI() {
+  document.getElementById('lblCritico').textContent = `${appState.topbarMetrics.criticos} Críticos`;
+  document.getElementById('lblImportante').textContent = `${appState.topbarMetrics.importantes} Imports.`;
+  document.getElementById('lblNormal').textContent = `${appState.topbarMetrics.normais} Normais`;
+  document.getElementById('lblSemData').textContent = `${appState.topbarMetrics.semData} S/ Data`;
+
+  document.getElementById('hzHoje').textContent = appState.horizontes.Hoje;
+  document.getElementById('hzSemana').textContent = appState.horizontes.Semana;
+  document.getElementById('hzMes').textContent = appState.horizontes.Mês;
+  document.getElementById('hzSemestre').textContent = appState.horizontes.Semestre;
+  document.getElementById('hzAlgumDia').textContent = appState.horizontes.AlgumDia;
+}
+
+/* GERADOR DE MAPA ESTILO GITHUB */
+function renderGithubCalendar() {
+  const grid = document.getElementById('githubGrid');
+  grid.innerHTML = '';
+  // Gerando os 365 quadrados representativos de carga ativa
+  for(let i = 0; i < 364; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'day-cell';
+    
+    // Simulação de preenchimento randômico controlado apenas para amostragem visual inicial
+    if(i % 15 === 0) cell.classList.add('c-critico');
+    else if(i % 22 === 0) cell.classList.add('c-importante');
+    else if(i % 9 === 0) cell.classList.add('c-normal');
+    else if(i % 31 === 0) cell.classList.add('c-concluido');
+    
+    grid.appendChild(cell);
+  }
+}
+
+/* GESTÃO DE ABAS (CHROME STYLE) */
+function renderTabs() {
+  const container = document.getElementById('tabsContainer');
+  container.innerHTML = '';
+  
+  appState.abas.forEach(aba => {
+    const btn = document.createElement('button');
+    btn.className = `tab-btn ${aba.id === appState.currentTabId ? 'active' : ''}`;
+    btn.onclick = () => selectTab(aba.id);
+    
+    const titleSpan = document.createElement('span');
+    titleSpan.textContent = aba.titulo;
+    
+    const closeSpan = document.createElement('span');
+    closeSpan.className = 'tab-close';
+    closeSpan.innerHTML = '&times;';
+    closeSpan.onclick = (e) => {
+      e.stopPropagation();
+      deleteTab(aba.id);
+    };
+    
+    btn.appendChild(titleSpan);
+    btn.appendChild(closeSpan);
+    container.appendChild(btn);
+  });
+}
+
+function selectTab(id) {
+  appState.currentTabId = id;
+  const target = appState.abas.find(a => a.id === id);
+  const editor = document.getElementById('mainEditor');
+  
+  if(target) {
+    editor.value = target.conteudo;
+  } else if (appState.abas.length > 0) {
+    appState.currentTabId = appState.abas[0].id;
+    editor.value = appState.abas[0].conteudo;
+  } else {
+    editor.value = '';
+  }
+  
+  renderTabs();
+  saveLocalStorage();
+}
+
+function createNewTab() {
+  const nome = prompt("Nome do Bloco Ativo / Aba:");
+  if(!nome) return;
+  const id = nome.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-');
+  
+  appState.abas.push({
+    id: id,
+    titulo: nome,
+    conteudo: ''
+  });
+  
+  selectTab(id);
+}
+
+function deleteTab(id) {
+  if(confirm("Deseja fechar esta aba permanentemente?")) {
+    appState.abas = appState.abas.filter(a => a.id !== id);
+    if(appState.currentTabId === id) {
+      appState.currentTabId = appState.abas.length > 0 ? appState.abas[0].id : '';
+    }
+    init();
+  }
+}
+
+/* ==========================================================================
+   PROCESSAMENTO DE SINTAXE DE TEXTO (ESTILO COMPORTAMENTO WHATSAPP)
+   ========================================================================== */
+function handleEditorInput(textarea) {
+  let value = textarea.value;
+  const cursorPosition = textarea.selectionStart;
+  
+  // Captura o padrão de digitação do WhatsApp: Tracinho (-) seguido de espaço ' '
+  if (value.substring(cursorPosition - 2, cursorPosition) === '- ') {
+    const textBefore = value.substring(0, cursorPosition - 2);
+    const textAfter = value.substring(cursorPosition);
+    
+    // Substitui pelo marcador limpo circular de lista
+    textarea.value = textBefore + '• ' + textAfter;
+    textarea.selectionStart = textarea.selectionEnd = cursorPosition;
+  }
+  
+  // Salva o estado em tempo real no buffer da aba
+  const current = appState.abas.find(a => a.id === appState.currentTabId);
+  if(current) {
+    current.conteudo = textarea.value;
+    saveLocalStorage();
+  }
+}
+
+/* CAIXA DE ENTRADA RÁPIDA DE CAPTURA DE ITENS */
+function dispatchQuickInput() {
+  const box = document.getElementById('quickBox');
+  const txt = box.value.trim();
+  if(!txt) return;
+  
+  const editor = document.getElementById('mainEditor');
+  const formatado = `• ${txt}`;
+  
+  if(editor.value) {
+    editor.value += `\n${formatado}`;
+  } else {
+    editor.value = formatado;
+  }
+  
+  box.value = '';
+  handleEditorInput(editor);
+  editor.scrollTop = editor.scrollHeight; // Rola o editor pro final igual uma conversa
+}
+
+/* ==========================================================================
+   COMPORTAMENTO DE ENVIO EXPEDIDO (PRESIONAR / CLIQUE CONTEXTUAL)
+   ========================================================================== */
+function setupContextMenus() {
+  const editor = document.getElementById('mainEditor');
+  const menu = document.getElementById('contextMenu');
+  
+  // Disparador simplificado para Desktop e Mobile através de clique com botão direito ou seleção prolongada
+  editor.addEventListener('contextmenu', function(e) {
+    const selection = window.getSelection().toString().trim() || getLineAtCursor(editor);
+    if(selection && selection !== "•" && selection !== "-") {
+      e.preventDefault();
+      selectedLineText = selection.replace(/[•-]\s*/, ""); // Limpa marcadores
+      
+      menu.style.display = 'flex';
+      menu.style.left = `${Math.min(e.clientX, window.innerWidth - 160)}px`;
+      menu.style.top = `${Math.min(e.clientY, window.innerHeight - 220)}px`;
+    }
+  });
+
+  // Fecha menu ao tocar fora
+  document.addEventListener('click', function(e) {
+    if(!menu.contains(e.target)) {
+      menu.style.display = 'none';
+    }
+  });
+}
+
+function getLineAtCursor(textarea) {
+  const text = textarea.value;
+  const selStart = textarea.selectionStart;
+  const startPos = text.lastIndexOf('\n', selStart - 1) + 1;
+  let endPos = text.indexOf('\n', selStart);
+  if (endPos === -1) endPos = text.length;
+  return text.substring(startPos, endPos).trim();
+}
+
+function assignHorizon(horizonName) {
+  // Converte a propriedade para o padrão camelCase do objeto state
+  const key = horizonName.replace(/\s+/g, '');
+  if(appState.horizontes[key] !== undefined) {
+    appState.horizontes[key]++;
+    appState.topbarMetrics.semData = Math.max(0, appState.topbarMetrics.semData - 1);
+    
+    // Atualiza contadores visuais superiores na hora
+    if(horizonName === 'Hoje') appState.topbarMetrics.criticos++;
+    if(horizonName === 'Semana') appState.topbarMetrics.importantes++;
+    
+    updateMetricsUI();
+    saveLocalStorage();
+    alert(`"${selectedLineText}" enviado para o horizonte: ${horizonName}`);
+  }
+  document.getElementById('contextMenu').style.display = 'none';
+}
+
+/* ==========================================================================
+   PERSISTÊNCIA LOCAL STORAGE
+   ========================================================================== */
+function saveLocalStorage() {
+  localStorage.setItem('painelBorgesFluxoData', JSON.stringify(appState));
+}
+
+function loadLocalStorage() {
+  const data = localStorage.getItem('painelBorgesFluxoData');
+  if(data) {
+    appState = JSON.parse(data);
+  }
+}
+
+// Execução imediata
+init();
+</script>
 </body>
 </html>
