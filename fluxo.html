@@ -1320,7 +1320,7 @@ function ativarArrastoHorizontesSuperiores() {
       zone.style.background = 'linear-gradient(145deg, #140f2b, #090614)';
       
       const tabId = e.dataTransfer.getData('tab-id');
-      const novoHorizonte = zone.getAttribute('data-horizon');
+      const novoHorizonte = zone.getAttribute('data-horizon').toLowerCase();
       
       if (tabId) {
         const abaAlvo = appState.abas.find(a => a.id === tabId);
