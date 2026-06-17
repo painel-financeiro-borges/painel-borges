@@ -921,21 +921,20 @@ function handleEditorInput(textarea) {
   let value = textarea.value;
   const cursorPosition = textarea.selectionStart;
   
-  // Captura o padrão de digitação do WhatsApp: Tracinho (-) seguido de espaço ' '
   if (value.substring(cursorPosition - 2, cursorPosition) === '- ') {
     const textBefore = value.substring(0, cursorPosition - 2);
     const textAfter = value.substring(cursorPosition);
-    
-    // Substitui pelo marcador limpo circular de lista
     textarea.value = textBefore + '• ' + textAfter;
     textarea.selectionStart = textarea.selectionEnd = cursorPosition;
   }
   
-  // Salva o estado em tempo real no buffer da aba
   const current = appState.abas.find(a => a.id === appState.currentTabId);
   if(current) {
     current.conteudo = textarea.value;
-    saveLocalStorage();
+    
+    // NOVO: Recalcula o rodapé e atualiza o Firebase na mesma piscada de olho
+    updateMetricsUI();
+    if (typeof saveLocalStorage === 'function') saveLocalStorage();
   }
 }
 
