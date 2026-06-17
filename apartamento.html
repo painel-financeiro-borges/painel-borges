@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Borges - Simulador Apê Térreo V6</title>
+    <title>Painel Borges - Simulador Apê Térreo V7</title>
     <style>
         * { box-sizing: border-box; }
         body { margin: 0; padding: 0; overflow: hidden; background-color: #090909; font-family: 'Outfit', sans-serif; color: white; }
@@ -58,12 +58,11 @@
 <body>
 
     <div class="painel-lateral">
-        <h5>🛠️ SIMULADOR BORGES V6</h5>
-        <subtitle>Mapeamento Térreo & Área Externa</subtitle>
+        <h5>🛠️ SIMULADOR BORGES V7</h5>
+        <subtitle>Mapeamento Térreo Sem Trava de Escala</subtitle>
         
         <div class="instrucoes">
-            <strong>Mouse Ruim / Sem Scroll:</strong> Use os botões abaixo! <br>
-            <strong>No Celular:</strong> Use dois dedos abrindo/fechando na tela.
+            <strong>Botões de Zoom Ativos:</strong> Perfeito para quem está sem scroll de mouse.
         </div>
 
         <div class="botoes-zoom">
@@ -82,31 +81,31 @@
             <div class="secao-titulo">➕ Inserir Objeto Avançado</div>
             <select id="novoTipo">
                 <optgroup label="Estrutura e Alvenaria">
-                    <option value="parede">🧱 Parede Alvenaria (Rente ao Chão)</option>
+                    <option value="parede">🧱 Parede Alvenaria</option>
                     <option value="quintal">🪵 Piso da Área Privativa Externa</option>
                     <option value="porta">🚪 Porta de Passagem</option>
                     <option value="janela">🪟 Janela / Vão de Luz</option>
                 </optgroup>
-                <optgroup label="Cozinha Sob Medida (Tudo Suspenso)">
+                <optgroup label="Cozinha Sob Medida">
                     <option value="pia">🚰 Bancada da Pia Suspensa</option>
                     <option value="armario">🗄️ Armários Superiores Aéreos</option>
                     <option value="galao">📦 Cubo Ocultador do Galão de Água</option>
                     <option value="cooktop">🔥 Cooktop Embutido</option>
                 </optgroup>
                 <optgroup label="Área Externa / Quintal">
-                    <option value="gas">⛽ Casinha do Gás Blindada (Segurança)</option>
+                    <option value="gas">⛽ Casinha do Gás Blindada</option>
                     <option value="lavadora">🧺 Máquina de Lavar e Tanque</option>
                     <option value="armariotool">🧰 Armário Suspenso p/ Ferramentas</option>
                     <option value="portao">🚧 Portão de Fechamento</option>
                 </optgroup>
                 <optgroup label="Quartos & Sala Inteligente">
                     <option value="closetcabide">👔 Closet Planejado (Apenas Cabides)</option>
-                    <option value="camaduplex">🛏️ Cama Duplex (Mãe + Menino)</option>
+                    <option value="camaduplex">🛏️ Cama Duplex</option>
                     <option value="paineltv">📺 Painel Amadeirado Ripado TV</option>
                     <option value="lustre">💡 Lustre de teto</option>
                 </optgroup>
             </select>
-            <input type="text" id="novoNome" placeholder="Nome ex: Parede Cozinha">
+            <input type="text" id="novoNome" placeholder="Nome ex: Parede Principal">
             <button class="btn-primary" onclick="criarNovoObjetoNoBanco()">Colocar no Cenário</button>
         </div>
 
@@ -124,9 +123,9 @@
         </div>
         
         <div class="secao">
-            <div class="secao-titulo">📋 Carga Rápida de Layout (Sua Idea)</div>
+            <div class="secao-titulo">📋 Carga Rápida de Layout</div>
             <textarea id="txtImportar" rows="3" placeholder="Cole o código do layout aqui..."></textarea>
-            <button class="btn-primary" style="background:#00ffd2; color:#000;" onclick="executarImportacaoEmMassa()">📥 Gerar Layout Automaticamente</button>
+            <button class="btn-primary" style="background:#00ffd2; color:#000;" onclick="executarImportacaoEmMassa()">📥 Redefinir Todo Cenário para o Padrão Coletado</button>
         </div>
 
         <div class="secao">
@@ -150,12 +149,41 @@
         const db = firebase.firestore();
         const colecaoApartamento = db.collection("layout_apartamento");
 
+        // DADOS REAIS COLETADOS PELO ROBO PARA CASO PRECISE RESETAR
+        const layoutMatematicoColetado = [
+          {"nome":"Portão de Fechamento do Quintal","tipo":"portao","largura":3.5,"altura":2,"profundidade":0.05,"posX":-5,"posY":1,"posZ":1.6,"rotY":0},
+          {"nome":"Parede Divisória Cozinha e Sala","tipo":"parede","largura":0.15,"altura":2.7,"profundidade":3.7,"posX":-0.8,"posY":1.35,"posZ":-2.05,"rotY":0},
+          {"nome":"Parede Entrada do Banheiro","tipo":"parede","largura":1.4,"altura":2.7,"profundidade":0.15,"posX":2.5,"posY":1.35,"posZ":-1.7,"rotY":0},
+          {"nome":"Armário Sob a Pia Cozinha (Suspenso)","tipo":"armario","largura":0.55,"altura":0.6,"profundidade":1.8,"posX":-2.8,"posY":0.5,"posZ":-2.8,"rotY":0},
+          {"nome":"Armário Suspenso p/ Ferramentas (Quintal)","tipo":"armariotool","largura":0.4,"altura":0.8,"profundidade":1.5,"posX":-6.6,"posY":1.5,"posZ":-1.2,"rotY":0},
+          {"nome":"Mini Closet Planejado Quarto 1 (Cabides)","tipo":"closetcabide","largura":0.6,"altura":2.4,"profundidade":2.2,"posX":-2.8,"posY":1.2,"posZ":1.6,"rotY":0},
+          {"nome":"Parede Divisória Entre os Dois Quartos","tipo":"parede","largura":0.15,"altura":2.7,"profundidade":3.7,"posX":0,"posY":1.35,"posZ":1.65,"rotY":0},
+          {"nome":"Parede Externa Direita (Quarto 2 e Banheiro)","tipo":"parede","largura":0.15,"altura":2.7,"profundidade":7.4,"posX":3.2,"posY":1.35,"posZ":-0.2,"rotY":0},
+          {"nome":"Lustre Centro Sala","tipo":"lustre","largura":0.3,"altura":0.5,"profundidade":0.3,"posX":0.6,"posY":2.4,"posZ":-1.2,"rotY":0},
+          {"nome":"Parede de Fundo (Cozinha e Banheiro)","tipo":"parede","largura":6.4,"altura":2.7,"profundidade":0.15,"posX":0,"posY":1.35,"posZ":-3.9,"rotY":0},
+          {"nome":"Cama Solteiro Duplex Quarto 2","tipo":"camaduplex","largura":0.9,"altura":0.6,"profundidade":1.9,"posX":2.6,"posY":0.3,"posZ":2.2,"rotY":0},
+          {"nome":"Parede Frontal (Janela Quarto 1 e Sala)","tipo":"parede","largura":6.4,"altura":2.7,"profundidade":0.15,"posX":0,"posY":1.35,"posZ":3.5,"rotY":0},
+          {"nome":"Casinha do Gás Blindada (Lá Fora)","tipo":"gas","largura":0.6,"altura":0.7,"profundidade":0.6,"posX":-3.6,"posY":0.35,"posZ":-3.6,"rotY":0},
+          {"nome":"Parede Externa Esquerda (Quarto 1 e Cozinha)","tipo":"parede","largura":0.15,"altura":2.7,"profundidade":7.4,"posX":-3.2,"posY":1.35,"posZ":-0.2,"rotY":0},
+          {"nome":"Cooktop Embutido","tipo":"cooktop","largura":0.5,"altura":0.05,"profundidade":0.6,"posX":-2.8,"posY":0.88,"posZ":-2.4,"rotY":0},
+          {"nome":"Parede Divisória Corredor (Quartos / Sala)","tipo":"parede","largura":6.4,"altura":2.7,"profundidade":0.15,"posX":0,"posY":1.35,"posZ":-0.2,"rotY":0},
+          {"nome":"Bancada Pia Cozinha Suspensa","tipo":"pia","largura":0.6,"altura":0.15,"profundidade":1.8,"posX":-2.8,"posY":0.85,"posZ":-2.8,"rotY":0},
+          {"nome":"Closetzinho Quarto 2","tipo":"closetcabide","largura":1.2,"altura":2.4,"profundidade":0.6,"posX":1.2,"posY":1.2,"posZ":0.6,"rotY":0},
+          {"nome":"Nicho Ocultador Galão de Água","tipo":"galao","largura":0.45,"altura":0.85,"profundidade":0.45,"posX":-2.8,"posY":0.425,"posZ":-3.6,"rotY":0},
+          {"nome":"Máquina de Lavar Suspensa","tipo":"lavadora","largura":0.65,"altura":0.85,"profundidade":0.65,"posX":-4.2,"posY":0.425,"posZ":-1.8,"rotY":0},
+          {"nome":"Piso do Quintal (Área Privativa)","tipo":"quintal","largura":3.5,"altura":0.02,"profundidade":5.5,"posX":-5,"posY":0.01,"posZ":-1.1,"rotY":0},
+          {"nome":"Parede Direita do Banheiro","tipo":"parede","largura":0.15,"altura":2.7,"profundidade":2.2,"posX":1.8,"posY":1.35,"posZ":-2.8,"rotY":0},
+          {"nome":"Painel Amadeirado TV Sala","tipo":"paineltv","largura":2,"altura":2.2,"profundidade":0.05,"posX":-0.7,"posY":1.1,"posZ":-1.1,"rotY":0}
+        ];
+
+        document.getElementById('txtImportar').value = JSON.stringify(layoutMatematicoColetado);
+
         const container = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x060606);
 
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 12, 15);
+        camera.position.set(0, 15, 18);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -175,25 +203,25 @@
             controls.enabled = !event.value;
         });
 
-        scene.add(new THREE.AmbientLight(0xffffff, 0.55));
-        const spot = new THREE.DirectionalLight(0xffffff, 0.6);
-        spot.position.set(10, 25, 10);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+        const spot = new THREE.DirectionalLight(0xffffff, 0.5);
+        spot.position.set(15, 30, 15);
         scene.add(spot);
 
         const grid = new THREE.GridHelper(50, 50, 0x00ff88, 0x161616);
         scene.add(grid);
 
-        window.objetos3DLocais = {}; // Exposto globalmente de forma explícita para o robô
+        window.objetos3DLocais = {};
         let idObjetoSelecionado = null;
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
 
         const materiais = {
-            parede: new THREE.MeshStandardMaterial({ color: 0x3a3a3a, roughness: 0.7 }),
-            quintal: new THREE.MeshStandardMaterial({ color: 0x1e271e, roughness: 0.8 }),
+            parede: new THREE.MeshStandardMaterial({ color: 0x444444, roughness: 0.6 }),
+            quintal: new THREE.MeshStandardMaterial({ color: 0x242d24, roughness: 0.8 }),
             porta: new THREE.MeshStandardMaterial({ color: 0x5a3d28 }),
             janela: new THREE.MeshStandardMaterial({ color: 0x3498db, transparent: true, opacity: 0.4 }),
-            pia: new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.3 }),
+            pia: new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.4 }),
             armario: new THREE.MeshStandardMaterial({ color: 0x3e2723 }),
             galao: new THREE.MeshStandardMaterial({ color: 0x0077c2 }),
             cooktop: new THREE.MeshStandardMaterial({ color: 0x111111 }),
@@ -207,12 +235,7 @@
             lustre: new THREE.MeshStandardMaterial({ color: 0xf1c40f, emissive: 0xf1c40f })
         };
 
-        const pisoInternoGeo = new THREE.BoxGeometry(40, 0.02, 40);
-        const pisoInternoMat = new THREE.MeshStandardMaterial({ color: 0x141414 });
-        const pisoInterno = new THREE.Mesh(pisoInternoGeo, pisoInternoMat);
-        pisoInterno.position.y = -0.01;
-        scene.add(pisoInterno);
-
+        // Escuta em tempo real as mudanças no banco de dados e FORÇA a escala real lida do doc
         colecaoApartamento.onSnapshot(snapshot => {
             snapshot.docChanges().forEach(change => {
                 const dados = change.doc.data();
@@ -221,15 +244,16 @@
                 if (change.type === "added" || change.type === "modified") {
                     if (window.objetos3DLocais[id]) scene.remove(window.objetos3DLocais[id]);
 
-                    const l = parseFloat(dados.largura) || 1.0;
-                    const a = parseFloat(dados.altura) || 1.0;
-                    const p = parseFloat(dados.profundidade) || 1.0;
+                    // FORÇANDO A LEITURA DINÂMICA COMPLETA DE ESCALA DO BANCO DE DADOS
+                    const larg = parseFloat(dados.largura);
+                    const alt = parseFloat(dados.altura);
+                    const prof = parseFloat(dados.profundidade);
                     
-                    const geo = new THREE.BoxGeometry(l, a, p);
+                    const geo = new THREE.BoxGeometry(larg, alt, prof);
                     const mat = materiais[dados.tipo] || materiais.parede;
                     const mesh = new THREE.Mesh(geo, mat);
                     
-                    mesh.position.set(parseFloat(dados.posX) || 0, parseFloat(dados.posY) || (a/2), parseFloat(dados.posZ) || 0);
+                    mesh.position.set(parseFloat(dados.posX), parseFloat(dados.posY), parseFloat(dados.posZ));
                     mesh.rotation.y = parseFloat(dados.rotY) || 0;
                     mesh.name = dados.nome;
                     mesh.userData = { id: id, tipo: dados.tipo };
@@ -303,7 +327,7 @@
             
             let l = 1.0, a = 0.8, p = 0.6, y = 0.4;
             if (tipo === "parede") { l = 2.5; a = 2.7; p = 0.15; y = 1.35; }
-            else if (tipo === "quintal") { l = 5.0; a = 0.02; p = 4.0; y = 0.01; }
+            else if (tipo === "quintal") { l = 3.5; a = 0.02; p = 5.5; y = 0.01; }
             
             const novoDoc = {
                 nome: nome, tipo: tipo, largura: l, altura: a, profundidade: p,
@@ -338,42 +362,45 @@
 
             colecaoApartamento.doc(idObjetoSelecionado).update(dadosSalvar).then(() => {
                 mesh.scale.set(1,1,1);
-                alert("Salvo com sucesso!");
+                alert("Fixado e salvo no banco de dados!");
             });
         }
 
         function limparTodoOCenarioDoAp() {
-            if (confirm("🚨 ATENÇÃO: Deseja apagar TODOS os objetos do cenário de uma vez só?")) {
+            if (confirm("🚨 ATENÇÃO: Apagar tudo para restaurar o padrão limpo?")) {
                 transformControls.detach();
                 idObjetoSelecionado = null;
                 document.getElementById("painelEdicao").style.display = "none";
-                
                 colecaoApartamento.get().then(snapshot => {
                     const batch = db.batch();
                     snapshot.forEach(doc => batch.delete(doc.ref));
                     return batch.commit();
-                }).then(() => {
-                    alert("Cenário totalmente limpo!");
-                }).catch(err => alert("Erro ao limpar: " + err));
+                });
             }
         }
 
         function executarImportacaoEmMassa() {
             const raw = document.getElementById("txtImportar").value;
-            if(!raw) return alert("Cole os dados JSON primeiro!");
-            try {
-                const lista = JSON.parse(raw);
-                const batch = db.batch();
-                lista.forEach(obj => {
-                    const novoRef = colecaoApartamento.doc();
-                    batch.set(novoRef, obj);
+            if(!raw) return alert("Adicione o código JSON antes!");
+            transformControls.detach();
+            idObjetoSelecionado = null;
+            
+            if(confirm("Deseja substituir todo o cenário atual pelos dados coletados mapeados?")) {
+                colecaoApartamento.get().then(snapshot => {
+                    const batchLimpeza = db.batch();
+                    snapshot.forEach(doc => batchLimpeza.delete(doc.ref));
+                    return batchLimpeza.commit();
+                }).then(() => {
+                    const lista = JSON.parse(raw);
+                    const batchInsercao = db.batch();
+                    lista.forEach(obj => {
+                        const novoRef = colecaoApartamento.doc();
+                        batchInsercao.set(novoRef, obj);
+                    });
+                    return batchInsercao.commit();
+                }).then(() => {
+                    alert("Cenário remontado com sucesso e travas de tamanho removidas!");
                 });
-                batch.commit().then(() => {
-                    alert("Layout injetado com sucesso!");
-                    document.getElementById("txtImportar").value = "";
-                });
-            } catch(err) {
-                alert("Erro no formato. Verifique se copiou todo o código.");
             }
         }
 
