@@ -122,7 +122,7 @@
     renderAssets();
   }
   
-  // ---------- RENDER / ACTIONS FOR ASSETS (ATUALIZADO) ----------
+  // ---------- RENDER / ACTIONS FOR ASSETS (UPGRADED NEON VERSION) ----------
   function renderAssets() {
     const container = document.getElementById('assetsList');
     if (!container) return;
@@ -132,47 +132,69 @@
       return;
     }
     state.assets.forEach(a => {
-      // Cálculo: Ativo se Fluxo Líquido > 0 (traz dinheiro)
       const net = computeAssetNet(a);
-      // Saldo é o Custo Inicial + Fluxo Líquido
       const currentBalance = computeAssetBalance(a); 
       
-      let statusLabel = 'NEUTRO (Fluxo: 0)';
+      // Definição reativa das variáveis de estilo de acordo com a holding
+      let statusLabel = '⚪ NEUTRO (Fluxo: 0)';
       let statusColor = 'var(--muted)';
+      let statusBg = 'rgba(154, 164, 178, 0.06)';
       
-      // Lógica de Classificação Automática
       if (net > 0) { 
-          statusLabel = 'ATIVO (Gera Renda)'; 
-          statusColor = 'var(--success)'; 
+          statusLabel = '🟢 ATIVO (Gera Renda)'; 
+          statusColor = 'var(--success)';
+          statusBg = 'rgba(22, 163, 74, 0.12)';
       }
       else if (net < 0) { 
-          statusLabel = 'PASSIVO (Gera Despesa)'; 
-          statusColor = 'var(--danger)'; 
+          statusLabel = '🔴 PASSIVO (Gera Despesa)'; 
+          statusColor = 'var(--danger)';
+          statusBg = 'rgba(239, 68, 68, 0.12)';
       }
 
       const card = document.createElement('div');
       card.className = 'res-card';
+      // Aplica dinamicamente a borda suave baseada na classificação do fluxo
+      card.style.cssText = `border: 1px solid ${statusColor}30; padding: 14px; border-radius: var(--radius); background: var(--card);`;
+      
       card.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center">
-          <div style="font-weight:700">${a.name}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="font-weight:700; font-size:16px; color:var(--btn-text)">${a.name}</div>
           <div style="display:flex;gap:6px">
-            <button class="btn-ghost" data-act="edit" data-id="${a.id}">✎</button>
-            <button class="btn-ghost" data-act="del" data-id="${a.id}">✖</button>
+            <button class="btn-ghost" style="padding:4px 8px" data-act="edit" data-id="${a.id}">✎</button>
+            <button class="btn-ghost" style="padding:4px 8px; color:var(--danger)" data-act="del" data-id="${a.id}">✖</button>
           </div>
         </div>
-        <div style="margin-top:8px" class="small">Custo/Dívida Inicial: ${safeFormatMoney(a.cost)}</div>
-        <div style="margin-top:6px;font-weight:800;font-size:18px">${safeFormatMoney(currentBalance)}</div>
-        <div style="margin-top:8px;font-weight:bold;color:${statusColor};border-top:1px solid rgba(255,255,255,0.1);padding-top:8px">${statusLabel}</div>
-        <div style="margin-top:4px"><div class="small">Fluxo Líquido (Receitas - Despesas): <span style="${net > 0 ? 'color:var(--success)' : (net < 0 ? 'color:var(--danger)' : '')}">${safeFormatMoney(net)}</span></div></div>
-        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,0.1);padding-top:8px">
-          <button class="btn-ghost" data-act="addE" data-id="${a.id}">+ Receita/Entrada</button>
-          <button class="btn-ghost" data-act="addS" data-id="${a.id}">- Despesa/Saída</button>
-          <button class="btn-ghost" data-act="view" data-id="${a.id}">Ver transações</button>
+        <div style="margin-top:8px; opacity:0.8" class="small">Custo/Dívida Inicial: ${safeFormatMoney(a.cost)}</div>
+        <div style="margin-top:6px;font-weight:800;font-size:20px; color:var(--btn-text)">${safeFormatMoney(currentBalance)}</div>
+        
+        <div style="
+          display: inline-block; 
+          padding: 5px 10px; 
+          border-radius: 6px; 
+          font-weight: 800; 
+          font-size: 11px; 
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          background: ${statusBg}; 
+          color: ${statusColor}; 
+          border: 1px solid ${statusColor}40;
+          box-shadow: 0 0 10px ${statusColor}10;
+          margin: 12px 0 6px 0;
+        ">
+          ${statusLabel}
         </div>
-        <div style="margin-top:8px" id="chart_${a.id}"></div>
-    `;
+
+        <div style="margin-top:4px; padding-top:6px;"><div class="small">Fluxo Líquido (Receitas - Despesas): <span style="font-weight:bold; color:${statusColor}">${safeFormatMoney(net)}</span></div></div>
+        <div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,0.03);padding-top:10px">
+          <button class="btn-ghost small" style="flex:1; font-size:12px" data-act="addE" data-id="${a.id}">+ Receita</button>
+          <button class="btn-ghost small" style="flex:1; font-size:12px; color:var(--danger)" data-act="addS" data-id="${a.id}">- Despesa</button>
+          <button class="btn-ghost small" style="font-size:12px" data-act="view" data-id="${a.id}">Ver transações</button>
+        </div>
+        <div style="margin-top:10px" id="chart_${a.id}"></div>
+      `;
       container.appendChild(card);
-      // attach events
+      
+      // Re-amostra as escutas de clique
       card.querySelectorAll('button').forEach(b => {
         const act = b.getAttribute('data-act');
         const id = b.getAttribute('data-id');
@@ -182,12 +204,9 @@
         if (act === 'addS') b.addEventListener('click', () => { promptAssetTx(id, 'saida'); });
         if (act === 'view') b.addEventListener('click', () => { showAssetTransactions(id); });
       });
-      // render tiny chart (if Chart.js present)
       renderAssetChartSmall(a);
     });
   }
-
-
   function promptAssetTx(id, tipo) {
     const val = Number(prompt(`Valor R$ da ${tipo === 'entrada' ? 'Receita' : 'Despesa'}`, '0')) || 0;
     if (val <= 0) return;
