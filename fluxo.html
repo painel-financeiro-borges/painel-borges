@@ -405,14 +405,22 @@ body {
     <button class="add-tab-btn" onclick="createNewTab()">+</button>
   </div>
 
-  <div class="editor-panel" style="margin-bottom: 25px;">
-    <!-- Editor Unificado Raw Text -->
+ <div class="editor-panel" style="margin-bottom: 25px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+      <span style="font-size: 11px; text-transform: uppercase; color: var(--muted); font-weight: 700; letter-spacing: 0.5px;">Área de Trabalho</span>
+      <button id="btnAlternarModo" onclick="alternarModoChecklist()" style="background: rgba(0, 245, 255, 0.08); border: 1px solid rgba(0, 245, 255, 0.3); color: #00f5ff; padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; transition: all 0.2s; outline: none;">
+        📝 Modo Checklist (Riscar)
+      </button>
+    </div>
+
     <textarea 
       id="mainEditor" 
       class="editor-area" 
       placeholder="Digite suas anotações aqui...&#10;Use hífens (-) para criar listas dinâmicas automáticas como no WhatsApp."
-      oninput="handleEditorInput(this)"
+      oninput="handleEditorInput(this); atualizarConteudoAbaAovivo();"
     ></textarea>
+
+    <div id="checklistContainer" style="display: none; min-height: 250px; flex-direction: column; gap: 8px; padding: 5px 0; overflow-y: auto;"></div>
     
     <!-- Caixa de Entrada Rápida de Captura Inteligente -->
     <div class="quick-input-container">
