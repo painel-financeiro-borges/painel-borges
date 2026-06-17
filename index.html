@@ -2089,24 +2089,36 @@
   <!-- Google Scripts Removed -->
 
   <!-- ===================== FIREBASE LOGIN ===================== -->
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <script>
-    (function motorAutenticacaoBlindado() {
-      // Função tática de checagem de escopo (Espera as tags gstatic carregarem no HTMLPreview)
-      function checarEInicializar() {
+<script>
+    (async function motorAutenticacaoAutonomo() {
+      console.log("🤖 [Painel Borges] Iniciando carga de dependências isoladas...");
+
+      // Força a criação sequencial e síncrona dos scripts na marra para burlar o HTMLPreview
+      const carregarScriptSeAusente = (url) => {
+        return new Promise((resolve) => {
+          const script = document.createElement('script');
+          script.src = url;
+          script.type = 'text/javascript';
+          script.onload = resolve;
+          script.onerror = resolve; // Avança mesmo se houver soluço de rede
+          document.head.appendChild(script);
+        });
+      };
+
+      try {
+        if (typeof firebase === 'undefined') {
+          await carregarScriptSeAusente("https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js");
+          await carregarScriptSeAusente("https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js");
+          await carregarScriptSeAusente("https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js");
+        }
+
         if (typeof firebase === 'undefined' || !firebase.auth || !firebase.firestore) {
-          console.log("⏳ [Painel Borges] Aguardando bibliotecas do Firebase na memória...");
-          setTimeout(checarEInicializar, 100); // Tenta novamente em 100ms até o escopo estar livre
+          console.error("❌ Falha crítica ao injetar scripts do Firebase via rede.");
           return;
         }
-        
-        console.log("🚀 [Painel Borges] Firebase detectado! Inicializando sincronização reativa...");
-        executarSincronizacaoEstrategica();
-      }
 
-      function executarSincronizacaoEstrategica() {
+        console.log("🚀 [Painel Borges] Firebase carregado com sucesso. Iniciando sincronização tática...");
+        
         const firebaseConfig = {
           apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
           authDomain: "painel-financeiro-borges.firebaseapp.com",
@@ -2129,10 +2141,8 @@
         let unsubscribeFirestore = null;
 
         if (btnLogin) {
-          // Clone tático para quebrar quaisquer ouvintes corrompidos criados pelo carregamento do HTMLPreview
           const novoBtnLogin = btnLogin.cloneNode(true);
           btnLogin.parentNode.replaceChild(novoBtnLogin, btnLogin);
-          
           novoBtnLogin.addEventListener("click", () => {
             auth.signInWithPopup(provider).catch(err => alert("Erro ao entrar: " + err.message));
           });
@@ -2172,7 +2182,7 @@
           window.saveStateToFirestore();
         };
 
-        // --- ESCUTA REATIVA ON-SNAPSHOT ---
+        // --- ESCUTA REATIVA ---
         function ativarEscutaTempoReal(user) {
           if (unsubscribeFirestore) unsubscribeFirestore();
           const docRef = db.collection("users").doc(user.uid);
@@ -2221,10 +2231,10 @@
             if (unsubscribeFirestore) unsubscribeFirestore();
           }
         });
-      }
 
-      // Dá o start monitorado na página
-      checarEInicializar();
+      } catch (err) {
+        console.error("Erro na inicialização:", err);
+      }
     })();
   </script>
 
