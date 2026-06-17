@@ -694,23 +694,33 @@ window.abrirEditorDia = function(dataString, numeroDia) {
 window.salvarCorDia = function(dataString, hexCor) {
   const txt = document.getElementById('popTexto').value;
   
+  if (!appState.eventos) appState.eventos = [];
+  
   // Limpa o registro anterior para redefinir a cor
   appState.eventos = appState.eventos.filter(e => e.data !== dataString);
 
   if (hexCor !== 'limpar') {
+    // Mapeia os nomes antigos de tipo se você clicar nos botões principais, ou joga direto a cor hex
+    let tipoTratado = 'custom';
+    if (hexCor === '#ff007f') tipoTratado = 'critico';
+    if (hexCor === '#39ff14') tipoTratado = 'hoje'; // Seu css aponta c-concluido para hoje
+    if (hexCor === '#a020f0') tipoTratado = 'importante';
+    if (hexCor === '#00f5ff') tipoTratado = 'evento';
+
     appState.eventos.push({
       data: dataString,
-      tipo: 'custom', // Força o modo dinâmico
-      corHex: hexCor,  // Guarda a cor real escolhida por você
+      tipo: tipoTratado, 
+      corHex: hexCor,  
       titulo: txt || 'Evento'
     });
   }
 
   document.getElementById('popupCalendario').remove();
   
-  // Força a atualização visual imediata da grade
-  if (typeof renderGithubCalendar === 'function') renderGithubCalendar();
+  // Atualiza o banco, repinta o calendário e recalcula o painel inteiro na mesma piscada!
   if (typeof saveLocalStorage === 'function') saveLocalStorage();
+  if (typeof renderGithubCalendar === 'function') renderGithubCalendar();
+  if (typeof updateMetricsUI === 'function') updateMetricsUI();
 };
   
 window.renderTabs = function() {
