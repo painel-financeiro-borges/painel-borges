@@ -607,26 +607,37 @@ window.renderGithubCalendar = function() {
       dayCell.style.cssText = 'aspect-ratio: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: var(--text); cursor: default; transition: all 0.2s ease;';
       dayCell.innerText = dia;
 
-      // PROJEÇÃO AUTOMÁTICA: Pinta o dia se ele estiver dentro do período de alguma aba ativa
+      // CLIQUE INTELIGENTE DA OPÇÃO A: Localiza a aba projetada no dia
       if (appState.abas && appState.abas.length > 0) {
         const abaCorrespondente = appState.abas.find(aba => {
           if (!aba.dataInicio || !aba.dataFim) return false;
           return dataString >= aba.dataInicio && dataString <= aba.dataFim;
         });
 
-        if (abaCorrespondente && abaCorrespondente.corHex) {
-          const cor = abaCorrespondente.corHex;
+        if (abaCorrespondente) {
+          const cor = abaCorrespondente.corHex || '#00f5ff';
           dayCell.style.background = `linear-gradient(135deg, ${cor}dd, ${cor})`;
-          dayCell.style.boxShadow = `0 0 12px ${cor}aa`;
+          dayCell.style.boxShadow = `0 0 12px ${cor}88`;
           dayCell.style.border = `1px solid #ffffffaa`;
-          dayCell.setAttribute('title', abaCorrespondente.titulo);
+          dayCell.style.cursor = 'pointer'; // Transforma visualmente em botão ativo!
+          dayCell.setAttribute('title', `Bloco Ativo: ${abaCorrespondente.titulo}`);
+
+          // Evento de Clique: Executa o salto tático para as anotações
+          dayCell.addEventListener('click', () => {
+            if (typeof selectTab === 'function') {
+              selectTab(abaCorrespondente.id);
+              // Rola a tela até o editor de texto para facilitar o foco no mobile/desktop
+              const editor = document.getElementById('mainEditor');
+              if (editor) editor.focus();
+            }
+          });
         }
       }
 
       container.appendChild(dayCell);
     }
   } else {
-    // Modo Anual adaptado para ler a projeção direto das abas
+    // Modo Anual adaptado com Clique Inteligente nas fileiras de pontos (dots)
     container.style.display = 'flex';
     container.style.flexDirection = 'column';
     container.style.gap = '12px';
@@ -636,7 +647,9 @@ window.renderGithubCalendar = function() {
       const row = document.createElement('div');
       row.style.cssText = 'display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.01); padding: 6px 8px; border-radius: 8px; border-left: 3px solid rgba(160,32,240,0.3); width: 100%; cursor: pointer; transition: background 0.2s;';
       
-      row.addEventListener('click', () => {
+      row.addEventListener('click', (e) => {
+        // Se o clique foi direto num ponto ativo, o evento dele resolve. Caso contrário, muda o mês.
+        if (e.target.hasAttribute('data-aba-id')) return;
         DATA_BASE.mes = indexMes;
         calendarMode = 'mes';
         renderGithubCalendar();
@@ -664,11 +677,24 @@ window.renderGithubCalendar = function() {
             return dataString >= aba.dataInicio && dataString <= aba.dataFim;
           });
 
-          if (abaCorrespondente && abaCorrespondente.corHex) {
-            dot.style.background = abaCorrespondente.corHex;
-            dot.style.boxShadow = `0 0 6px ${abaCorrespondente.corHex}`;
+          if (abaCorrespondente) {
+            const cor = abaCorrespondente.corHex || '#00f5ff';
+            dot.style.background = cor;
+            dot.style.boxShadow = `0 0 6px ${cor}`;
             dot.style.width = '8px';
             dot.style.height = '8px';
+            dot.style.cursor = 'pointer';
+            dot.setAttribute('data-aba-id', abaCorrespondente.id);
+            dot.setAttribute('title', `Ir para: ${abaCorrespondente.titulo}`);
+
+            dot.addEventListener('click', (e) => {
+              e.stopPropagation(); // Impede de mudar o modo do calendário
+              if (typeof selectTab === 'function') {
+                selectTab(abaCorrespondente.id);
+                const editor = document.getElementById('mainEditor');
+                if (editor) editor.focus();
+              }
+            });
           }
         }
 
@@ -680,7 +706,6 @@ window.renderGithubCalendar = function() {
     });
   }
 };
-
 // Nova Janela Flutuante Premium para Gerenciamento de Cores e Notas
 // Janela de Edição com Seleção Livre de Cores Neon e Táticas
 
