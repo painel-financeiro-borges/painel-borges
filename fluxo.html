@@ -1296,16 +1296,33 @@ function assignHorizon(horizonName) {
   init();
 })();
 
-  // ==========================================================================
-// 🛡️ 3. O SCRIPT ATIVADOR DO ARRASTE SUPERIOR (COLE EXATAMENTE NESTE ESPAÇO)
+ // ==========================================================================
+// 🛡️ 3. O SCRIPT ATIVADOR DO ARRASTE SUPERIOR E REORDENAÇÃO COMPLETA
 // ==========================================================================
 function ativarArrastoHorizontesSuperiores() {
   const dropzones = document.querySelectorAll('.horizon-dropzone');
-  
+  const container = document.getElementById('topbarContainer');
+  let cardArrastadoOrigem = null;
+
   dropzones.forEach(zone => {
+    // Captura quando o usuário começa a arrastar um dos próprios blocos do topo
+    zone.addEventListener('dragstart', (e) => {
+      cardArrastadoOrigem = zone;
+      e.dataTransfer.setData('text/horizon-card', 'true');
+      zone.style.opacity = '0.4';
+    });
+
+    zone.addEventListener('dragend', () => {
+      zone.style.opacity = '1';
+      dropzones.forEach(z => {
+        z.style.transform = 'none';
+        z.style.background = 'linear-gradient(145deg, #140f2b, #090614)';
+      });
+    });
+
     zone.addEventListener('dragover', (e) => {
       e.preventDefault();
-      zone.style.transform = 'scale(1.05)';
+      zone.style.transform = 'scale(1.03)';
       zone.style.background = 'rgba(160, 32, 240, 0.15)';
     });
 
@@ -1319,13 +1336,28 @@ function ativarArrastoHorizontesSuperiores() {
       zone.style.transform = 'none';
       zone.style.background = 'linear-gradient(145deg, #140f2b, #090614)';
       
+      // CASO A: Se for reordenação interna dos cards do topo
+      if (e.dataTransfer.getData('text/horizon-card') === 'true' && cardArrastadoOrigem) {
+        if (cardArrastadoOrigem !== zone && container) {
+          const listaCards = Array.from(container.children);
+          const idxOrigem = listaCards.indexOf(cardArrastadoOrigem);
+          const idxDestino = listaCards.indexOf(zone);
+
+          if (idxOrigem < idxDestino) {
+            container.insertBefore(cardArrastadoOrigem, zone.nextSibling);
+          } else {
+            container.insertBefore(cardArrastadoOrigem, zone);
+          }
+        }
+        cardArrastadoOrigem = null;
+        return;
+      }
+
+      // CASO B: Se for uma aba de anotação de baixo sendo solta no horizonte
       const tabId = e.dataTransfer.getData('tab-id');
-      
-      // FIX 1: Captura o horizonte e força a conversão para minúsculo na hora
       const novoHorizonte = zone.getAttribute('data-horizon').toLowerCase();
       
       if (tabId) {
-        // FIX 2: Busca direto no escopo global (window.appState) para não dar erro de indefinição
         const estadoAtual = window.appState || appState;
         if (estadoAtual && estadoAtual.abas) {
           const abaAlvo = estadoAtual.abas.find(a => a.id === tabId);
