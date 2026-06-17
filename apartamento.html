@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Borges - Simulador Apê Térreo V3</title>
+    <title>Painel Borges - Simulador Apê Térreo V4</title>
     <style>
         * { box-sizing: border-box; }
         body { margin: 0; padding: 0; overflow: hidden; background-color: #090909; font-family: 'Outfit', sans-serif; color: white; }
@@ -37,7 +37,9 @@
         
         button.btn-primary { background: #00ff88; color: #000; font-weight: bold; border: none; cursor: pointer; text-transform: uppercase; font-size: 0.75rem;}
         button.btn-primary:hover { background: #00cc6c; box-shadow: 0 0 10px rgba(0,255,136,0.3); }
-        button.btn-danger { background: #ff3b30; color: white; border: none; cursor: pointer; font-size: 0.72rem; }
+        button.btn-danger { background: #ff3b30; color: white; border: none; cursor: pointer; font-size: 0.72rem; font-weight: bold; text-transform: uppercase; }
+        button.btn-clear-all { background: #e74c3c; color: white; border: none; cursor: pointer; font-size: 0.75rem; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; padding: 10px; }
+        button.btn-clear-all:hover { background: #c0392b; }
         
         .lista-items { size: 3; background: #111; color: #ccc; }
     </style>
@@ -52,14 +54,16 @@
 <body>
 
     <div class="painel-lateral">
-        <h5>🛠️ SIMULADOR BORGES V3</h5>
+        <h5>🛠️ SIMULADOR BORGES V4</h5>
         <subtitle>Mapeamento Térreo & Área Externa</subtitle>
         
         <div class="instrucoes">
-            <strong>Mouse:</strong> Giro = Botão Esquerdo. <br>
-            <strong>Arrastar Base:</strong> Botão Direito do Mouse. <br>
-            <strong>Modos 3D:</strong> Alterne abaixo para Mover ou Esticar as pontas.
+            <strong>Zoom:</strong> Role a rodinha do mouse ou faça pinça na tela. <br>
+            <strong>Arrastar Base:</strong> Segure o Botão Direito do Mouse. <br>
+            <strong>Girar Cenário:</strong> Segure o Botão Esquerdo do Mouse.
         </div>
+
+        <button class="btn-clear-all" onclick="limparTodoOCenarioDoAp()">💥 Limpar Todo o Cenário</button>
 
         <div class="controles-ferramenta">
             <button id="modoMover" class="btn-modo ativo" onclick="mudarModoGizmo('translate')">↔️ MOVER</button>
@@ -94,7 +98,7 @@
                     <option value="lustre">💡 Lustre de teto</option>
                 </optgroup>
             </select>
-            <input type="text" id="novoNome" placeholder="Nome ex: Parede Divisória Cozinha">
+            <input type="text" id="novoNome" placeholder="Nome ex: Parede Cozinha">
             <button class="btn-primary" onclick="criarNovoObjetoNoBanco()">Colocar no Cenário</button>
         </div>
 
@@ -107,13 +111,13 @@
                 <option value="3.1416">180°</option>
                 <option value="4.7124">270°</option>
             </select>
-            <button class="btn-primary" style="margin-top:5px; background-color: #00ff88;" onclick="salvarAlteracoesNoBanco()">💾 Fixar Alterações</button>
-            <button class="btn-danger" style="margin-top:3px;" onclick="deletarObjetoDoBanco()">🗑️ Remover</button>
+            <button class="btn-primary" style="margin-top:5px;" onclick="salvarAlteracoesNoBanco()">💾 Fixar Alterações</button>
+            <button class="btn-danger" style="margin-top:3px;" onclick="deletarObjetoDoBanco()">🗑️ Remover Item</button>
         </div>
         
         <div class="secao">
             <div class="secao-titulo">📋 Carga Rápida de Layout (Sua Ideia)</div>
-            <textarea id="txtImportar" rows="3" placeholder="Cole o código do layout gerado aqui..."></textarea>
+            <textarea id="txtImportar" rows="3" placeholder="Cole o código do layout aqui..."></textarea>
             <button class="btn-primary" style="background:#00ffd2; color:#000;" onclick="executarImportacaoEmMassa()">📥 Gerar Layout Automaticamente</button>
         </div>
 
@@ -143,7 +147,7 @@
         scene.background = new THREE.Color(0x060606);
 
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 10, 14);
+        camera.position.set(0, 12, 15);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -153,16 +157,19 @@
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
+        // Permite zoom por scroll e pinça livremente sem travas
+        controls.enableZoom = true; 
         controls.mouseButtons = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN };
 
         const transformControls = new THREE.TransformControls(camera, renderer.domElement);
         scene.add(transformControls);
 
+        // ESSENCIAL: Impede que o controle de mover trave o zoom e os movimentos do OrbitControls
         transformControls.addEventListener('dragging-changed', function (event) {
             controls.enabled = !event.value;
         });
 
-        scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+        scene.add(new THREE.AmbientLight(0xffffff, 0.55));
         const spot = new THREE.DirectionalLight(0xffffff, 0.6);
         spot.position.set(10, 25, 10);
         scene.add(spot);
@@ -171,18 +178,18 @@
         scene.add(grid);
 
         const materiais = {
-            parede: new THREE.MeshStandardMaterial({ color: 0x2c2c2c, roughness: 0.8 }),
-            quintal: new THREE.MeshStandardMaterial({ color: 0x1c241c, roughness: 0.9 }),
+            parede: new THREE.MeshStandardMaterial({ color: 0x3a3a3a, roughness: 0.7 }),
+            quintal: new THREE.MeshStandardMaterial({ color: 0x1e271e, roughness: 0.8 }),
             porta: new THREE.MeshStandardMaterial({ color: 0x5a3d28 }),
             janela: new THREE.MeshStandardMaterial({ color: 0x3498db, transparent: true, opacity: 0.4 }),
             pia: new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.3 }),
             armario: new THREE.MeshStandardMaterial({ color: 0x3e2723 }),
             galao: new THREE.MeshStandardMaterial({ color: 0x0077c2 }),
-            cooktop: new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.1 }),
+            cooktop: new THREE.MeshStandardMaterial({ color: 0x111111 }),
             gas: new THREE.MeshStandardMaterial({ color: 0xc0392b }),
             lavadora: new THREE.MeshStandardMaterial({ color: 0xe0e0e0 }),
             armariotool: new THREE.MeshStandardMaterial({ color: 0x7f8c8d }),
-            portao: new THREE.MeshStandardMaterial({ color: 0x222222, wireframe: false }),
+            portao: new THREE.MeshStandardMaterial({ color: 0x222222 }),
             closetcabide: new THREE.MeshStandardMaterial({ color: 0xd7ccc8 }),
             camaduplex: new THREE.MeshStandardMaterial({ color: 0x1a5276 }),
             paineltv: new THREE.MeshStandardMaterial({ color: 0x5d4037 }),
@@ -194,14 +201,12 @@
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
 
-        // Chão Base Interno Rebaixado para evitar conflito com pivô das paredes
-        const pisoInternoGeo = new THREE.BoxGeometry(30, 0.02, 30);
-        const pisoInternoMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+        const pisoInternoGeo = new THREE.BoxGeometry(40, 0.02, 40);
+        const pisoInternoMat = new THREE.MeshStandardMaterial({ color: 0x141414 });
         const pisoInterno = new THREE.Mesh(pisoInternoGeo, pisoInternoMat);
         pisoInterno.position.y = -0.01;
         scene.add(pisoInterno);
 
-        // SINCRONISMO CONTRA ERROS DE TIPO + CORREÇÃO DE POSIÇÃO Y (NÍVEL DO CHÃO)
         colecaoApartamento.onSnapshot(snapshot => {
             snapshot.docChanges().forEach(change => {
                 const dados = change.doc.data();
@@ -218,12 +223,7 @@
                     const mat = materiais[dados.tipo] || materiais.parede;
                     const mesh = new THREE.Mesh(geo, mat);
                     
-                    // Tratamento dinâmico para garantir que o objeto fique baseado no piso
-                    const posX = parseFloat(dados.posX) || 0;
-                    const posY = parseFloat(dados.posY) !== undefined ? parseFloat(dados.posY) : (a / 2);
-                    const posZ = parseFloat(dados.posZ) || 0;
-
-                    mesh.position.set(posX, posY, posZ);
+                    mesh.position.set(parseFloat(dados.posX) || 0, parseFloat(dados.posY) || (a/2), parseFloat(dados.posZ) || 0);
                     mesh.rotation.y = parseFloat(dados.rotY) || 0;
                     mesh.userData = { id: id, tipo: dados.tipo };
 
@@ -245,6 +245,9 @@
 
         window.addEventListener('click', (e) => {
             if (transformControls.dragging) return;
+            // Evita disparar seleção ao clicar nos botões do menu lateral
+            if (e.clientX < 360 && e.clientY < window.innerHeight) return; 
+
             mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
             raycaster.setFromCamera(mouse, camera);
@@ -286,10 +289,8 @@
             
             let l = 1.0, a = 0.8, p = 0.6, y = 0.4;
             if (tipo === "parede") { l = 2.5; a = 2.7; p = 0.15; y = 1.35; }
-            else if (tipo === "quintal") { l = 7.0; a = 0.02; p = 4.0; y = 0.01; }
-            else if (tipo === "porta") { l = 0.8; a = 2.1; p = 0.1; y = 1.05; }
-            else if (tipo === "armario") { l = 1.2; a = 0.6; p = 0.4; y = 1.9; } // Alto do chão
-
+            else if (tipo === "quintal") { l = 5.0; a = 0.02; p = 4.0; y = 0.01; }
+            
             const novoDoc = {
                 nome: nome, tipo: tipo, largura: l, altura: a, profundidade: p,
                 posX: 0, posY: y, posZ: 0, rotY: 0
@@ -305,7 +306,6 @@
             if (!idObjetoSelecionado || !objetos3DLocais[idObjetoSelecionado]) return;
             const mesh = objetos3DLocais[idObjetoSelecionado];
             
-            // Recalcula a escala real com base no esticamento visual feito pelo mouse
             mesh.geometry.computeBoundingBox();
             const bbox = mesh.geometry.boundingBox;
             const largReal = (bbox.max.x - bbox.min.x) * mesh.scale.x;
@@ -323,36 +323,53 @@
             };
 
             colecaoApartamento.doc(idObjetoSelecionado).update(dadosSalvar).then(() => {
-                // Reseta multiplicadores de escala locais para consolidar a nova geometria limpa
                 mesh.scale.set(1,1,1);
-                alert("Geometria e Posição consolidadas com sucesso!");
+                alert("Salvo com sucesso!");
             });
+        }
+
+        function limparTodoOCenarioDoAp() {
+            if (confirm("🚨 ATENÇÃO: Deseja apagar TODOS os objetos do cenário de uma vez só?")) {
+                transformControls.detach();
+                idObjetoSelecionado = null;
+                document.getElementById("painelEdicao").style.display = "none";
+                
+                colecaoApartamento.get().then(snapshot => {
+                    const batch = db.batch();
+                    snapshot.forEach(doc => batch.delete(doc.ref));
+                    return batch.commit();
+                }).then(() => {
+                    alert("Cenário totalmente limpo!");
+                }).catch(err => alert("Erro ao limpar: " + err));
+            }
         }
 
         function executarImportacaoEmMassa() {
             const raw = document.getElementById("txtImportar").value;
-            if(!raw) return alert("Cole os dados gerados primeiro!");
+            if(!raw) return alert("Cole os dados JSON primeiro!");
             try {
                 const lista = JSON.parse(raw);
+                const batch = db.batch();
                 lista.forEach(obj => {
-                    colecaoApartamento.add(obj);
+                    const novoRef = colecaoApartamento.doc();
+                    batch.set(novoRef, obj);
                 });
-                alert("Todos os cômodos e regras foram injetados no seu Firebase!");
-                document.getElementById("txtImportar").value = "";
+                batch.commit().then(() => {
+                    alert("Layout injetado com sucesso!");
+                    document.getElementById("txtImportar").value = "";
+                });
             } catch(err) {
-                alert("Erro na leitura dos dados. Certifique-se de copiar todo o bloco de código.");
+                alert("Erro no formato. Verifique se copiou todo o código.");
             }
         }
 
         function deletarObjetoDoBanco() {
             if (!idObjetoSelecionado) return;
-            if (confirm("Deletar permanentemente?")) {
-                colecaoApartamento.doc(idObjetoSelecionado).delete().then(() => {
-                    document.getElementById("painelEdicao").style.display = "none";
-                    transformControls.detach();
-                    idObjetoSelecionado = null;
-                });
-            }
+            colecaoApartamento.doc(idObjetoSelecionado).delete().then(() => {
+                document.getElementById("painelEdicao").style.display = "none";
+                transformControls.detach();
+                idObjetoSelecionado = null;
+            });
         }
 
         function atualizarListaInterface() {
