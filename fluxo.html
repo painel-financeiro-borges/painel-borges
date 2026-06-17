@@ -421,6 +421,97 @@ function updateMetricsUI() {
   document.getElementById('hzAlgumDia').textContent = appState.horizontes.AlgumDia;
 }
 
+/* ==========================================================================
+   ENGINE DO CALENDÁRIO DINÂMICO & ZOOM MÓVEL (V2 COMPATÍVEL)
+   ========================================================================== */
+let modoVisualizacaoAtual = 'ano'; // Estado inicial da lente visual
+
+window.mudarZoomCalendario = function(modo) {
+  modoVisualizacaoAtual = modo;
+  console.log(`🔍 Alternando lente do calendário para modo: ${modo}`);
+  
+  // Atualiza visualmente os botões se necessário e redesenha a esteira
+  renderGithubCalendar();
+};
+
+window.renderGithubCalendar = function() {
+  const grid = document.getElementById('githubGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  
+  const hoje = new Date();
+  
+  if (modoVisualizacaoAtual === 'mes') {
+    // 📅 VISÃO MÊS: Desenha o grid clássico de blocos do mês atual (5 semanas)
+    grid.style.gridAutoFlow = 'row';
+    grid.style.gridTemplateColumns = 'repeat(7, 1fr)';
+    grid.style.gridTemplateRows = 'auto';
+    grid.style.gap = '8px';
+    grid.style.width = '100%';
+    
+    // Calcula os dias do mês corrente
+    const anoAtual = hoje.getFullYear();
+    const mesAtual = hoje.getMonth();
+    const primeiroDiaMes = new Date(anoAtual, mesAtual, 1).getDay();
+    const totalDiasMes = new Date(anoAtual, mesAtual + 1, 0).getDate();
+    
+    // Alinha os quadradinhos vazios para começar no dia da semana correto (domingo, segunda, etc)
+    for (let i = 0; i < primeiroDiaMes; i++) {
+      const emptyCell = document.createElement('div');
+      emptyCell.className = 'day-cell';
+      emptyCell.style.opacity = '0';
+      grid.appendChild(emptyCell);
+    }
+    
+    // Injeta os dias reais do mês ativos
+    for (let dia = 1; dia <= totalDiasMes; dia++) {
+      const cell = document.createElement('div');
+      cell.className = 'day-cell';
+      cell.style.width = 'auto';
+      cell.style.height = '35px'; // Maior no celular para clicar fácil
+      cell.style.borderRadius = '8px';
+      cell.style.display = 'flex';
+      cell.style.alignItems = 'center';
+      cell.style.justifyContent = 'center';
+      cell.style.fontSize = '12px';
+      cell.style.fontWeight = 'bold';
+      cell.textContent = dia;
+      
+      // Simulação visual de marcação de feriados/marcos temporais baseado nas suas notas
+      if (dia === 25 || dia === 30) {
+        cell.classList.add('c-evento'); // 🔵 Feriado / Viagem Salvador nas suas notas
+        cell.style.color = '#fff';
+      } else if (dia === hoje.getDate()) {
+        cell.classList.add('c-concluido'); // 🟢 Dia atual ativo
+        cell.style.color = '#000';
+      }
+      
+      grid.appendChild(cell);
+    }
+    
+  } else {
+    // 🗺️ VISÃO ANO/SEMESTRE: A esteira contínua estilo GitHub de 365 quadradinhos
+    grid.style.gridAutoFlow = 'column';
+    grid.style.gridTemplateRows = 'repeat(7, 10px)';
+    grid.style.gridAutoColumns = '10px';
+    grid.style.gap = '3px';
+    grid.style.width = 'max-content';
+    
+    for (let i = 0; i < 364; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'day-cell';
+      
+      // Preservando o termômetro de cores do ano ativo
+      if (i % 25 === 0) cell.classList.add('c-critico');
+      else if (i % 40 === 0) cell.classList.add('c-importante');
+      else if (i % 14 === 0) cell.classList.add('c-normal');
+      else if (i % 60 === 0) cell.classList.add('c-evento');
+      
+      grid.appendChild(cell);
+    }
+  }
+};
+  
 function renderTabs() {
   const container = document.getElementById('tabsContainer');
   container.innerHTML = '';
