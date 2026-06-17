@@ -829,16 +829,88 @@ window.renderTabs = function() {
 };
 
 function editTabTitle(id) {
-  const target = appState.abas.find(a => a.id === id);
-  if(!target) return;
-  
-  const novoNome = prompt("Editar nome do Bloco Ativo:", target.titulo);
-  if(novoNome && novoNome.trim() !== "") {
-    target.titulo = novoNome.trim();
-    saveLocalStorage();
-    renderTabs();
-  }
+  const aba = appState.abas.find(a => a.id === id);
+  if (!aba) return;
+
+  const antigo = document.getElementById('popupConfigAba');
+  if (antigo) antigo.remove();
+
+  // Garante valores padrão caso a aba seja antiga e não tenha esses campos ainda
+  const dataIniciov = aba.dataInicio || "2026-06-17";
+  const dataFimv = aba.dataFim || "2026-06-17";
+  const corHexv = aba.corHex || "#00F5FF";
+  const horizonteActive = aba.horizonte || "semana";
+
+  const popup = document.createElement('div');
+  popup.id = 'popupConfigAba';
+  popup.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:#0b0813; border:2px solid #a020f0; border-radius:16px; padding:20px; z-index:4000; width:90%; max-width:340px; box-shadow:0 0 35px rgba(160,32,240,0.5); backdrop-filter:blur(15px); color:#fff; font-family:sans-serif;';
+
+  popup.innerHTML = `
+    <div style="font-weight:bold; margin-bottom:12px; font-size:14px; text-transform:uppercase; color:#00f5ff; text-align:center; letter-spacing:0.5px;">Editar Configuração</div>
+    
+    <div style="font-size:11px; color:var(--muted); margin-bottom:6px; text-transform:uppercase; font-weight:700;">Nome do Bloco Ativo / Aba:</div>
+    <input type="text" id="cfgNomeAba" value="${aba.titulo}" style="width:100%; background:#161127; border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:8px; color:#fff; font-size:13px; margin-bottom:12px; outline:none;">
+
+    <div style="font-size:11px; color:var(--muted); margin-bottom:6px; text-transform:uppercase; font-weight:700;">1. Horizonte de Tempo:</div>
+    <select id="cfgHorizonte" style="width:100%; background:#161127; border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:8px; color:#fff; font-size:13px; margin-bottom:12px; outline:none;">
+      <option value="hoje" ${horizonteActive === 'hoje' ? 'selected' : ''}>📅 Hoje</option>
+      <option value="semana" ${horizonteActive === 'semana' ? 'selected' : ''}>🗓️ Semana</option>
+      <option value="mes" ${horizonteActive === 'mes' ? 'selected' : ''}>📊 Mês</option>
+      <option value="semestre" ${horizonteActive === 'semestre' ? 'selected' : ''}>⏳ Semestre</option>
+      <option value="algumDia" ${horizonteActive === 'algumDia' ? 'selected' : ''}>🗂️ Algum Dia</option>
+    </select>
+
+    <div style="font-size:11px; color:var(--muted); margin-bottom:6px; text-transform:uppercase; font-weight:700;">2. Projeção no Calendário (Opcional):</div>
+    <div style="display:flex; gap:8px; margin-bottom:12px;">
+      <div style="flex:1;">
+        <span style="font-size:10px; color:#888;">Início:</span>
+        <input type="date" id="cfgDataInicio" value="${dataIniciov}" style="width:100%; background:#161127; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:4px; color:#fff; font-size:11px; outline:none;">
+      </div>
+      <div style="flex:1;">
+        <span style="font-size:10px; color:#888;">Fim:</span>
+        <input type="date" id="cfgDataFim" value="${dataFimv}" style="width:100%; background:#161127; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:4px; color:#fff; font-size:11px; outline:none;">
+      </div>
+    </div>
+
+    <div style="font-size:11px; color:var(--muted); margin-bottom:6px; text-transform:uppercase; font-weight:700;">3. Cor Alvo Neon (Paleta Livre):</div>
+    <div style="display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.02); padding:8px; border-radius:8px; margin-bottom:20px; border:1px solid rgba(255,255,255,0.05);">
+      <input type="color" id="cfgColorPicker" value="${corHexv.toLowerCase()}" style="width:40px; height:32px; background:none; border:none; cursor:pointer;" oninput="document.getElementById('cfgColorHex').value = this.value.toUpperCase()">
+      <input type="text" id="cfgColorHex" value="${corHexv.toUpperCase()}" placeholder="#FFFFFF" style="flex:1; background:#161127; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:6px; color:#fff; font-size:13px; font-family:monospace; text-align:center; outline:none;" oninput="if(this.value.length === 7) document.getElementById('cfgColorPicker').value = this.value">
+    </div>
+
+    <div style="display:flex; gap:10px; justify-content:flex-end; border-top:1px solid rgba(255,255,255,0.05); padding-top:12px;">
+      <button class="add-tab-btn" style="background:rgba(255,255,255,0.05); color:#fff !important; font-size:11px; padding:6px 12px;" onclick="document.getElementById('popupConfigAba').remove()">Cancelar</button>
+      <button class="add-tab-btn" style="background:linear-gradient(135deg, #a020f0, #00f5ff); color:#000 !important; font-size:11px; padding:6px 14px; font-weight:bold;" onclick="salvarEdicaoAbaCompleta('${id}')">Salvar Alterações</button>
+    </div>
+  `;
+  document.body.appendChild(popup);
 }
+
+window.salvarEdicaoAbaCompleta = function(id) {
+  const aba = appState.abas.find(a => a.id === id);
+  if (!aba) return;
+
+  const novoNome = document.getElementById('cfgNomeAba').value;
+  if (!novoNome || !novoNome.trim()) {
+    alert("O nome da aba não pode ficar vazio!");
+    return;
+  }
+
+  // Atualiza todas as propriedades no objeto da aba
+  aba.titulo = novoNome.trim();
+  aba.horizonte = document.getElementById('cfgHorizonte').value;
+  aba.dataInicio = document.getElementById('cfgDataInicio').value;
+  aba.dataFim = document.getElementById('cfgDataFim').value;
+  aba.corHex = document.getElementById('cfgColorHex').value;
+
+  document.getElementById('popupConfigAba').remove();
+  
+  // Recarrega todos os cantos do sistema na mesma hora
+  if (typeof renderTabs === 'function') renderTabs();
+  if (typeof renderGithubCalendar === 'function') renderGithubCalendar();
+  if (typeof updateMetricsUI === 'function') updateMetricsUI();
+  if (typeof saveLocalStorage === 'function') saveLocalStorage();
+};
 
 function selectTab(id) {
   if (appState.abas.length === 0) {
