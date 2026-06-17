@@ -1850,12 +1850,18 @@
         }
       });
 
-      // resumo financeiro
+     // resumo financeiro
       const resumo = computeResumoFinanceiro(monthKey);
       el('#dash_entradas').innerText = formatMoney(resumo.totalEntradas || 0);
       el('#dash_saidas').innerText = formatMoney(resumo.totalSaidas || 0);
       el('#dash_resultado').innerText = formatMoney(resumo.resultado || 0);
       el('#dash_result_status').innerText = resumo.resultado >= 0 ? 'Positivo' : 'Negativo';
+
+      // Atualiza os contadores com base no filtro do mês atual
+      const countEntradas = (state.fluxo || []).filter(f => f.type === 'entrada' && f.date && f.date.slice(0, 7) === monthKey).length;
+      const countSaidas = (state.custo || []).filter(c => c.date && c.date.slice(0, 7) === monthKey).length;
+      if(el('#count_entradas')) el('#count_entradas').innerText = countEntradas;
+      if(el('#count_saidas')) el('#count_saidas').innerText = countSaidas;
 
       // reservas & investimentos
       el('#dash_reservas_total').innerText = formatMoney(resumo.reservasTotal || 0);
