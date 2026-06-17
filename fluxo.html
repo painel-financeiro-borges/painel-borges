@@ -343,6 +343,21 @@ body {
   .editor-area { min-height: 300px; }
   .horizon-card { min-width: 90px; padding: 6px 10px; }
 }
+
+/* ==========================================================================
+   EFEITO DRAG & DROP (GUIAS ESTILO CHROME)
+   ========================================================================== */
+.tab-btn.dragging {
+  opacity: 0.3;
+  border: 1px dashed rgba(160, 32, 240, 0.6) !important;
+  background: rgba(160, 32, 240, 0.1) !important;
+}
+
+.tab-btn.drag-over {
+  border-left: 3px solid var(--evento) !important;
+  transform: scale(1.02);
+  background: rgba(255, 255, 255, 0.05);
+}
 </style>
 </head>
 <body>
