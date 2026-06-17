@@ -1374,13 +1374,18 @@ function ativarArrastoHorizontesSuperiores() {
 }
 
 // Injeção assíncrona controlada e segura para burlar o HTMLPreview
+// Injeção assíncrona controlada e segura para burlar o HTMLPreview com trava de DOM
 (function garantirCarregamentoSortable() {
-  if (typeof Sortable !== 'undefined') {
+  const registrarGatilho = () => {
     const originalInit = init;
     init = function() {
       if (typeof originalInit === 'function') originalInit();
       ativarArrastoHorizontesSuperiores();
     };
+  };
+
+  if (typeof Sortable !== 'undefined') {
+    registrarGatilho();
     return;
   }
   
@@ -1388,13 +1393,17 @@ function ativarArrastoHorizontesSuperiores() {
   const script = document.createElement('script');
   script.src = "https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js";
   script.onload = () => {
-    console.log("✅ Sortable carregado com sucesso. Inicializando barramento.");
-    const originalInit = init;
-    init = function() {
-      if (typeof originalInit === 'function') originalInit();
-      ativarArrastoHorizontesSuperiores();
-    };
-    if (typeof init === 'function') init();
+    console.log("✅ Sortable carregado com sucesso. Aguardando inicialização estável.");
+    registrarGatilho();
+    
+    // 🔥 Trava de segurança: Se o documento já carregou, roda o init, se não, espera o DOM ficar pronto
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+      if (typeof init === 'function') init();
+    } else {
+      window.addEventListener('DOMContentLoaded', () => {
+        if (typeof init === 'function') init();
+      });
+    }
   };
   document.head.appendChild(script);
 })();
