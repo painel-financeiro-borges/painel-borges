@@ -345,6 +345,17 @@
       background: transparent;
       border-radius: 8px
     }
+
+    /* ================= CORREÇÃO DE CONTRASTE (ROBÓ BORGES) ================= */
+    select option {
+      background-color: #071427 !important; /* Força o fundo escuro do card da holding */
+      color: #e6eef8 !important;            /* Força a fonte branca nítida */
+    }
+
+    select:focus option {
+      background-color: #071427 !important;
+      color: #e6eef8 !important;
+    }
   </style>
 </head>
 
