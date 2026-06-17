@@ -39,16 +39,21 @@
       color: var(--btn-text)
     }
 
-    header {
+   header {
       display: flex;
       gap: 12px;
       align-items: center;
-      padding: 12px 18px;
-      background: linear-gradient(90deg, rgba(255, 255, 255, 0.02), transparent);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+      padding: 14px 18px;
+      /* Aplica a cor sólida de fundo do painel com opacidade leve + desfoque de vidro fosco */
+      background: rgba(4, 16, 34, 0.95); 
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      /* Borda inferior nítida para delimitar a rolagem */
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
       position: sticky;
       top: 0;
-      z-index: 30
+      z-index: 1000; /* Garante que o topo fique sempre acima de absolutamente tudo */
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); /* Sombra suave para dar profundidade */
     }
 
     .brand {
