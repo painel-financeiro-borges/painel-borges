@@ -453,7 +453,6 @@ body {
    ========================================================================== */
 let appState = {
   currentTabId: '',
-  topbarMetrics: { criticos: 0, importantes: 0, normais: 0, semData: 0 },
   horizontes: { Hoje: 0, Semana: 0, Mês: 0, Semestre: 0, AlgumDia: 0 },
   abas: [],
   eventos: []
@@ -1269,7 +1268,6 @@ function assignHorizon(horizonName) {
         console.log("Nenhum dado na nuvem. Inicializando painel completamente zerado...");
         appState = {
           currentTabId: '',
-          topbarMetrics: { criticos: 0, importantes: 0, normais: 0, semData: 0 },
           horizontes: { Hoje: 0, Semana: 0, Mês: 0, Semestre: 0, AlgumDia: 0 },
           abas: [],
           eventos: []
