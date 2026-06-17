@@ -739,11 +739,29 @@ window.renderTabs = function() {
     const btn = document.createElement('button');
     btn.className = `tab-btn ${isAtiva ? 'active' : ''}`;
     
-    // Gerenciador inteligente de arrasto: desativa temporariamente ao clicar no texto ou botão para não travar a edição
+    // INJEÇÃO DINÂMICA DE NEON NA BORDA DA ABA
+    if (isAtiva) {
+      if (aba.corHex) {
+        btn.style.borderBottom = `3px solid ${aba.corHex}`;
+        btn.style.color = aba.corHex;
+        btn.style.boxShadow = `inset 0 -4px 8px ${aba.corHex}18, 0 2px 10px ${aba.corHex}25`;
+        btn.style.textShadow = `0 0 6px ${aba.corHex}99`;
+        btn.style.background = 'rgba(22, 17, 39, 0.95)';
+      } else {
+        btn.style.borderBottom = `3px solid #00f5ff`;
+        btn.style.color = `#00f5ff`;
+      }
+    } else {
+      btn.style.borderBottom = 'none';
+      btn.style.color = 'var(--muted)';
+      btn.style.boxShadow = 'none';
+      btn.style.textShadow = 'none';
+      btn.style.background = '#1e293b';
+    }
+
     btn.setAttribute('draggable', 'true');
     btn.setAttribute('data-index', index);
     
-    // Monta o título. Se a aba for a ativa, ganha o botão de lápis para clique rápido
     const editIcon = isAtiva ? `<span class="tab-edit-icon" style="cursor:pointer; margin-left:4px; opacity:0.6; font-size:11px;" onclick="event.stopPropagation(); if(typeof editTabTitle === 'function') editTabTitle('${aba.id}');">✏️</span>` : '';
     
     btn.innerHTML = `
@@ -752,14 +770,11 @@ window.renderTabs = function() {
       <span class="tab-close" style="margin-left:8px;">&times;</span>
     `;
 
-    // Seleção comum da aba com um clique
     btn.addEventListener('click', (e) => {
-      // Evita disparar se clicou no X ou no lápis
       if (e.target.classList.contains('tab-close') || e.target.classList.contains('tab-edit-icon')) return;
       if (typeof selectTab === 'function') selectTab(aba.id);
     });
 
-    // DUPLO CLIQUE BLINDADO: Desativa o arrasto por um milissegundo e abre a edição de nome
     btn.addEventListener('dblclick', (e) => {
       e.stopPropagation();
       btn.setAttribute('draggable', 'false');
@@ -767,7 +782,6 @@ window.renderTabs = function() {
       setTimeout(() => btn.setAttribute('draggable', 'true'), 500);
     });
 
-    // Botão de fechar (X)
     const closeBtn = btn.querySelector('.tab-close');
     if (closeBtn) {
       closeBtn.addEventListener('click', (e) => {
