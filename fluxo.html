@@ -423,16 +423,12 @@ body {
    ESTADO GLOBAL COMPACTO CORRIGIDO (V2)
    ========================================================================== */
 let appState = {
-  currentTabId: 'planejamento',
-  topbarMetrics: { criticos: 3, importantes: 12, normais: 27, semData: 14 },
-  horizontes: { Hoje: 3, Semana: 7, Mês: 15, Semestre: 22, AlgumDia: 41 },
-  abas: [
-    { id: 'planejamento', titulo: 'Planejamento', conteudo: '• Juntar para apartamento\n• Organizar compras previstas' },
-    { id: 'afazeres', titulo: 'Afazeres', conteudo: '• Marcar consulta\n• Contrato Juninho\n• Cobrar GOI' },
-    { id: 'compras', titulo: 'Compras', conteudo: '• Argamassa\n• Massa Quartzolit\n• Rodapé\n• Torneira banheiro' }
-  ]
+  currentTabId: '',
+  topbarMetrics: { criticos: 0, importantes: 0, normais: 0, semData: 0 },
+  horizontes: { Hoje: 0, Semana: 0, Mês: 0, Semestre: 0, AlgumDia: 0 },
+  abas: [],
+  eventos: []
 };
-
 let selectedLineText = ""; 
 
 /* ==========================================================================
