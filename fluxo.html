@@ -323,21 +323,7 @@ body {
 
 <div class="container">
 
-  <div class="section-title">Calendário de Prioridades & Horizonte</div>
-  <div class="calendar-panel">
-    <div class="calendar-scroll">
-      <div class="calendar-grid" id="githubGrid"></div>
-    </div>
-    
-    <div class="horizon-row">
-      <div class="horizon-card"><div class="title">Hoje</div><div class="counter" style="color:var(--critico)" id="hzHoje">0</div></div>
-      <div class="horizon-card"><div class="title">Semana</div><div class="counter" style="color:var(--importante)" id="hzSemana">0</div></div>
-      <div class="horizon-card"><div class="title">Mês</div><div class="counter" style="color:var(--normal)" id="hzMes">0</div></div>
-      <div class="horizon-card"><div class="title">Semestre</div><div class="counter" style="color:var(--evento)" id="hzSemestre">0</div></div>
-      <div class="horizon-card"><div class="title">Algum Dia</div><div class="counter" style="color:var(--muted)" id="hzAlgumDia">0</div></div>
-    </div>
-  </div>
-
+  <!-- SEÇÃO 1: ABAS ESTILO NAVEGADOR & ÁREA WHATSAPP (AGORA NO TOPO) -->
   <div class="section-title">Abas de Anotação Ativa</div>
   
   <div class="tabs-wrapper">
@@ -345,7 +331,8 @@ body {
     <button class="add-tab-btn" onclick="createNewTab()">+</button>
   </div>
 
-  <div class="editor-panel">
+  <div class="editor-panel" style="margin-bottom: 25px;">
+    <!-- Editor Unificado Raw Text -->
     <textarea 
       id="mainEditor" 
       class="editor-area" 
@@ -353,9 +340,28 @@ body {
       oninput="handleEditorInput(this)"
     ></textarea>
     
+    <!-- Caixa de Entrada Rápida de Captura Inteligente -->
     <div class="quick-input-container">
       <input type="text" id="quickBox" class="quick-input" placeholder="➕ Captura rápida (Ex: Comprar rodapé)" onkeydown="if(event.key==='Enter') dispatchQuickInput()" />
       <button class="quick-send-btn" onclick="dispatchQuickInput()">Ok</button>
+    </div>
+  </div>
+
+  <!-- SEÇÃO 2: CALENDÁRIO DE PRIORIDADES & HORIZONTE (AGORA ABAIXO) -->
+  <div class="section-title">Calendário de Prioridades & Horizonte</div>
+  <div class="calendar-panel">
+    <div class="calendar-scroll">
+      <!-- Grid de Carga gerado dinamicamente via JS -->
+      <div class="calendar-grid" id="githubGrid"></div>
+    </div>
+    
+    <!-- Linha de Fluxo Temporal Cognitivo -->
+    <div class="horizon-row">
+      <div class="horizon-card"><div class="title">Hoje</div><div class="counter" style="color:var(--critico)" id="hzHoje">0</div></div>
+      <div class="horizon-card"><div class="title">Semana</div><div class="counter" style="color:var(--importante)" id="hzSemana">0</div></div>
+      <div class="horizon-card"><div class="title">Mês</div><div class="counter" style="color:var(--normal)" id="hzMes">0</div></div>
+      <div class="horizon-card"><div class="title">Semestre</div><div class="counter" style="color:var(--evento)" id="hzSemestre">0</div></div>
+      <div class="horizon-card"><div class="title">Algum Dia</div><div class="counter" style="color:var(--muted)" id="hzAlgumDia">0</div></div>
     </div>
   </div>
 
