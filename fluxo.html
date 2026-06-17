@@ -929,37 +929,89 @@ function dispatchQuickInput() {
    ========================================================================== */
 function setupContextMenus() {
   const editor = document.getElementById('mainEditor');
-  const menu = document.getElementById('contextMenu');
+  const menu = document.getElementById('contextMenu') || document.querySelector('.context-menu');
+  if (!editor || !menu) return;
+
+  editor.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    
+    const text = editor.value;
+    const selStart = editor.selectionStart;
+    
+    const startPos = text.lastIndexOf('\n', selStart - 1) + 1;
+    let endPos = text.indexOf('\n', selStart);
+    if (endPos === -1) endPos = text.length;
+    
+    selectedLineText = text.substring(startPos, endPos).trim();
+    
+    if (selectedLineText === "" || selectedLineText === "•" || selectedLineText === "-") return;
+
+    menu.style.top = `${e.clientY}px`;
+    menu.style.left = `${e.clientX}px`;
+    menu.style.display = 'flex';
+  });
+
+  document.addEventListener('click', () => {
+    menu.style.display = 'none';
+  });
+
+  // Ajustado com assignHorizon para bater com a sua função do arquivo
+  menu.innerHTML = `
+    <div class="context-item" style="color:#00f5ff; font-weight:bold; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:6px; margin-bottom:4px;">Ações da Linha</div>
+    <div class="context-item" onclick="abrirEditorLinha()">✏️ Editar Linha</div>
+    <div class="context-item" onclick="assignHorizon('Hoje')">📅 Mover para Hoje</div>
+    <div class="context-item" onclick="assignHorizon('Semana')">🗓️ Mover para Semana</div>
+    <div class="context-item" onclick="assignHorizon('Mês')">📊 Mover para Mês</div>
+  `;
+}
+
+window.abrirEditorLinha = function() {
+  const antigo = document.getElementById('popupEditorLinha');
+  if (antigo) antigo.remove();
+
+  const editor = document.getElementById('mainEditor');
+  if (!editor) return;
+
+  const popup = document.createElement('div');
+  popup.id = 'popupEditorLinha';
+  popup.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:#0b0813; border:2px solid #00f5ff; border-radius:16px; padding:20px; z-index:3000; width:90%; max-width:360px; box-shadow:0 0 30px rgba(0,245,255,0.3); backdrop-filter:blur(15px); color:#fff; font-family:sans-serif;';
+
+  popup.innerHTML = `
+    <div style="font-weight:bold; margin-bottom:12px; font-size:14px; text-transform:uppercase; color:#00f5ff;">Editar Anotação</div>
+    <textarea id="txtLinhaEditada" style="width:100%; height:80px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:10px; color:#fff; font-size:14px; margin-bottom:15px; resize:none; outline:none; line-height:1.4;"></textarea>
+    
+    <div style="display:flex; gap:10px; justify-content:flex-end;">
+      <button class="add-tab-btn" style="background:rgba(255,255,255,0.05); color:#fff !important; font-size:11px; padding:6px 12px;" onclick="document.getElementById('popupEditorLinha').remove()">Cancelar</button>
+      <button class="add-tab-btn" style="background:linear-gradient(135deg, #00bfff, #00f5ff); color:#000 !important; font-size:11px; padding:6px 14px; font-weight:bold;" onclick="salvarLinhaEditada()">Salvar Alteração</button>
+    </div>
+  `;
+  document.body.appendChild(popup);
   
-  // Disparador simplificado para Desktop e Mobile através de clique com botão direito ou seleção prolongada
-  editor.addEventListener('contextmenu', function(e) {
-    const selection = window.getSelection().toString().trim() || getLineAtCursor(editor);
-    if(selection && selection !== "•" && selection !== "-") {
-      e.preventDefault();
-      selectedLineText = selection.replace(/[•-]\s*/, ""); // Limpa marcadores
+  document.getElementById('txtLinhaEditada').value = selectedLineText;
+};
+
+window.salvarLinhaEditada = function() {
+  const novoTexto = document.getElementById('txtLinhaEditada').value;
+  const editor = document.getElementById('mainEditor');
+  const activeAba = appState.abas.find(a => a.id === appState.currentTabId);
+
+  if (editor && activeAba && novoTexto.trim() !== "") {
+    const textoCompleto = editor.value;
+    const indexLinha = textoCompleto.indexOf(selectedLineText);
+    
+    if (indexLinha !== -1) {
+      const novoTextoCompleto = textoCompleto.substring(0, indexLinha) + novoTexto + textoCompleto.substring(indexLinha + selectedLineText.length);
       
-      menu.style.display = 'flex';
-      menu.style.left = `${Math.min(e.clientX, window.innerWidth - 160)}px`;
-      menu.style.top = `${Math.min(e.clientY, window.innerHeight - 220)}px`;
+      editor.value = novoTextoCompleto;
+      activeAba.conteudo = novoTextoCompleto;
+      
+      if (typeof updateMetricsUI === 'function') updateMetricsUI();
+      if (typeof saveLocalStorage === 'function') saveLocalStorage();
     }
-  });
+  }
 
-  // Fecha menu ao tocar fora
-  document.addEventListener('click', function(e) {
-    if(!menu.contains(e.target)) {
-      menu.style.display = 'none';
-    }
-  });
-}
-
-function getLineAtCursor(textarea) {
-  const text = textarea.value;
-  const selStart = textarea.selectionStart;
-  const startPos = text.lastIndexOf('\n', selStart - 1) + 1;
-  let endPos = text.indexOf('\n', selStart);
-  if (endPos === -1) endPos = text.length;
-  return text.substring(startPos, endPos).trim();
-}
+  document.getElementById('popupEditorLinha').remove();
+};
 
 function assignHorizon(horizonName) {
   // Converte a propriedade para o padrão camelCase do objeto state
