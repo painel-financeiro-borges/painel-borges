@@ -626,20 +626,78 @@ function assignHorizon(horizonName) {
 }
 
 /* ==========================================================================
-   PERSISTÊNCIA LOCAL STORAGE
+   PERSISTÊNCIA EM NUVEM (FIREBASE FIRESTORE CONSTANT SYNC)
    ========================================================================== */
-function saveLocalStorage() {
-  localStorage.setItem('painelBorgesFluxoData', JSON.stringify(appState));
-}
+</script>
 
-function loadLocalStorage() {
-  const data = localStorage.getItem('painelBorgesFluxoData');
-  if(data) {
-    appState = JSON.parse(data);
+<!-- Injeção dos Módulos Oficiais do Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+// Suas credenciais oficiais extraídas de app.js
+const firebaseConfig = {
+  apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
+  authDomain: "painel-financeiro-borges.firebaseapp.com",
+  projectId: "painel-financeiro-borges",
+  storageBucket: "painel-financeiro-borges.firebasestorage.app",
+  messagingSenderId: "354997627208",
+  appId: "1:354997627208:web:90604d0a7dcd45b6e4eb7d",
+  measurementId: "G-KH9BDWN2WH"
+};
+
+// Inicialização estável do banco
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+// Centralizando os blocos mentais em um documento único de alta performance
+const docRef = doc(db, "fluxo_os", "dados_prioridades");
+
+// Substituindo os métodos antigos pelas diretrizes de nuvem em tempo real
+window.saveLocalStorage = async function() {
+  try {
+    // Grava o estado atualizado imediatamente no Firestore
+    await setDoc(docRef, appState);
+  } catch (e) {
+    console.error("Erro ao salvar no Firebase:", e);
   }
-}
+};
 
-// Execução imediata
+window.loadLocalStorage = function() {
+  // Listener em tempo real (onSnapshot): se mudar no banco, atualiza a tela na hora
+  onSnapshot(docRef, (docSnap) => {
+    if (docSnap.exists()) {
+      const cloudData = docSnap.data();
+      
+      // Preserva a aba ativa para o usuário não perder o foco enquanto digita
+      const currentTabBackup = appState.currentTabId;
+      
+      appState = cloudData;
+      if (currentTabBackup && appState.abas.some(a => a.id === currentTabBackup)) {
+        appState.currentTabId = currentTabBackup;
+      }
+      
+      // Atualiza os componentes visuais na tela
+      renderGithubCalendar();
+      renderTabs();
+      updateMetricsUI();
+      
+      // Atualiza o texto do editor sem quebrar o cursor
+      const editor = document.getElementById('mainEditor');
+      const activeAba = appState.abas.find(a => a.id === appState.currentTabId);
+      if (activeAba && editor.value !== activeAba.conteudo) {
+        const start = editor.selectionStart;
+        const end = editor.selectionEnd;
+        editor.value = activeAba.conteudo;
+        editor.setSelectionRange(start, end);
+      }
+    } else {
+      console.log("Nenhum dado em nuvem encontrado. Criando estrutura inicial...");
+      window.saveLocalStorage();
+    }
+  });
+};
+
+// Inicializa o ecossistema com os gatilhos da nuvem ativados
 init();
 </script>
 </body>
