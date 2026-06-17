@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fluxo</title>
+    <!-- CSS para manter o visual limpo e rápido -->
+    <style>
+        body { font-family: sans-serif; padding: 10px; background: #f9f9f9; }
+        /* Container das abas */
+        #tabBar { display: flex; gap: 5px; overflow-x: auto; padding-bottom: 10px; }
+        .tab-btn { padding: 8px 15px; border: 1px solid #ddd; border-radius: 20px; background: #fff; cursor: pointer; white-space: nowrap; }
+        .tab-btn.active { background: #007bff; color: white; border-color: #007bff; }
+        /* Área de escrita */
+        #noteArea { width: 100%; height: 70vh; border: 1px solid #ddd; padding: 15px; border-radius: 10px; background: #fff; }
+    </style>
+</head>
+<body>
+
+    <!-- Área de abas -->
+    <div id="tabBar">
+        <button class="tab-btn active" onclick="loadTab('Planejamento')">Planejamento</button>
+        <button class="tab-btn" onclick="loadTab('Afazeres')">Afazeres</button>
+        <button class="tab-btn" onclick="addTab()">+</button>
+    </div>
+
+    <!-- Área de texto (onde a mágica acontece) -->
+    <textarea id="noteArea" placeholder="Digite aqui... use '-' no início da linha para criar listas"></textarea>
+
+    <script>
+        // Lógica para transformar tracinho em bullet point visualmente
+        const noteArea = document.getElementById('noteArea');
+        noteArea.addEventListener('input', (e) => {
+            const value = e.target.value;
+            // Detecta '-' seguido de espaço e substitui por símbolo de lista (pode ser ajustado)
+            if (value.endsWith('- ')) {
+                e.target.value = value.replace(/- $/, '• '); 
+            }
+        });
+
+        // Função para trocar de aba instantaneamente
+        function loadTab(tabName) {
+            console.log("Carregando aba:", tabName);
+            // Aqui carregaremos o conteúdo via Firebase no futuro
+        }
+
+        // Função simples para criar nova aba
+        function addTab() {
+            const name = prompt("Nome da nova aba:");
+            if (name) { alert("Nova aba '" + name + "' criada!"); }
+        }
+    </script>
+</body>
+</html>
