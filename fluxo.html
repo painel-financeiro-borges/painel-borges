@@ -1,1 +1,1485 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Painel Borges — Módulo Fluxo & Horizonte</title>
 
+<style>
+:root {
+  --bg: #07040d;
+  --card: rgba(22, 17, 39, 0.6);
+  --border: rgba(160, 32, 240, 0.15);
+  --text: #ffffff;
+  --muted: #706594;
+  --critico: #ff007f;
+  --importante: #a020f0;
+  --normal: #7b2cbf;
+  --evento: #00f5ff;
+  --concluido: #39ff14;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  padding-top: 60px;
+  padding-bottom: 20px;
+}
+
+.topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  background-color: rgba(7, 4, 13, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 10px;
+  z-index: 100;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+}
+
+.topbar-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.badge-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.badge-dot.critico { background-color: var(--critico); box-shadow: 0 0 8px var(--critico); }
+.badge-dot.importante { background-color: var(--importante); box-shadow: 0 0 8px var(--importante); }
+.badge-dot.normal { background-color: var(--normal); box-shadow: 0 0 8px var(--normal); }
+.badge-dot.semdata { background-color: var(--muted); }
+
+.container {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 15px;
+}
+
+.section-title {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.calendar-panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 18px;
+  margin-bottom: 20px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255,255,255,0.05);
+}
+
+.calendar-scroll {
+  overflow-x: auto;
+  padding-bottom: 8px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.calendar-grid {
+  display: grid;
+  padding: 4px 0;
+}
+
+.day-cell {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.c-critico { 
+  background: linear-gradient(135deg, #ff0066, var(--critico)) !important;
+  box-shadow: 0 0 14px rgba(255, 0, 127, 0.65);
+  border: 1px solid #ff80bf !important;
+}
+
+.c-importante { 
+  background: linear-gradient(135deg, #bd53ed, var(--importante)) !important;
+  box-shadow: 0 0 14px rgba(160, 32, 240, 0.65);
+  border: 1px solid #e6b3ff !important;
+}
+
+.c-normal { 
+  background: linear-gradient(135deg, #5a189a, var(--normal)) !important;
+  box-shadow: 0 0 10px rgba(123, 44, 191, 0.5);
+  border: 1px solid #b57cff !important;
+}
+
+.c-evento { 
+  background: linear-gradient(135deg, #00bfff, var(--evento)) !important;
+  box-shadow: 0 0 14px rgba(0, 245, 255, 0.65);
+  border: 1px solid #b3ffff !important;
+}
+
+.c-concluido { 
+  background: linear-gradient(135deg, #00ff00, var(--concluido)) !important;
+  box-shadow: 0 0 14px rgba(57, 255, 20, 0.7);
+  border: 1px solid #ccffcc !important;
+}
+
+.add-tab-btn {
+  background: rgba(160, 32, 240, 0.1);
+  border: 1px solid rgba(160, 32, 240, 0.4) !important;
+  color: #00f5ff !important;
+  box-shadow: 0 0 10px rgba(160, 32, 240, 0.15);
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.25s ease;
+}
+
+.add-tab-btn:hover {
+  background: var(--importante);
+  color: #fff !important;
+  box-shadow: 0 0 18px rgba(160, 32, 240, 0.7);
+  transform: translateY(-2px);
+}
+
+.add-tab-btn:active {
+  transform: translateY(1px);
+}
+
+/* HORIZONTES DE TEMPO */
+.horizon-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  margin-top: 15px;
+  padding-bottom: 5px;
+}
+
+.horizon-card {
+  background: #1e293b;
+  padding: 8px 14px;
+  border-radius: 10px;
+  min-width: 105px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.horizon-card .title {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.horizon-card .counter {
+  font-size: 18px;
+  font-weight: 800;
+  margin-top: 2px;
+}
+
+/* ==========================================================================
+   SISTEMA DE ABAS (ESTILO CHROME BROWSER)
+   ========================================================================== */
+.tabs-wrapper {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 15px;
+  overflow-x: auto;
+}
+
+.tabs-container {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+}
+
+.tab-btn {
+  background: #1e293b;
+  color: var(--muted);
+  border: none;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 12px 12px 0 0;
+  cursor: pointer;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.15s ease;
+}
+
+.tab-btn.active {
+  background: var(--card);
+  color: var(--text);
+  border-top: 2px solid var(--accent);
+}
+
+.tab-close {
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+}
+.tab-close:hover { color: var(--critico); }
+
+.add-tab-btn {
+  background: transparent;
+  color: var(--accent);
+  border: none;
+  padding: 10px 14px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   WORKZONE: EDITOR ESTILO WHATSAPP
+   ========================================================================== */
+.editor-panel {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+.editor-area {
+  width: 100%;
+  min-height: 250px;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.6;
+  resize: vertical;
+  outline: none;
+}
+
+/* Quick Input Box */
+.quick-input-container {
+  display: flex;
+  gap: 8px;
+  margin-top: 15px;
+  border-top: 1px solid var(--border);
+  padding-top: 15px;
+}
+
+.quick-input {
+  flex: 1;
+  background-color: #020617;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  color: var(--text);
+  font-size: 15px;
+  outline: none;
+}
+
+.quick-send-btn {
+  background-color: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 0 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   MENU CONTEXTUAL (EXPEDIDOR HORIZONTE)
+   ========================================================================== */
+.context-menu {
+  position: fixed;
+  background: #1e293b;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 1000;
+  min-width: 150px;
+}
+
+.context-item {
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.context-item:hover { background: var(--card); }
+
+/* Responsividade de Toque para Mobile */
+@media(max-width: 480px) {
+  body { padding-top: 55px; }
+  .editor-area { min-height: 300px; }
+  .horizon-card { min-width: 90px; padding: 6px 10px; }
+}
+
+/* ==========================================================================
+   EFEITO DRAG & DROP (GUIAS ESTILO CHROME)
+   ========================================================================== */
+.tab-btn.dragging {
+  opacity: 0.3;
+  border: 1px dashed rgba(160, 32, 240, 0.6) !important;
+  background: rgba(160, 32, 240, 0.1) !important;
+}
+
+.tab-btn.drag-over {
+  border-left: 3px solid var(--evento) !important;
+  transform: scale(1.02);
+  background: rgba(255, 255, 255, 0.05);
+}
+</style>
+</head>
+<body>
+  
+<div class="topbar" id="topbarContainer" style="height: auto; padding: 10px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;">
+  
+  <div class="horizon-dropzone" draggable="true" data-horizon="hoje" style="background: linear-gradient(145deg, #140f2b, #090614); border: 1px solid rgba(57, 255, 20, 0.25); border-radius: 10px; padding: 6px 4px; text-align: center; box-shadow: 2px 2px 6px rgba(0,0,0,0.6), inset 1px 1px 1px rgba(255,255,255,0.05); transition: all 0.2s ease; cursor: move;">
+    <div style="font-size: 10px; text-transform: uppercase; color: #a0a0b0; font-weight: 700; letter-spacing: 0.3px; pointer-events: none;">Hoje</div>
+    <div id="lblHzHoje" style="font-size: 20px; font-weight: 800; color: #39ff14; text-shadow: 0 0 8px rgba(57, 255, 20, 0.6); margin-top: 2px; pointer-events: none;">0</div>
+  </div>
+
+  <div class="horizon-dropzone" draggable="true" data-horizon="semana" style="background: linear-gradient(145deg, #140f2b, #090614); border: 1px solid rgba(0, 245, 255, 0.25); border-radius: 10px; padding: 6px 4px; text-align: center; box-shadow: 2px 2px 6px rgba(0,0,0,0.6), inset 1px 1px 1px rgba(255,255,255,0.05); transition: all 0.2s ease; cursor: move;">
+    <div style="font-size: 10px; text-transform: uppercase; color: #a0a0b0; font-weight: 700; letter-spacing: 0.3px; pointer-events: none;">Semana</div>
+    <div id="lblHzSemana" style="font-size: 20px; font-weight: 800; color: #00f5ff; text-shadow: 0 0 8px rgba(0, 245, 255, 0.6); margin-top: 2px; pointer-events: none;">0</div>
+  </div>
+
+  <div class="horizon-dropzone" draggable="true" data-horizon="mes" style="background: linear-gradient(145deg, #140f2b, #090614); border: 1px solid rgba(255, 0, 127, 0.25); border-radius: 10px; padding: 6px 4px; text-align: center; box-shadow: 2px 2px 6px rgba(0,0,0,0.6), inset 1px 1px 1px rgba(255,255,255,0.05); transition: all 0.2s ease; cursor: move;">
+    <div style="font-size: 10px; text-transform: uppercase; color: #a0a0b0; font-weight: 700; letter-spacing: 0.3px; pointer-events: none;">Mês</div>
+    <div id="lblHzMes" style="font-size: 20px; font-weight: 800; color: #ff007f; text-shadow: 0 0 8px rgba(255, 0, 127, 0.6); margin-top: 2px; pointer-events: none;">0</div>
+  </div>
+
+  <div class="horizon-dropzone" draggable="true" data-horizon="semestre" style="background: linear-gradient(145deg, #140f2b, #090614); border: 1px solid rgba(160, 32, 240, 0.25); border-radius: 10px; padding: 6px 4px; text-align: center; box-shadow: 2px 2px 6px rgba(0,0,0,0.6), inset 1px 1px 1px rgba(255,255,255,0.05); transition: all 0.2s ease; cursor: move;">
+    <div style="font-size: 10px; text-transform: uppercase; color: #a0a0b0; font-weight: 700; letter-spacing: 0.3px; pointer-events: none;">Semestre</div>
+    <div id="lblHzSemestre" style="font-size: 20px; font-weight: 800; color: #a020f0; text-shadow: 0 0 8px rgba(160, 32, 240, 0.6); margin-top: 2px; pointer-events: none;">0</div>
+  </div>
+
+  <div class="horizon-dropzone" draggable="true" data-horizon="algumdia" style="background: linear-gradient(145deg, #140f2b, #090614); border: 1px solid rgba(255, 251, 0, 0.2); border-radius: 10px; padding: 6px 4px; text-align: center; box-shadow: 2px 2px 6px rgba(0,0,0,0.6), inset 1px 1px 1px rgba(255,255,255,0.05); transition: all 0.2s ease; cursor: move;">
+    <div style="font-size: 10px; text-transform: uppercase; color: #a0a0b0; font-weight: 700; letter-spacing: 0.3px; pointer-events: none;">Algum Dia</div>
+    <div id="lblHzAlgumDia" style="font-size: 20px; font-weight: 800; color: #fffb00; text-shadow: 0 0 8px rgba(255, 251, 0, 0.6); margin-top: 2px; pointer-events: none;">0</div>
+  </div>
+
+</div>
+<div class="container" style="margin-top: 40px;">
+ <div class="section-title" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+  <span>Abas de Anotação Ativa</span>
+  <span id="cloudStatus" style="font-size: 11px; font-weight: bold; color: var(--concluido); display: flex; align-items: center; gap: 5px; text-transform: none; transition: all 0.3s ease;">
+    <span style="width: 8px; height: 8px; background-color: var(--concluido); border-radius: 50%; display: inline-block; box-shadow: 0 0 8px var(--concluido);" id="cloudLed"></span>
+    Nuvem Sincronizada
+  </span>
+ </div>
+  
+  <div class="tabs-wrapper">
+    <div class="tabs-container" id="tabsContainer"></div>
+    <button class="add-tab-btn" onclick="createNewTab()">+</button>
+  </div>
+
+ <div class="editor-panel" style="margin-bottom: 25px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+      <span style="font-size: 11px; text-transform: uppercase; color: var(--muted); font-weight: 700; letter-spacing: 0.5px;">Área de Trabalho</span>
+      <button id="btnAlternarModo" onclick="alternarModoChecklist()" style="background: rgba(0, 245, 255, 0.08); border: 1px solid rgba(0, 245, 255, 0.3); color: #00f5ff; padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; transition: all 0.2s; outline: none;">
+        📝 Modo Checklist (Riscar)
+      </button>
+    </div>
+
+    <textarea 
+      id="mainEditor" 
+      class="editor-area" 
+      placeholder="Digite suas anotações aqui...&#10;Use hífens (-) para criar listas dinâmicas automáticas como no WhatsApp."
+      oninput="handleEditorInput(this); atualizarConteudoAbaAovivo();"
+    ></textarea>
+
+    <div id="checklistContainer" style="display: none; min-height: 250px; flex-direction: column; gap: 8px; padding: 5px 0; overflow-y: auto;"></div>
+    
+    <!-- Caixa de Entrada Rápida de Captura Inteligente -->
+    <div class="quick-input-container">
+      <input type="text" id="quickBox" class="quick-input" placeholder="➕ Captura rápida (Ex: Comprar rodapé)" onkeydown="if(event.key==='Enter') dispatchQuickInput()" />
+      <button class="quick-send-btn" onclick="dispatchQuickInput()">Ok</button>
+    </div>
+  </div>
+
+  <!-- SEÇÃO 2: CALENDÁRIO DE PRIORIDADES & HORIZONTE (AGORA ABAIXO) -->
+  <div class="section-title">Calendário de Prioridades & Horizonte</div>
+  
+  <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+    <button class="add-tab-btn" style="padding: 6px 12px; font-size: 12px; background: var(--card-bg);" onclick="mudarZoomCalendario('mes')">📅 Visão Mês</button>
+    <button class="add-tab-btn" style="padding: 6px 12px; font-size: 12px; background: var(--card-bg);" onclick="mudarZoomCalendario('ano')">🗺️ Visão Ano/Semestre</button>
+  </div>
+
+  <div class="calendar-panel">
+    <div class="calendar-scroll" style="overflow-x: auto; display: flex; padding-bottom: 10px; -webkit-overflow-scrolling: touch;">
+      <div class="calendar-grid" id="githubGrid"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="context-menu" id="contextMenu">
+  <div class="context-item" onclick="assignHorizon('Hoje')" style="color:var(--critico)">🔴 Hoje</div>
+  <div class="context-item" onclick="assignHorizon('Semana')" style="color:var(--importante)">🟠 Semana</div>
+  <div class="context-item" onclick="assignHorizon('Mês')" style="color:var(--normal)">🟡 Mês</div>
+  <div class="context-item" onclick="assignHorizon('Semestre')" style="color:var(--evento)">🔵 Semestre</div>
+  <div class="context-item" onclick="assignHorizon('Algum Dia')" style="color:var(--muted)">📥 Algum Dia</div>
+</div>
+
+<script>
+/* ==========================================================================
+   ESTADO GLOBAL COMPACTO CORRIGIDO (V2)
+   ========================================================================== */
+let appState = {
+  currentTabId: '',
+  horizontes: { Hoje: 0, Semana: 0, Mês: 0, Semestre: 0, AlgumDia: 0 },
+  abas: [],
+  eventos: []
+};
+let selectedLineText = ""; 
+
+/* ==========================================================================
+   INICIALIZAÇÃO & RENDERERS ATIVOS
+   ========================================================================== */
+function init() {
+  loadLocalStorage();
+  renderGithubCalendar();
+  renderTabs();
+  selectTab(appState.currentTabId);
+  updateMetricsUI();
+  setupContextMenus();
+}
+
+window.updateMetricsUI = function() {
+  // 1. Inicializa os contadores zerados para os horizontes
+  const contadores = { hoje: 0, semana: 0, mes: 0, semestre: 0, algumDia: 0 };
+  
+  // Mapeamento de cores padrão de fábrica (fallback caso a aba não tenha cor Hex escolhida)
+  const coresFiltro = {
+    hoje: '#39ff14',
+    semana: '#00f5ff',
+    mes: '#ff007f',
+    semestre: '#a020f0',
+    algumDia: '#fffb00'
+  };
+
+  // 2. Varre as abas, calcula as tarefas ativas e puxa a cor customizada para o topo
+  if (appState.abas && appState.abas.length > 0) {
+    appState.abas.forEach(aba => {
+      const hz = aba.horizonte; // ex: 'hoje', 'semana', 'mes'...
+      
+      // Conta as linhas de tarefas ativas na aba para exibir nos cards superiores
+      if (hz && contadores.hasOwnProperty(hz) && aba.conteudo) {
+        const linhas = aba.conteudo.split('\n');
+        let totalLinhasAtivasNaAba = 0;
+
+        linhas.forEach(linhaLimpa => {
+          const linha = linhaLimpa.trim().toLowerCase();
+          if (linha.startsWith('•') || linha.startsWith('-') || linha.startsWith('*')) {
+            totalLinhasAtivasNaAba++;
+          }
+        });
+        
+        contadores[hz] += totalLinhasAtivasNaAba;
+      }
+
+      // Vínculo inteligente de cor: Se a aba tem uma corHex definida, o topo adota ela na hora!
+      if (hz && coresFiltro.hasOwnProperty(hz) && aba.corHex && aba.corHex.trim() !== "") {
+        coresFiltro[hz] = aba.corHex;
+      }
+    });
+  }
+
+  // 3. Renderiza os números atualizados nos elementos da tela
+  if (document.getElementById('lblHzHoje')) document.getElementById('lblHzHoje').innerText = contadores.hoje;
+  if (document.getElementById('lblHzSemana')) document.getElementById('lblHzSemana').innerText = contadores.semana;
+  if (document.getElementById('lblHzMes')) document.getElementById('lblHzMes').innerText = contadores.mes;
+  if (document.getElementById('lblHzSemestre')) document.getElementById('lblHzSemestre').innerText = contadores.semestre;
+  if (document.getElementById('lblHzAlgumDia')) document.getElementById('lblHzAlgumDia').innerText = contadores.algumDia;
+
+  // 4. MOTOR REATIVO: Força as cores e o reflexo neon dos cartões superiores a se adaptarem à cor da aba
+  const atualizarEstiloCard = (idLabel, corHex) => {
+    const lbl = document.getElementById(idLabel);
+    if (!lbl) return;
+    const card = lbl.parentElement; 
+    
+    lbl.style.color = corHex;
+    lbl.style.textShadow = `0 0 8px ${corHex}aa`;
+    if (card) card.style.borderColor = `${corHex}40`; 
+  };
+
+  atualizarEstiloCard('lblHzHoje', coresFiltro.hoje);
+  atualizarEstiloCard('lblHzSemana', coresFiltro.semana);
+  atualizarEstiloCard('lblHzMes', coresFiltro.mes);
+  atualizarEstiloCard('lblHzSemestre', coresFiltro.semestre);
+  atualizarEstiloCard('lblHzAlgumDia', coresFiltro.algumDia);
+};
+
+/* ==========================================================================
+   ENGINE DO CALENDÁRIO DINÂMICO & ZOOM MÓVEL (V2 COMPATÍVEL)
+   ========================================================================== */
+let calendarMode = 'mes';
+const DATA_BASE = { ano: 2026, mes: 5 };
+const NOMES_MESES = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+const DIAS_SEMANA = ["D", "S", "T", "Q", "Q", "S", "S"];
+
+if (!appState.eventos) {
+  appState.eventos = [];
+}
+
+window.mudarZoomCalendario = function(modo) {
+  calendarMode = modo;
+  console.log(`🔍 Alternando lente do calendário para modo: ${modo}`);
+  renderGithubCalendar();
+};
+
+window.mudarZoomCalendario = function(modo) {
+  calendarMode = modo;
+  console.log(`🔍 Alternando lente do calendário para modo: ${modo}`);
+  renderGithubCalendar();
+};
+
+window.renderGithubCalendar = function() {
+  const container = document.getElementById('githubGrid');
+  if (!container) return;
+  container.innerHTML = '';
+
+  if (calendarMode === 'mes') {
+    container.style.display = 'grid';
+    container.style.gridAutoFlow = 'row';
+    container.style.gridTemplateColumns = 'repeat(7, 1fr)';
+    container.style.gridTemplateRows = 'auto';
+    container.style.gap = '8px';
+    container.style.width = '100%';
+
+    const titleHeader = document.createElement('div');
+    titleHeader.style.cssText = 'grid-column: span 7; text-align: center; color: #00f5ff; font-weight: bold; font-size: 15px; text-transform: uppercase; letter-spacing: 1px; padding: 5px 0 10px 0; text-shadow: 0 0 8px rgba(0,245,255,0.3);';
+    titleHeader.innerText = `📅 ${NOMES_MESES[DATA_BASE.mes]} / ${DATA_BASE.ano}`;
+    container.appendChild(titleHeader);
+
+    DIAS_SEMANA.forEach(d => {
+      const dayLabel = document.createElement('div');
+      dayLabel.style.cssText = 'color: var(--muted); text-align: center; font-size: 11px; font-weight: bold; padding-bottom: 5px;';
+      dayLabel.innerText = d;
+      container.appendChild(dayLabel);
+    });
+
+    const primeiroDiaSemana = new Date(DATA_BASE.ano, DATA_BASE.mes, 1).getDay();
+    const totalDiasMes = new Date(DATA_BASE.ano, DATA_BASE.mes + 1, 0).getDate();
+
+    for (let i = 0; i < primeiroDiaSemana; i++) {
+      const emptyCell = document.createElement('div');
+      container.appendChild(emptyCell);
+    }
+
+    for (let dia = 1; dia <= totalDiasMes; dia++) {
+      const dayCell = document.createElement('div');
+      const dataString = `${DATA_BASE.ano}-${String(DATA_BASE.mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+      
+      dayCell.className = 'day-cell';
+      dayCell.style.cssText = 'aspect-ratio: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: var(--text); cursor: default; transition: all 0.2s ease;';
+      dayCell.innerText = dia;
+
+      if (appState.abas && appState.abas.length > 0) {
+        const abaCorrespondente = appState.abas.find(aba => {
+          if (!aba.dataInicio || !aba.dataFim) return false;
+          return dataString >= aba.dataInicio && dataString <= aba.dataFim;
+        });
+
+        if (abaCorrespondente) {
+          const cor = abaCorrespondente.corHex || '#00f5ff';
+          dayCell.style.background = `linear-gradient(135deg, ${cor}dd, ${cor})`;
+          dayCell.style.boxShadow = `0 0 12px ${cor}88`;
+          dayCell.style.border = `1px solid #ffffffaa`;
+          dayCell.style.cursor = 'pointer';
+
+          dayCell.addEventListener('click', () => {
+            if (typeof selectTab === 'function') {
+              selectTab(abaCorrespondente.id);
+              const editor = document.getElementById('mainEditor');
+              if (editor) editor.focus();
+            }
+          });
+        }
+      }
+
+      container.appendChild(dayCell);
+    }
+  } else {
+    // MODO ANUAL E SEMESTRE REFORMULADO — CORREÇÃO VISUAL DE TRAVA CONTRA DUPLICAÇÃO
+    container.style.display = 'flex';
+    container.style.flexDirection = 'column';
+    container.style.gap = '10px';
+    container.style.width = '100%';
+
+    NOMES_MESES.forEach((nomeMes, indexMes) => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.01); padding: 8px 12px; border-radius: 8px; border-left: 3px solid rgba(160,32,240,0.3); width: 100%; cursor: pointer; transition: background 0.2s;';
+      
+      row.addEventListener('click', () => {
+        DATA_BASE.mes = indexMes;
+        calendarMode = 'mes';
+        renderGithubCalendar();
+      });
+
+      const label = document.createElement('div');
+      label.style.cssText = 'width: 40px; font-size: 11px; font-weight: bold; color: #00f5ff; text-transform: uppercase; text-align: left; flex-shrink: 0;';
+      label.innerText = nomeMes.substring(0, 3);
+      row.appendChild(label);
+
+      const dotsContainer = document.createElement('div');
+      dotsContainer.style.cssText = 'display: flex; gap: 4px; align-items: center; overflow: hidden; width: 100%; flex-wrap: nowrap;';
+
+      const totalDias = new Date(DATA_BASE.ano, indexMes + 1, 0).getDate();
+
+      // APENAS UM LOOP DE DIAS SEGURO E CORRETO
+      for (let dia = 1; dia <= totalDias; dia++) {
+        const dot = document.createElement('div');
+        const dataString = `${DATA_BASE.ano}-${String(indexMes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+        
+        dot.style.cssText = 'width: 6px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 1px; transition: all 0.2s; flex-shrink: 0; pointer-events: none;';
+
+        if (appState.abas && appState.abas.length > 0) {
+          const abaCorrespondente = appState.abas.find(aba => {
+            if (!aba.dataInicio || !aba.dataFim) return false;
+            return dataString >= aba.dataInicio && dataString <= aba.dataFim;
+          });
+
+          if (abaCorrespondente) {
+            const cor = abaCorrespondente.corHex || '#00f5ff';
+            dot.style.background = cor;
+            dot.style.boxShadow = `0 0 6px ${cor}`;
+            dot.style.width = '7px';
+            dot.style.height = '7px';
+          }
+        }
+
+        dotsContainer.appendChild(dot);
+      }
+
+      row.appendChild(dotsContainer);
+      container.appendChild(row);
+    });
+  }
+};
+// Nova Janela Flutuante Premium para Gerenciamento de Cores e Notas
+// Janela de Edição com Seleção Livre de Cores Neon e Táticas
+
+window.salvarCorDia = function(dataString, hexCor) {
+  const txt = document.getElementById('popTexto').value;
+  
+  if (!appState.eventos) appState.eventos = [];
+  
+  // Limpa o registro anterior para redefinir a cor
+  appState.eventos = appState.eventos.filter(e => e.data !== dataString);
+
+  if (hexCor !== 'limpar') {
+    // Mapeia os nomes antigos de tipo se você clicar nos botões principais, ou joga direto a cor hex
+    let tipoTratado = 'custom';
+    if (hexCor === '#ff007f') tipoTratado = 'critico';
+    if (hexCor === '#39ff14') tipoTratado = 'hoje'; // Seu css aponta c-concluido para hoje
+    if (hexCor === '#a020f0') tipoTratado = 'importante';
+    if (hexCor === '#00f5ff') tipoTratado = 'evento';
+
+    appState.eventos.push({
+      data: dataString,
+      tipo: tipoTratado, 
+      corHex: hexCor,  
+      titulo: txt || 'Evento'
+    });
+  }
+
+  document.getElementById('popupCalendario').remove();
+  
+  // Atualiza o banco, repinta o calendário e recalcula o painel inteiro na mesma piscada!
+  if (typeof saveLocalStorage === 'function') saveLocalStorage();
+  if (typeof renderGithubCalendar === 'function') renderGithubCalendar();
+  if (typeof updateMetricsUI === 'function') updateMetricsUI();
+};
+  
+window.renderTabs = function() {
+  const container = document.getElementById('tabsContainer');
+  if (!container) return;
+  container.innerHTML = '';
+
+  if (!appState.abas || appState.abas.length === 0) {
+    container.innerHTML = '<span style="color:var(--muted); font-size:12px; padding:10px;">Sem blocos ativos. Crie um no [+]</span>';
+    return;
+  }
+
+  appState.abas.forEach((aba, index) => {
+    const isAtiva = aba.id === appState.currentTabId;
+    const btn = document.createElement('button');
+    btn.className = `tab-btn ${isAtiva ? 'active' : ''}`;
+    
+    // INJEÇÃO DINÂMICA DE NEON NA BORDA DA ABA
+    if (isAtiva) {
+      if (aba.corHex) {
+        btn.style.borderBottom = `3px solid ${aba.corHex}`;
+        btn.style.color = aba.corHex;
+        btn.style.boxShadow = `inset 0 -4px 8px ${aba.corHex}18, 0 2px 10px ${aba.corHex}25`;
+        btn.style.textShadow = `0 0 6px ${aba.corHex}99`;
+        btn.style.background = 'rgba(22, 17, 39, 0.95)';
+      } else {
+        btn.style.borderBottom = `3px solid #00f5ff`;
+        btn.style.color = `#00f5ff`;
+      }
+    } else {
+      btn.style.borderBottom = 'none';
+      btn.style.color = 'var(--muted)';
+      btn.style.boxShadow = 'none';
+      btn.style.textShadow = 'none';
+      btn.style.background = '#1e293b';
+    }
+
+    btn.setAttribute('draggable', 'true');
+    btn.setAttribute('data-index', index);
+    
+    const editIcon = isAtiva ? `<span class="tab-edit-icon" style="cursor:pointer; margin-left:4px; opacity:0.6; font-size:11px;" onclick="event.stopPropagation(); if(typeof editTabTitle === 'function') editTabTitle('${aba.id}');">✏️</span>` : '';
+    
+    btn.innerHTML = `
+      <span class="tab-title-text">${aba.titulo}</span>
+      ${editIcon}
+      <span class="tab-close" style="margin-left:8px;">&times;</span>
+    `;
+
+    btn.addEventListener('click', (e) => {
+      if (e.target.classList.contains('tab-close') || e.target.classList.contains('tab-edit-icon')) return;
+      if (typeof selectTab === 'function') selectTab(aba.id);
+    });
+
+    btn.addEventListener('dblclick', (e) => {
+      e.stopPropagation();
+      btn.setAttribute('draggable', 'false');
+      if (typeof editTabTitle === 'function') editTabTitle(aba.id);
+      setTimeout(() => btn.setAttribute('draggable', 'true'), 500);
+    });
+
+    const closeBtn = btn.querySelector('.tab-close');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (typeof deleteTab === 'function') deleteTab(aba.id);
+      });
+    }
+
+    // ==========================================================================
+    // CANAL DE ARRASTO REESTRUTURADO (DRAG & DROP)
+    // ==========================================================================
+    btn.addEventListener('dragstart', (e) => {
+      if (e.target.classList.contains('tab-close') || e.target.classList.contains('tab-edit-icon')) {
+        e.preventDefault();
+        return;
+      }
+      e.target.classList.add('dragging');
+      // Passa tanto o index da ordenação quanto o ID real da aba para os horizontes lerem
+      e.dataTransfer.setData('text/plain', index);
+      e.dataTransfer.setData('tab-id', aba.id);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+
+    btn.addEventListener('dragend', (e) => {
+      e.target.classList.remove('dragging');
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('drag-over'));
+      document.querySelectorAll('.horizon-dropzone').forEach(el => el.style.transform = 'none');
+    });
+
+    btn.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      btn.classList.add('drag-over');
+    });
+
+    btn.addEventListener('dragleave', () => {
+      btn.classList.remove('drag-over');
+    });
+
+    btn.addEventListener('drop', (e) => {
+      e.preventDefault();
+      btn.classList.remove('drag-over');
+      
+      const fromIndex = parseInt(e.dataTransfer.getData('text/plain'), 10);
+      const toIndex = parseInt(btn.getAttribute('data-index'), 10);
+
+      if (fromIndex !== toIndex && !isNaN(fromIndex) && !isNaN(toIndex)) {
+        const [abaArrastada] = appState.abas.splice(fromIndex, 1);
+        appState.abas.splice(toIndex, 0, abaArrastada);
+
+        renderTabs();
+        if (typeof saveLocalStorage === 'function') saveLocalStorage();
+      }
+    });
+
+    container.appendChild(btn);
+  });
+};
+
+function editTabTitle(id) {
+  const aba = appState.abas.find(a => a.id === id);
+  if (!aba) return;
+
+  const antigo = document.getElementById('popupConfigAba');
+  if (antigo) antigo.remove();
+
+  // Garante valores padrão caso a aba seja antiga e não tenha esses campos ainda
+  const dataIniciov = aba.dataInicio || "2026-06-17";
+  const dataFimv = aba.dataFim || "2026-06-17";
+  const corHexv = aba.corHex || "#00F5FF";
+  const horizonteActive = aba.horizonte || "semana";
+
+  const popup = document.createElement('div');
+  popup.id = 'popupConfigAba';
+  popup.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:#0b0813; border:2px solid #a020f0; border-radius:16px; padding:20px; z-index:4000; width:90%; max-width:340px; box-shadow:0 0 35px rgba(160,32,240,0.5); backdrop-filter:blur(15px); color:#fff; font-family:sans-serif;';
+
+  popup.innerHTML = `
+    <div style="font-weight:bold; margin-bottom:12px; font-size:14px; text-transform:uppercase; color:#00f5ff; text-align:center; letter-spacing:0.5px;">Editar Configuração</div>
+    
+    <div style="font-size:11px; color:var(--muted); margin-bottom:6px; text-transform:uppercase; font-weight:700;">Nome do Bloco Ativo / Aba:</div>
+    <input type="text" id="cfgNomeAba" value="${aba.titulo}" style="width:100%; background:#161127; border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:8px; color:#fff; font-size:13px; margin-bottom:12px; outline:none;">
+
+    <div style="font-size:11px; color:var(--muted); margin-bottom:6px; text-transform:uppercase; font-weight:700;">1. Horizonte de Tempo:</div>
+    <select id="cfgHorizonte" style="width:100%; background:#161127; border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:8px; color:#fff; font-size:13px; margin-bottom:12px; outline:none;">
+      <option value="hoje" ${horizonteActive === 'hoje' ? 'selected' : ''}>📅 Hoje</option>
+      <option value="semana" ${horizonteActive === 'semana' ? 'selected' : ''}>🗓️ Semana</option>
+      <option value="mes" ${horizonteActive === 'mes' ? 'selected' : ''}>📊 Mês</option>
+      <option value="semestre" ${horizonteActive === 'semestre' ? 'selected' : ''}>⏳ Semestre</option>
+      <option value="algumDia" ${horizonteActive === 'algumDia' ? 'selected' : ''}>🗂️ Algum Dia</option>
+    </select>
+
+    <div style="font-size:11px; color:var(--muted); margin-bottom:6px; text-transform:uppercase; font-weight:700;">2. Projeção no Calendário (Opcional):</div>
+    <div style="display:flex; gap:8px; margin-bottom:12px;">
+      <div style="flex:1;">
+        <span style="font-size:10px; color:#888;">Início:</span>
+        <input type="date" id="cfgDataInicio" value="${dataIniciov}" style="width:100%; background:#161127; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:4px; color:#fff; font-size:11px; outline:none;">
+      </div>
+      <div style="flex:1;">
+        <span style="font-size:10px; color:#888;">Fim:</span>
+        <input type="date" id="cfgDataFim" value="${dataFimv}" style="width:100%; background:#161127; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:4px; color:#fff; font-size:11px; outline:none;">
+      </div>
+    </div>
+
+    <div style="font-size:11px; color:var(--muted); margin-bottom:6px; text-transform:uppercase; font-weight:700;">3. Cor Alvo Neon (Paleta Livre):</div>
+    <div style="display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.02); padding:8px; border-radius:8px; margin-bottom:20px; border:1px solid rgba(255,255,255,0.05);">
+      <input type="color" id="cfgColorPicker" value="${corHexv.toLowerCase()}" style="width:40px; height:32px; background:none; border:none; cursor:pointer;" oninput="document.getElementById('cfgColorHex').value = this.value.toUpperCase()">
+      <input type="text" id="cfgColorHex" value="${corHexv.toUpperCase()}" placeholder="#FFFFFF" style="flex:1; background:#161127; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:6px; color:#fff; font-size:13px; font-family:monospace; text-align:center; outline:none;" oninput="if(this.value.length === 7) document.getElementById('cfgColorPicker').value = this.value">
+    </div>
+
+    <div style="display:flex; gap:10px; justify-content:flex-end; border-top:1px solid rgba(255,255,255,0.05); padding-top:12px;">
+      <button class="add-tab-btn" style="background:rgba(255,255,255,0.05); color:#fff !important; font-size:11px; padding:6px 12px;" onclick="document.getElementById('popupConfigAba').remove()">Cancelar</button>
+      <button class="add-tab-btn" style="background:linear-gradient(135deg, #a020f0, #00f5ff); color:#000 !important; font-size:11px; padding:6px 14px; font-weight:bold;" onclick="salvarEdicaoAbaCompleta('${id}')">Salvar Alterações</button>
+    </div>
+  `;
+  document.body.appendChild(popup);
+}
+
+window.salvarEdicaoAbaCompleta = function(id) {
+  const aba = appState.abas.find(a => a.id === id);
+  if (!aba) return;
+
+  const novoNome = document.getElementById('cfgNomeAba').value;
+  if (!novoNome || !novoNome.trim()) {
+    alert("O nome da aba não pode ficar vazio!");
+    return;
+  }
+
+  // Atualiza todas as propriedades no objeto da aba
+  aba.titulo = novoNome.trim();
+  aba.horizonte = document.getElementById('cfgHorizonte').value;
+  aba.dataInicio = document.getElementById('cfgDataInicio').value;
+  aba.dataFim = document.getElementById('cfgDataFim').value;
+  aba.corHex = document.getElementById('cfgColorHex').value;
+
+  document.getElementById('popupConfigAba').remove();
+  
+  // Recarrega todos os cantos do sistema na mesma hora
+  if (typeof renderTabs === 'function') renderTabs();
+  if (typeof renderGithubCalendar === 'function') renderGithubCalendar();
+  if (typeof updateMetricsUI === 'function') updateMetricsUI();
+  if (typeof saveLocalStorage === 'function') saveLocalStorage();
+};
+
+function selectTab(id) {
+  if (appState.abas.length === 0) {
+    document.getElementById('mainEditor').value = '';
+    appState.currentTabId = '';
+    renderTabs();
+    return;
+  }
+
+  const target = appState.abas.find(a => a.id === id);
+  const editor = document.getElementById('mainEditor');
+  
+  if(target) {
+    appState.currentTabId = id;
+    editor.value = target.conteudo;
+  } else {
+    appState.currentTabId = appState.abas[0].id;
+    editor.value = appState.abas[0].conteudo;
+  }
+  
+  renderTabs();
+  saveLocalStorage();
+}
+
+function createNewTab() {
+  const nome = prompt("Nome do Bloco Ativo / Aba:");
+  if (!nome || !nome.trim()) return;
+
+  const antigo = document.getElementById('popupConfigAba');
+  if (antigo) antigo.remove();
+
+  const popup = document.createElement('div');
+  popup.id = 'popupConfigAba';
+  popup.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:#0b0813; border:2px solid #a020f0; border-radius:16px; padding:20px; z-index:4000; width:90%; max-width:340px; box-shadow:0 0 35px rgba(160,32,240,0.5); backdrop-filter:blur(15px); color:#fff; font-family:sans-serif;';
+
+  popup.innerHTML = `
+    <div style="font-weight:bold; margin-bottom:12px; font-size:14px; text-transform:uppercase; color:#00f5ff; text-align:center; letter-spacing:0.5px;">Configuração Estratégica</div>
+    
+    <div style="font-size:11px; color:var(--muted); margin-bottom:6px; text-transform:uppercase; font-weight:700;">1. Horizonte de Tempo:</div>
+    <select id="cfgHorizonte" style="width:100%; background:#161127; border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:8px; color:#fff; font-size:13px; margin-bottom:12px; outline:none;">
+      <option value="hoje">📅 Hoje</option>
+      <option value="semana" selected>🗓️ Semana</option>
+      <option value="mes">📊 Mês</option>
+      <option value="semestre">⏳ Semestre</option>
+      <option value="algumDia">🗂️ Algum Dia</option>
+    </select>
+
+    <div style="font-size:11px; color:var(--muted); margin-bottom:6px; text-transform:uppercase; font-weight:700;">2. Projeção no Calendário (Opcional):</div>
+    <div style="display:flex; gap:8px; margin-bottom:12px;">
+      <div style="flex:1;">
+        <span style="font-size:10px; color:#888;">Início:</span>
+        <input type="date" id="cfgDataInicio" value="2026-06-17" style="width:100%; background:#161127; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:4px; color:#fff; font-size:11px; outline:none;">
+      </div>
+      <div style="flex:1;">
+        <span style="font-size:10px; color:#888;">Fim:</span>
+        <input type="date" id="cfgDataFim" value="2026-06-17" style="width:100%; background:#161127; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:4px; color:#fff; font-size:11px; outline:none;">
+      </div>
+    </div>
+
+    <div style="font-size:11px; color:var(--muted); margin-bottom:6px; text-transform:uppercase; font-weight:700;">3. Cor Alvo Neon (Paleta Livre):</div>
+    <div style="display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.02); padding:8px; border-radius:8px; margin-bottom:20px; border:1px solid rgba(255,255,255,0.05);">
+      <input type="color" id="cfgColorPicker" value="#00f5ff" style="width:40px; height:32px; background:none; border:none; cursor:pointer;" oninput="document.getElementById('cfgColorHex').value = this.value.toUpperCase()">
+      <input type="text" id="cfgColorHex" value="#00F5FF" placeholder="#FFFFFF" style="flex:1; background:#161127; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:6px; color:#fff; font-size:13px; font-family:monospace; text-align:center; outline:none;" oninput="if(this.value.length === 7) document.getElementById('cfgColorPicker').value = this.value">
+    </div>
+
+    <div style="display:flex; gap:10px; justify-content:flex-end; border-top:1px solid rgba(255,255,255,0.05); padding-top:12px;">
+      <button class="add-tab-btn" style="background:rgba(255,255,255,0.05); color:#fff !important; font-size:11px; padding:6px 12px;" onclick="document.getElementById('popupConfigAba').remove()">Cancelar</button>
+      <button class="add-tab-btn" style="background:linear-gradient(135deg, #a020f0, #00f5ff); color:#000 !important; font-size:11px; padding:6px 14px; font-weight:bold;" onclick="salvarNovaAbaEstruturada('${nome.trim()}')">Criar Bloco</button>
+    </div>
+  `;
+  document.body.appendChild(popup);
+}
+
+window.salvarNovaAbaEstruturada = function(nomeAba) {
+  const id = 'aba_' + Date.now();
+  const horizonte = document.getElementById('cfgHorizonte').value;
+  const dataInicio = document.getElementById('cfgDataInicio').value;
+  const dataFim = document.getElementById('cfgDataFim').value;
+  const corHex = document.getElementById('cfgColorHex').value;
+
+  appState.abas.push({
+    id: id,
+    titulo: nomeAba,
+    conteudo: '',
+    horizonte: horizonte,
+    dataInicio: dataInicio,
+    dataFim: dataFim,
+    corHex: corHex
+  });
+
+  document.getElementById('popupConfigAba').remove();
+  
+  if (typeof selectTab === 'function') selectTab(id);
+  if (typeof renderGithubCalendar === 'function') renderGithubCalendar();
+  if (typeof updateMetricsUI === 'function') updateMetricsUI();
+};
+function deleteTab(id) {
+  const target = appState.abas.find(a => a.id === id);
+  if(!target) return;
+
+  if(confirm(`Deseja apagar o bloco "${target.titulo}" e todas as suas anotações permanentemente?`)) {
+    appState.abas = appState.abas.filter(a => a.id !== id);
+    
+    if(appState.currentTabId === id) {
+      appState.currentTabId = appState.abas.length > 0 ? appState.abas[0].id : '';
+    }
+    
+    saveLocalStorage();
+    selectTab(appState.currentTabId);
+  }
+}
+
+/* ==========================================================================
+   PROCESSAMENTO DE SINTAXE DE TEXTO (ESTILO COMPORTAMENTO WHATSAPP)
+   ========================================================================== */
+function handleEditorInput(textarea) {
+  let value = textarea.value;
+  const cursorPosition = textarea.selectionStart;
+  
+  if (value.substring(cursorPosition - 2, cursorPosition) === '- ') {
+    const textBefore = value.substring(0, cursorPosition - 2);
+    const textAfter = value.substring(cursorPosition);
+    textarea.value = textBefore + '• ' + textAfter;
+    textarea.selectionStart = textarea.selectionEnd = cursorPosition;
+  }
+  
+  const current = appState.abas.find(a => a.id === appState.currentTabId);
+  if(current) {
+    current.conteudo = textarea.value;
+    
+    // NOVO: Recalcula o rodapé e atualiza o Firebase na mesma piscada de olho
+    updateMetricsUI();
+    if (typeof saveLocalStorage === 'function') saveLocalStorage();
+  }
+}
+
+/* CAIXA DE ENTRADA RÁPIDA DE CAPTURA DE ITENS */
+function dispatchQuickInput() {
+  const box = document.getElementById('quickBox');
+  const txt = box.value.trim();
+  if(!txt) return;
+  
+  const editor = document.getElementById('mainEditor');
+  const formatado = `• ${txt}`;
+  
+  if(editor.value) {
+    editor.value += `\n${formatado}`;
+  } else {
+    editor.value = formatado;
+  }
+  
+  box.value = '';
+  handleEditorInput(editor);
+  editor.scrollTop = editor.scrollHeight; // Rola o editor pro final igual uma conversa
+}
+
+/* ==========================================================================
+   COMPORTAMENTO DE ENVIO EXPEDIDO (PRESIONAR / CLIQUE CONTEXTUAL)
+   ========================================================================== */
+function setupContextMenus() {
+  const editor = document.getElementById('mainEditor');
+  const menu = document.getElementById('contextMenu') || document.querySelector('.context-menu');
+  if (!editor || !menu) return;
+
+  editor.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    
+    const text = editor.value;
+    const selStart = editor.selectionStart;
+    
+    const startPos = text.lastIndexOf('\n', selStart - 1) + 1;
+    let endPos = text.indexOf('\n', selStart);
+    if (endPos === -1) endPos = text.length;
+    
+    selectedLineText = text.substring(startPos, endPos).trim();
+    
+    if (selectedLineText === "" || selectedLineText === "•" || selectedLineText === "-") return;
+
+    menu.style.top = `${e.clientY}px`;
+    menu.style.left = `${e.clientX}px`;
+    menu.style.display = 'flex';
+  });
+
+  document.addEventListener('click', () => {
+    menu.style.display = 'none';
+  });
+
+  // Ajustado com assignHorizon para bater com a sua função do arquivo
+  menu.innerHTML = `
+    <div class="context-item" style="color:#00f5ff; font-weight:bold; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:6px; margin-bottom:4px;">Ações da Linha</div>
+    <div class="context-item" onclick="abrirEditorLinha()">✏️ Editar Linha</div>
+    <div class="context-item" onclick="assignHorizon('Hoje')">📅 Mover para Hoje</div>
+    <div class="context-item" onclick="assignHorizon('Semana')">🗓️ Mover para Semana</div>
+    <div class="context-item" onclick="assignHorizon('Mês')">📊 Mover para Mês</div>
+  `;
+}
+
+window.abrirEditorLinha = function() {
+  const antigo = document.getElementById('popupEditorLinha');
+  if (antigo) antigo.remove();
+
+  const editor = document.getElementById('mainEditor');
+  if (!editor) return;
+
+  const popup = document.createElement('div');
+  popup.id = 'popupEditorLinha';
+  popup.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:#0b0813; border:2px solid #00f5ff; border-radius:16px; padding:20px; z-index:3000; width:90%; max-width:360px; box-shadow:0 0 30px rgba(0,245,255,0.3); backdrop-filter:blur(15px); color:#fff; font-family:sans-serif;';
+
+  popup.innerHTML = `
+    <div style="font-weight:bold; margin-bottom:12px; font-size:14px; text-transform:uppercase; color:#00f5ff;">Editar Anotação</div>
+    <textarea id="txtLinhaEditada" style="width:100%; height:80px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:10px; color:#fff; font-size:14px; margin-bottom:15px; resize:none; outline:none; line-height:1.4;"></textarea>
+    
+    <div style="display:flex; gap:10px; justify-content:flex-end;">
+      <button class="add-tab-btn" style="background:rgba(255,255,255,0.05); color:#fff !important; font-size:11px; padding:6px 12px;" onclick="document.getElementById('popupEditorLinha').remove()">Cancelar</button>
+      <button class="add-tab-btn" style="background:linear-gradient(135deg, #00bfff, #00f5ff); color:#000 !important; font-size:11px; padding:6px 14px; font-weight:bold;" onclick="salvarLinhaEditada()">Salvar Alteração</button>
+    </div>
+  `;
+  document.body.appendChild(popup);
+  
+  document.getElementById('txtLinhaEditada').value = selectedLineText;
+};
+
+window.salvarLinhaEditada = function() {
+  const novoTexto = document.getElementById('txtLinhaEditada').value;
+  const editor = document.getElementById('mainEditor');
+  const activeAba = appState.abas.find(a => a.id === appState.currentTabId);
+
+  if (editor && activeAba && novoTexto.trim() !== "") {
+    const textoCompleto = editor.value;
+    const indexLinha = textoCompleto.indexOf(selectedLineText);
+    
+    if (indexLinha !== -1) {
+      const novoTextoCompleto = textoCompleto.substring(0, indexLinha) + novoTexto + textoCompleto.substring(indexLinha + selectedLineText.length);
+      
+      editor.value = novoTextoCompleto;
+      activeAba.conteudo = novoTextoCompleto;
+      
+      if (typeof updateMetricsUI === 'function') updateMetricsUI();
+      if (typeof saveLocalStorage === 'function') saveLocalStorage();
+    }
+  }
+
+  document.getElementById('popupEditorLinha').remove();
+};
+
+function assignHorizon(horizonName) {
+  // Converte a propriedade para o padrão camelCase do objeto state
+  const key = horizonName.replace(/\s+/g, '');
+  if(appState.horizontes[key] !== undefined) {
+    appState.horizontes[key]++;
+    appState.topbarMetrics.semData = Math.max(0, appState.topbarMetrics.semData - 1);
+    
+    // Atualiza contadores visuais superiores na hora
+    if(horizonName === 'Hoje') appState.topbarMetrics.criticos++;
+    if(horizonName === 'Semana') appState.topbarMetrics.importantes++;
+    
+    updateMetricsUI();
+    saveLocalStorage();
+    alert(`"${selectedLineText}" enviado para o horizonte: ${horizonName}`);
+  }
+  document.getElementById('contextMenu').style.display = 'none';
+}
+
+</script>
+
+<!-- Importação Universal do Firebase (Compatível com HTMLPreview e Dispositivos Móveis) -->
+<script>
+(async function inicializarEcossistemaFirebase() {
+  // 1. Força o carregamento sequencial dos scripts sem depender do HTMLPreview
+  if (typeof firebase === 'undefined') {
+    console.log("⚡ Carregando canais de nuvem de forma assíncrona...");
+    await new Promise((resolve) => {
+      const scriptApp = document.createElement('script');
+      scriptApp.src = "https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js";
+      scriptApp.onload = () => {
+        const scriptFS = document.createElement('script');
+        scriptFS.src = "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js";
+        scriptFS.onload = resolve;
+        document.head.appendChild(scriptFS);
+      };
+      document.head.appendChild(scriptApp);
+    });
+  }
+
+  // 2. Configuração e Ativação das Credenciais
+  const firebaseConfig = {
+    apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
+    authDomain: "painel-financeiro-borges.firebaseapp.com",
+    projectId: "painel-financeiro-borges",
+    storageBucket: "painel-financeiro-borges.firebasestorage.app",
+    messagingSenderId: "354997627208",
+    appId: "1:354997627208:web:90604d0a7dcd45b6e4eb7d"
+  };
+
+  const firebaseApp = firebase.apps.length ? firebase.app() : firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore(firebaseApp);
+  const docRef = db.collection("fluxo_os").doc("dados_prioridades");
+
+ // 3. Métodos Globais de Transmissão de Dados com LED Inteligente
+  window.saveLocalStorage = async function() {
+    try {
+      const led = document.getElementById('cloudLed');
+      const statusText = document.getElementById('cloudStatus');
+      if(led && statusText) {
+        led.style.backgroundColor = '#ffcc00';
+        led.style.boxShadow = '0 0 8px #ffcc00';
+        statusText.style.color = '#ffcc00';
+        statusText.childNodes[2].textContent = ' Salvando na Nuvem...';
+      }
+
+      await docRef.set(appState);
+      
+      setTimeout(() => {
+        if(led && statusText) {
+          led.style.backgroundColor = 'var(--concluido)';
+          led.style.boxShadow = '0 0 8px var(--concluido)';
+          statusText.style.color = 'var(--concluido)';
+          statusText.childNodes[2].textContent = ' Nuvem Sincronizada';
+        }
+      }, 400);
+
+      console.log("☁️ Alteração enviada à nuvem!");
+    } catch (e) {
+      console.error("❌ Falha na sincronização do Firebase:", e);
+    }
+  };
+
+  window.loadLocalStorage = function() {
+    // Escuta ativa em tempo real multidispositivos
+    docRef.onSnapshot((docSnap) => {
+      if (docSnap.exists) {
+        const cloudData = docSnap.data();
+        const currentTabBackup = appState.currentTabId;
+        
+        appState = cloudData;
+        
+        if (currentTabBackup && appState.abas.some(a => a.id === currentTabBackup)) {
+          appState.currentTabId = currentTabBackup;
+        }
+        
+        // Atualiza a interface dinâmica da tela
+        renderGithubCalendar();
+        renderTabs();
+        updateMetricsUI();
+        
+        // Sincroniza o editor sem interromper a digitação do cursor
+        const editor = document.getElementById('mainEditor');
+        const activeAba = appState.abas.find(a => a.id === appState.currentTabId);
+        if (activeAba && editor.value !== activeAba.conteudo) {
+          const start = editor.selectionStart;
+          const end = editor.selectionEnd;
+          editor.value = activeAba.conteudo;
+          editor.setSelectionRange(start, end);
+        }
+      } else {
+        console.log("Nenhum dado na nuvem. Inicializando painel completamente zerado...");
+        appState = {
+          currentTabId: '',
+          horizontes: { Hoje: 0, Semana: 0, Mês: 0, Semestre: 0, AlgumDia: 0 },
+          abas: [],
+          eventos: []
+        };
+        window.saveLocalStorage();
+      }
+    }, (error) => {
+      console.error("Erro na escuta do Firestore:", error);
+    });
+  };
+
+  // 4. Dá o start no fluxo com as funções mapeadas
+  init();
+})();
+
+ // ==========================================================================
+// 🛡️ 3. O SCRIPT ATIVADOR DO ARRASTE SUPERIOR E REORDENAÇÃO COMPLETA
+// ==========================================================================
+function ativarArrastoHorizontesSuperiores() {
+  const dropzones = document.querySelectorAll('.horizon-dropzone');
+  const container = document.getElementById('topbarContainer');
+  let cardArrastadoOrigem = null;
+
+  dropzones.forEach(zone => {
+    // Captura quando o usuário começa a arrastar um dos próprios blocos do topo
+    zone.addEventListener('dragstart', (e) => {
+      cardArrastadoOrigem = zone;
+      e.dataTransfer.setData('text/horizon-card', 'true');
+      zone.style.opacity = '0.4';
+    });
+
+    zone.addEventListener('dragend', () => {
+      zone.style.opacity = '1';
+      dropzones.forEach(z => {
+        z.style.transform = 'none';
+        z.style.background = 'linear-gradient(145deg, #140f2b, #090614)';
+      });
+    });
+
+    zone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      zone.style.transform = 'scale(1.03)';
+      zone.style.background = 'rgba(160, 32, 240, 0.15)';
+    });
+
+    zone.addEventListener('dragleave', () => {
+      zone.style.transform = 'none';
+      zone.style.background = 'linear-gradient(145deg, #140f2b, #090614)';
+    });
+
+    zone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      zone.style.transform = 'none';
+      zone.style.background = 'linear-gradient(145deg, #140f2b, #090614)';
+      
+      // CASO A: Se for reordenação interna dos cards do topo
+      if (e.dataTransfer.getData('text/horizon-card') === 'true' && cardArrastadoOrigem) {
+        if (cardArrastadoOrigem !== zone && container) {
+          const listaCards = Array.from(container.children);
+          const idxOrigem = listaCards.indexOf(cardArrastadoOrigem);
+          const idxDestino = listaCards.indexOf(zone);
+
+          if (idxOrigem < idxDestino) {
+            container.insertBefore(cardArrastadoOrigem, zone.nextSibling);
+          } else {
+            container.insertBefore(cardArrastadoOrigem, zone);
+          }
+        }
+        cardArrastadoOrigem = null;
+        return;
+      }
+
+      // CASO B: Se for uma aba de anotação de baixo sendo solta no horizonte
+      const tabId = e.dataTransfer.getData('tab-id');
+      const novoHorizonte = zone.getAttribute('data-horizon').toLowerCase();
+      
+      if (tabId) {
+        const estadoAtual = window.appState || appState;
+        if (estadoAtual && estadoAtual.abas) {
+          const abaAlvo = estadoAtual.abas.find(a => a.id === tabId);
+          if (abaAlvo) {
+            abaAlvo.horizonte = novoHorizonte;
+            
+            const corOriginalBorder = zone.style.borderColor;
+            zone.style.borderColor = 'var(--concluido)';
+            setTimeout(() => { zone.style.borderColor = corOriginalBorder; }, 600);
+            
+            if (typeof updateMetricsUI === 'function') updateMetricsUI();
+            if (typeof renderTabs === 'function') renderTabs();
+            if (typeof saveLocalStorage === 'function') saveLocalStorage();
+          }
+        }
+      }
+    });
+  });
+}
+
+// Injeta o gatilho de execução dentro da inicialização nativa do fluxo
+const originalInit = init;
+init = function() {
+  if (typeof originalInit === 'function') originalInit();
+  ativarArrastoHorizontesSuperiores();
+};
+  
+  let modoChecklistAtivo = false;
+
+window.alternarModoChecklist = function() {
+  const editor = document.getElementById('mainEditor');
+  const checklistContainer = document.getElementById('checklistContainer');
+  const btn = document.getElementById('btnAlternarModo');
+
+  modoChecklistAtivo = !modoChecklistAtivo;
+
+  if (modoChecklistAtivo) {
+    btn.innerHTML = "✏️ Voltar para Editar";
+    btn.style.borderColor = "rgba(57, 255, 20, 0.4)";
+    btn.style.color = "#39ff14";
+    btn.style.background = "rgba(57, 255, 20, 0.1)";
+    
+    editor.style.display = 'none';
+    checklistContainer.style.display = 'flex';
+    
+    renderizarListaChecklist();
+  } else {
+    btn.innerHTML = "📝 Modo Checklist (Riscar)";
+    btn.style.borderColor = "rgba(0, 245, 255, 0.3)";
+    btn.style.color = "#00f5ff";
+    btn.style.background = "rgba(0, 245, 255, 0.08)";
+    
+    editor.style.display = 'block';
+    checklistContainer.style.display = 'none';
+  }
+};
+
+function renderizarListaChecklist() {
+  const editor = document.getElementById('mainEditor');
+  const checklistContainer = document.getElementById('checklistContainer');
+  checklistContainer.innerHTML = '';
+
+  // Quebra seu texto linha por linha
+  const linhas = editor.value.split('\n');
+
+  linhas.forEach((linha, index) => {
+    if (linha.trim() === '') return; // Ignora linhas vazias
+
+    // Identifica se a linha já foi marcada com emoji de check ou markdown
+    const jaConcluido = linha.trim().startsWith('✅') || linha.trim().startsWith('~~');
+    let textoLimpo = linha.replace('✅', '').replace(/~~/g, '').replace(/^-\s*/, '').trim();
+
+    const itemRow = document.createElement('div');
+    itemRow.style.cssText = 'display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.02); padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.04); transition: all 0.2s; cursor:pointer;';
+    
+    if (jaConcluido) {
+      itemRow.style.opacity = '0.5';
+      itemRow.style.background = 'rgba(57, 255, 20, 0.02)';
+    }
+
+    itemRow.innerHTML = `
+      <input type="checkbox" ${jaConcluido ? 'checked' : ''} style="width:16px; height:16px; cursor:pointer; accent-color:#39ff14;">
+      <span style="font-size:15px; color:#fff; transition:all 0.2s; ${jaConcluido ? 'text-decoration:line-through; color:#706594;' : ''}">${textoLimpo}</span>
+    `;
+
+    // Listener mágico: clicou na caixinha ou na linha inteira, ele risca!
+    itemRow.addEventListener('click', (e) => {
+      const checkbox = itemRow.querySelector('input');
+      if (e.target !== checkbox) checkbox.checked = !checkbox.checked;
+
+      const span = itemRow.querySelector('span');
+      const activeAba = appState.abas.find(a => a.id === appState.currentTabId);
+      
+      if (checkbox.checked) {
+        span.style.textDecoration = 'line-through';
+        span.style.color = '#706594';
+        itemRow.style.opacity = '0.5';
+        linhas[index] = `✅ ${textoLimpo}`; 
+      } else {
+        span.style.textDecoration = 'none';
+        span.style.color = '#fff';
+        itemRow.style.opacity = '1';
+        linhas[index] = `- ${textoLimpo}`; 
+      }
+
+      editor.value = linhas.join('\n');
+      if (activeAba) activeAba.conteudo = editor.value;
+      if (typeof saveLocalStorage === 'function') saveLocalStorage();
+    });
+
+    checklistContainer.appendChild(itemRow);
+  });
+}
+
+window.atualizarConteudoAbaAovivo = function() {
+  const editor = document.getElementById('mainEditor');
+  const activeAba = appState.abas.find(a => a.id === appState.currentTabId);
+  if (activeAba) {
+    activeAba.conteudo = editor.value;
+    if (typeof saveLocalStorage === 'function') saveLocalStorage();
+  }
+};
+</script>
+</body>
+</html>
