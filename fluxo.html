@@ -1314,30 +1314,27 @@ function assignHorizon(horizonName) {
   init();
 })();
 
- // ==========================================================================
-// 🛡️ 3. O SCRIPT ATIVADOR DO ARRASTE SUPERIOR E REORDENAÇÃO COMPLETA
+// ==========================================================================
+// 🛡️ 3. O SCRIPT ATIVADOR DO ARRASTE SUPERIOR VIA SORTABLE (MOBILE FRIENDLY)
 // ==========================================================================
 function ativarArrastoHorizontesSuperiores() {
-  const dropzones = document.querySelectorAll('.horizon-dropzone');
   const container = document.getElementById('topbarContainer');
-  let cardArrastadoOrigem = null;
+  if (!container) return;
 
+  // Ativa a reordenação dos cards superiores funcionando 100% no mobile e desktop
+  Sortable.create(container, {
+    animation: 150,
+    delay: 70,              // Pequeno delay no toque para permitir o scroll de tela do mobile
+    delayOnTouchOnly: true,  // O delay só se aplica em telas touch de celular
+    onEnd: function () {
+      // Se você possuir uma rotina para salvar a ordem das colunas/cards no banco, execute-a aqui.
+      if (typeof saveLocalStorage === 'function') saveLocalStorage();
+    }
+  });
+
+  // Mantém a zona ativa para receber o Drop das abas de anotações vindas de baixo
+  const dropzones = document.querySelectorAll('.horizon-dropzone');
   dropzones.forEach(zone => {
-    // Captura quando o usuário começa a arrastar um dos próprios blocos do topo
-    zone.addEventListener('dragstart', (e) => {
-      cardArrastadoOrigem = zone;
-      e.dataTransfer.setData('text/horizon-card', 'true');
-      zone.style.opacity = '0.4';
-    });
-
-    zone.addEventListener('dragend', () => {
-      zone.style.opacity = '1';
-      dropzones.forEach(z => {
-        z.style.transform = 'none';
-        z.style.background = 'linear-gradient(145deg, #140f2b, #090614)';
-      });
-    });
-
     zone.addEventListener('dragover', (e) => {
       e.preventDefault();
       zone.style.transform = 'scale(1.03)';
@@ -1353,25 +1350,7 @@ function ativarArrastoHorizontesSuperiores() {
       e.preventDefault();
       zone.style.transform = 'none';
       zone.style.background = 'linear-gradient(145deg, #140f2b, #090614)';
-      
-      // CASO A: Se for reordenação interna dos cards do topo
-      if (e.dataTransfer.getData('text/horizon-card') === 'true' && cardArrastadoOrigem) {
-        if (cardArrastadoOrigem !== zone && container) {
-          const listaCards = Array.from(container.children);
-          const idxOrigem = listaCards.indexOf(cardArrastadoOrigem);
-          const idxDestino = listaCards.indexOf(zone);
 
-          if (idxOrigem < idxDestino) {
-            container.insertBefore(cardArrastadoOrigem, zone.nextSibling);
-          } else {
-            container.insertBefore(cardArrastadoOrigem, zone);
-          }
-        }
-        cardArrastadoOrigem = null;
-        return;
-      }
-
-      // CASO B: Se for uma aba de anotação de baixo sendo solta no horizonte
       const tabId = e.dataTransfer.getData('tab-id');
       const novoHorizonte = zone.getAttribute('data-horizon').toLowerCase();
       
@@ -1403,7 +1382,7 @@ init = function() {
   ativarArrastoHorizontesSuperiores();
 };
   
-  let modoChecklistAtivo = false;
+  let modoChecklistAtivo = false; 
 
 window.alternarModoChecklist = function() {
   const editor = document.getElementById('mainEditor');
