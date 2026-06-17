@@ -1187,25 +1187,38 @@ window.salvarLinhaEditada = function() {
   document.getElementById('popupEditorLinha').remove();
 };
 
-function assignHorizon(horizonName) {
-  // Converte a propriedade para o padrão camelCase do objeto state
-  const key = horizonName.replace(/\s+/g, '');
-  if(appState.horizontes[key] !== undefined) {
-    appState.horizontes[key]++;
-    appState.topbarMetrics.semData = Math.max(0, appState.topbarMetrics.semData - 1);
+window.exportarFluxoBackupJSON = function() {
+  try {
+    // 1. Captura o estado atual das abas e horizontes da memória
+    const dadosParaExportar = window.appState || appState;
     
-    // Atualiza contadores visuais superiores na hora
-    if(horizonName === 'Hoje') appState.topbarMetrics.criticos++;
-    if(horizonName === 'Semana') appState.topbarMetrics.importantes++;
+    // 2. Transforma o objeto JavaScript em uma string formatada (JSON nítido)
+    const jsonString = JSON.stringify(dadosParaExportar, null, 2);
     
-    updateMetricsUI();
-    saveLocalStorage();
-    alert(`"${selectedLineText}" enviado para o horizonte: ${horizonName}`);
+    // 3. Cria um Blob (bloco de dados binários compactos) simulando o arquivo
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    // 4. Cria um elemento de link fantasma em memória para forçar o download nativo
+    const linkFantasma = document.createElement('a');
+    linkFantasma.href = url;
+    
+    // Nome do arquivo com a data de hoje (Ex: fluxo_backup_2026-06-17.json)
+    const dataHoje = new Date().toISOString().slice(0, 10);
+    linkFantasma.download = `fluxo_backup_${dataHoje}.json`;
+    
+    // 5. Aciona o clique e limpa a memória temporária do navegador
+    document.body.appendChild(linkFantasma);
+    linkFantasma.click();
+    linkFantasma.remove();
+    URL.revokeObjectURL(url);
+    
+    console.log("💾 Backup do fluxo gerado e baixado com sucesso!");
+  } catch (error) {
+    console.error("❌ Falha ao exportar dados do fluxo:", error);
+    alert("Erro ao gerar o arquivo de backup. Verifique o console.");
   }
-  document.getElementById('contextMenu').style.display = 'none';
-}
-
-</script>
+};
 
 <!-- Importação Universal do Firebase (Compatível com HTMLPreview e Dispositivos Móveis) -->
 <script>
