@@ -463,91 +463,120 @@ function updateMetricsUI() {
 /* ==========================================================================
    ENGINE DO CALENDÁRIO DINÂMICO & ZOOM MÓVEL (V2 COMPATÍVEL)
    ========================================================================== */
-let modoVisualizacaoAtual = 'ano'; // Estado inicial da lente visual
+let calendarMode = 'mes';
+const DATA_BASE = { ano: 2026, mes: 5 };
+const NOMES_MESES = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+const DIAS_SEMANA = ["D", "S", "T", "Q", "Q", "S", "S"];
+
+if (!appState.eventos) {
+  appState.eventos = [
+    { data: "2026-06-17", tipo: "hoje", titulo: "Hoje" },
+    { data: "2026-06-25", tipo: "evento", titulo: "Compromisso Salvador" },
+    { data: "2026-06-30", tipo: "evento", titulo: "Compromisso Salvador" }
+  ];
+}
 
 window.mudarZoomCalendario = function(modo) {
-  modoVisualizacaoAtual = modo;
+  calendarMode = modo;
   console.log(`🔍 Alternando lente do calendário para modo: ${modo}`);
-  
-  // Atualiza visualmente os botões se necessário e redesenha a esteira
   renderGithubCalendar();
 };
 
 window.renderGithubCalendar = function() {
-  const grid = document.getElementById('githubGrid');
-  if (!grid) return;
-  grid.innerHTML = '';
-  
-  const hoje = new Date();
-  
-  if (modoVisualizacaoAtual === 'mes') {
-    // 📅 VISÃO MÊS: Desenha o grid clássico de blocos do mês atual (5 semanas)
-    grid.style.gridAutoFlow = 'row';
-    grid.style.gridTemplateColumns = 'repeat(7, 1fr)';
-    grid.style.gridTemplateRows = 'auto';
-    grid.style.gap = '8px';
-    grid.style.width = '100%';
-    
-    // Calcula os dias do mês corrente
-    const anoAtual = hoje.getFullYear();
-    const mesAtual = hoje.getMonth();
-    const primeiroDiaMes = new Date(anoAtual, mesAtual, 1).getDay();
-    const totalDiasMes = new Date(anoAtual, mesAtual + 1, 0).getDate();
-    
-    // Alinha os quadradinhos vazios para começar no dia da semana correto (domingo, segunda, etc)
-    for (let i = 0; i < primeiroDiaMes; i++) {
+  const container = document.getElementById('githubGrid');
+  if (!container) return;
+  container.innerHTML = '';
+
+  if (calendarMode === 'mes') {
+    container.style.display = 'grid';
+    container.style.gridAutoFlow = 'row';
+    container.style.gridTemplateColumns = 'repeat(7, 1fr)';
+    container.style.gridTemplateRows = 'auto';
+    container.style.gap = '8px';
+    container.style.width = '100%';
+
+    DIAS_SEMANA.forEach(d => {
+      const dayLabel = document.createElement('div');
+      dayLabel.style.cssText = 'color: var(--muted); text-align: center; font-size: 11px; font-weight: bold; padding-bottom: 5px;';
+      dayLabel.innerText = d;
+      container.appendChild(dayLabel);
+    });
+
+    const primeiroDiaSemana = new Date(DATA_BASE.ano, DATA_BASE.mes, 1).getDay();
+    const totalDiasMes = new Date(DATA_BASE.ano, DATA_BASE.mes + 1, 0).getDate();
+
+    for (let i = 0; i < primeiroDiaSemana; i++) {
       const emptyCell = document.createElement('div');
-      emptyCell.className = 'day-cell';
-      emptyCell.style.opacity = '0';
-      grid.appendChild(emptyCell);
+      container.appendChild(emptyCell);
     }
-    
-    // Injeta os dias reais do mês ativos
+
     for (let dia = 1; dia <= totalDiasMes; dia++) {
-      const cell = document.createElement('div');
-      cell.className = 'day-cell';
-      cell.style.width = 'auto';
-      cell.style.height = '35px'; // Maior no celular para clicar fácil
-      cell.style.borderRadius = '8px';
-      cell.style.display = 'flex';
-      cell.style.alignItems = 'center';
-      cell.style.justifyContent = 'center';
-      cell.style.fontSize = '12px';
-      cell.style.fontWeight = 'bold';
-      cell.textContent = dia;
+      const dayCell = document.createElement('div');
+      const dataString = `${DATA_BASE.ano}-${String(DATA_BASE.mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
       
-      // Simulação visual de marcação de feriados/marcos temporais baseado nas suas notas
-      if (dia === 25 || dia === 30) {
-        cell.classList.add('c-evento'); // 🔵 Feriado / Viagem Salvador nas suas notas
-        cell.style.color = '#fff';
-      } else if (dia === hoje.getDate()) {
-        cell.classList.add('c-concluido'); // 🟢 Dia atual ativo
-        cell.style.color = '#000';
+      dayCell.style.cssText = 'aspect-ratio: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: var(--text); cursor: pointer; transition: all 0.2s ease;';
+      dayCell.innerText = dia;
+
+      const eventoItem = appState.eventos.find(e => e.data === dataString);
+      if (eventoItem) {
+        if (eventoItem.tipo === 'hoje') {
+          dayCell.className = 'day-cell c-concluido';
+          dayCell.style.color = '#000';
+        } else if (eventoItem.tipo === 'evento') {
+          dayCell.className = 'day-cell c-evento';
+          dayCell.style.color = '#000';
+        }
+      } else {
+        dayCell.className = 'day-cell';
       }
-      
-      grid.appendChild(cell);
+
+      container.appendChild(dayCell);
     }
-    
   } else {
-    // 🗺️ VISÃO ANO/SEMESTRE: A esteira contínua estilo GitHub de 365 quadradinhos
-    grid.style.gridAutoFlow = 'column';
-    grid.style.gridTemplateRows = 'repeat(7, 10px)';
-    grid.style.gridAutoColumns = '10px';
-    grid.style.gap = '3px';
-    grid.style.width = 'max-content';
-    
-    for (let i = 0; i < 364; i++) {
-      const cell = document.createElement('div');
-      cell.className = 'day-cell';
-      
-      // Preservando o termômetro de cores do ano ativo
-      if (i % 25 === 0) cell.classList.add('c-critico');
-      else if (i % 40 === 0) cell.classList.add('c-importante');
-      else if (i % 14 === 0) cell.classList.add('c-normal');
-      else if (i % 60 === 0) cell.classList.add('c-evento');
-      
-      grid.appendChild(cell);
-    }
+    container.style.display = 'flex';
+    container.style.flexDirection = 'column';
+    container.style.gap = '12px';
+    container.style.width = '100%';
+
+    NOMES_MESES.forEach((nomeMes, indexMes) => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.01); padding: 6px 8px; border-radius: 8px; border-left: 3px solid rgba(160,32,240,0.3); width: 100%;';
+
+      const label = document.createElement('div');
+      label.style.cssText = 'width: 45px; font-size: 11px; font-weight: bold; color: var(--muted); text-transform: uppercase; text-align: left;';
+      label.innerText = nomeMes.substring(0, 3);
+      row.appendChild(label);
+
+      const dotsContainer = document.createElement('div');
+      dotsContainer.style.cssText = 'display: flex; gap: 3px; flex-wrap: wrap; flex: 1;';
+
+      const totalDias = new Date(DATA_BASE.ano, indexMes + 1, 0).getDate();
+
+      for (let dia = 1; dia <= totalDias; dia++) {
+        const dot = document.createElement('div');
+        const dataString = `${DATA_BASE.ano}-${String(indexMes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+        
+        dot.style.cssText = 'width: 6px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 1px; transition: all 0.2s;';
+
+        const eventoItem = appState.eventos.find(e => e.data === dataString);
+        if (eventoItem) {
+          if (eventoItem.tipo === 'hoje') {
+            dot.style.background = '#39ff14';
+            dot.style.boxShadow = '0 0 6px #39ff14';
+          } else {
+            dot.style.background = '#00f5ff';
+            dot.style.boxShadow = '0 0 6px #00f5ff';
+          }
+          dot.style.width = '8px';
+          dot.style.height = '8px';
+        }
+
+        dotsContainer.appendChild(dot);
+      }
+
+      row.appendChild(dotsContainer);
+      container.appendChild(row);
+    });
   }
 };
   
