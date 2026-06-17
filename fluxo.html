@@ -687,14 +687,30 @@ window.renderGithubCalendar = function() {
             dot.setAttribute('data-aba-id', abaCorrespondente.id);
             dot.setAttribute('title', `Ir para: ${abaCorrespondente.titulo}`);
 
-            dot.addEventListener('click', (e) => {
-              e.stopPropagation(); // Impede de mudar o modo do calendário
-              if (typeof selectTab === 'function') {
-                selectTab(abaCorrespondente.id);
-                const editor = document.getElementById('mainEditor');
-                if (editor) editor.focus();
-              }
-            });
+           // Loop dos dias (pontinhos) na visão anual
+      for (let dia = 1; dia <= totalDias; dia++) {
+        const dot = document.createElement('div');
+        const dataString = `${DATA_BASE.ano}-${String(indexMes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+        
+        dot.style.cssText = 'width: 6px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 1px; transition: all 0.2s; pointer-events: none;'; // pointer-events: none faz o clique passar direto para a linha do mês!
+
+        if (appState.abas && appState.abas.length > 0) {
+          const abaCorrespondente = appState.abas.find(aba => {
+            if (!aba.dataInicio || !aba.dataFim) return false;
+            return dataString >= aba.dataInicio && dataString <= aba.dataFim;
+          });
+
+          if (abaCorrespondente) {
+            const cor = abaCorrespondente.corHex || '#00f5ff';
+            dot.style.background = cor;
+            dot.style.boxShadow = `0 0 6px ${cor}`;
+            dot.style.width = '8px';
+            dot.style.height = '8px';
+          }
+        }
+
+        dotsContainer.appendChild(dot);
+      }
           }
         }
 
