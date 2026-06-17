@@ -3,53 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Borges - Simulador Apê 3D Inteligente</title>
+    <title>Painel Borges - Simulador 3D Interativo</title>
     <style>
         * { box-sizing: border-box; }
         body { margin: 0; padding: 0; overflow: hidden; background-color: #0b0b0b; font-family: 'Outfit', sans-serif; color: white; }
         #canvas-container { width: 100vw; height: 100vh; position: absolute; top:0; left:0; z-index: 1; }
         
-        /* Interface Noir do Painel Borges */
         .painel-lateral {
             position: absolute; top: 20px; left: 20px;
-            background: rgba(15, 15, 15, 0.9); backdrop-filter: blur(12px);
+            background: rgba(15, 15, 15, 0.92); backdrop-filter: blur(12px);
             padding: 20px; border-radius: 16px; border: 1px solid rgba(0, 255, 136, 0.2);
-            z-index: 10; width: 310px; max-height: 90vh; overflow-y: auto;
+            z-index: 10; width: 320px; max-height: 90vh; overflow-y: auto;
             box-shadow: 0 8px 32px rgba(0,0,0,0.7);
         }
-        h5 { margin: 0 0 5px 0; font-size: 1.1rem; font-weight: 900; letter-spacing: 1px; color: #00ff88; text-transform: uppercase; }
+        h5 { margin: 0 0 5px 0; font-size: 1.1rem; font-weight: 900; color: #00ff88; text-transform: uppercase; }
         subtitle { font-size: 0.75rem; color: #888; display: block; margin-bottom: 15px; text-transform: uppercase; }
         
         .secao { background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); }
         .secao-titulo { font-size: 0.8rem; font-weight: bold; color: #00ff88; margin-bottom: 8px; text-transform: uppercase; }
         
-        .comodo-tag {
-            font-size: 0.72rem; font-weight: bold; padding: 5px 8px; border-radius: 4px;
-            background: rgba(255,255,255,0.04); display: block; margin-bottom: 6px; border-left: 3px solid #00ff88;
-        }
-        .regra-limpeza {
-            background: rgba(255, 59, 48, 0.1); border: 1px solid rgba(255, 59, 48, 0.2);
-            padding: 8px; border-radius: 6px; font-size: 0.72rem; color: #ff6b6b; margin-top: 5px;
-        }
+        .instrucao-mouse { background: rgba(0, 255, 136, 0.1); border: 1px solid rgba(0, 255, 136, 0.3); padding: 8px; border-radius: 6px; font-size: 0.75rem; color: #00ff88; margin-bottom: 10px; }
 
         label { display: block; font-size: 0.72rem; color: #aaa; margin: 6px 0 2px 0; text-transform: uppercase; }
         select, input, button {
             width: 100%; padding: 8px; background: #1a1a1a; border: 1px solid #333;
-            color: #fff; border-radius: 6px; font-size: 0.8rem; margin-bottom: 5px; transition: 0.2s;
+            color: #fff; border-radius: 6px; font-size: 0.8rem; margin-bottom: 5px;
         }
-        select:focus, input:focus { border-color: #00ff88; outline: none; }
         
         button.btn-primary { background: #00ff88; color: #000; font-weight: bold; border: none; cursor: pointer; }
         button.btn-primary:hover { background: #00cc6c; box-shadow: 0 0 12px rgba(0,255,136,0.4); }
         button.btn-danger { background: #ff3b30; color: white; border: none; cursor: pointer; }
-        button.btn-danger:hover { background: #d63025; }
         
         .flex-group { display: table; width: 100%; }
         .flex-cell { display: table-cell; width: 33.33%; padding: 2px; }
-
-        .painel-lateral::-webkit-scrollbar { width: 6px; }
-        .painel-lateral::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
-        .painel-lateral::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
     </style>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -57,70 +43,78 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/TransformControls.js"></script>
 </head>
 <body>
 
     <div class="painel-lateral">
-        <h5>⚙️ CONSTRUTOR 3D</h5>
-        <subtitle>Mapeamento de Planejados</subtitle>
+        <h5>🛠️ SIMULADOR BORGES V2</h5>
+        <subtitle>Modo Arrastar Ativado</subtitle>
         
-        <div class="comodo-tag">📐 Layout Dinâmico Integrado</div>
-        <div class="comodo-tag">🧼 Regra: Tudo Suspenso do Chão</div>
-        <div class="regra-limpeza"><strong>Regra de Ouro:</strong> Vão livre inferior na Cozinha e Área.</div>
+        <div class="instrucao-mouse">
+            <strong>Como usar:</strong> Clique em um objeto para selecioná-lo e use as setas coloridas 3D na tela para arrastar livremente.
+        </div>
 
-        <div class="secao" style="margin-top:12px;">
-            <div class="secao-titulo">➕ Novo Elemento</div>
-            <label>Tipo</label>
+        <div class="secao">
+            <div class="secao-titulo">➕ Adicionar Elemento</div>
+            <label>Escolha o Item</label>
             <select id="novoTipo">
-                <option value="parede">🧱 Parede Estrutural</option>
-                <option value="armario">🗄️ Armário Suspenso</option>
-                <option value="cama">🛏️ Cama Planejada</option>
-                <option value="recurso">🚰 Item/Eletro (Pia, Gás, TV)</option>
+                <optgroup label="Estrutura do Apê">
+                    <option value="parede">🧱 Parede Estrutural</option>
+                    <option value="porta">🚪 Porta de Passagem</option>
+                    <option value="janela">🪟 Janela/Vão</option>
+                    <option value="quintal">🪵 Piso Quintal (Área Externa)</option>
+                </optgroup>
+                <optgroup label="Cozinha & Área (Suspensos)">
+                    <option value="armario">🗄️ Armário Planejado</option>
+                    <option value="pia">🚰 Bancada da Pia</option>
+                    <option value="cooktop">🔥 Cooktop Embutido</option>
+                    <option value="gas">⛽ Botijão de Gás (Externo)</option>
+                    <option value="lavadora">🧺 Máquina de Lavar</option>
+                </optgroup>
+                <optgroup label="Sala & Quarto">
+                    <option value="painel">📺 Painel de TV Ripado</option>
+                    <option value="sofamodulo">🛋️ Módulo de Sofá</option>
+                    <option value="cama">🛏️ Cama Planejada/Duplex</option>
+                </optgroup>
             </select>
-            <label>Identificação do Objeto</label>
-            <input type="text" id="novoNome" placeholder="Ex: Balcão da Pia Cozinha">
-            <button class="btn-primary" onclick="criarNovoObjetoNoBanco()">Adicionar ao Apê</button>
+            <label>Identificação/Nome</label>
+            <input type="text" id="novoNome" placeholder="Ex: Parede do Quintal">
+            <button class="btn-primary" onclick="criarNovoObjetoNoBanco()">Inserir no Cenário</button>
         </div>
 
         <div class="secao" id="painelEdicao" style="display:none;">
-            <div class="secao-titulo" id="edicaoTitulo">📝 Editando: Nenhum</div>
+            <div class="secao-titulo" id="edicaoTitulo">📝 Selecionado: Nenhum</div>
             
-            <label>Dimensões (Largura | Altura | Profundidade)</label>
+            <label>Ajustar Dimensões (L | A | P)</label>
             <div class="flex-group">
-                <div class="flex-cell"><input type="number" id="dimL" step="0.05" oninput="atualizarObjetoSelecionado()"></div>
-                <div class="flex-cell"><input type="number" id="dimA" step="0.05" oninput="atualizarObjetoSelecionado()"></div>
-                <div class="flex-cell"><input type="number" id="dimP" step="0.05" oninput="atualizarObjetoSelecionado()"></div>
-            </div>
-
-            <label>Posicionamento (X | Altura Y | Z)</label>
-            <div class="flex-group">
-                <div class="flex-cell"><input type="number" id="posX" step="0.05" oninput="atualizarObjetoSelecionado()"></div>
-                <div class="flex-cell"><input type="number" id="posY" step="0.05" oninput="atualizarObjetoSelecionado()"></div>
-                <div class="flex-cell"><input type="number" id="posZ" step="0.05" oninput="atualizarObjetoSelecionado()"></div>
+                <div class="flex-cell"><input type="number" id="dimL" step="0.05" oninput="atualizarDimensoesLocais()"></div>
+                <div class="flex-cell"><input type="number" id="dimA" step="0.05" oninput="atualizarDimensoesLocais()"></div>
+                <div class="flex-cell"><input type="number" id="dimP" step="0.05" oninput="atualizarDimensoesLocais()"></div>
             </div>
             
-            <label>Ângulo / Rotação Y</label>
-            <select id="rotY" onchange="atualizarObjetoSelecionado()">
-                <option value="0">0° (Horizontal Padrão)</option>
-                <option value="1.5708">90° (Rotacionado 90°)</option>
+            <label>Girar Objeto (Ângulo Y)</label>
+            <select id="rotY" onchange="atualizarDimensoesLocais()">
+                <option value="0">0° (Padrão)</option>
+                <option value="1.5708">90° (Rotacionar)</option>
                 <option value="3.1416">180°</option>
                 <option value="4.7124">270°</option>
             </select>
 
-            <button class="btn-primary" style="margin-top:10px;" onclick="salvarAlteracoesNoBanco()">💾 Salvar Definitivo</button>
-            <button class="btn-danger" style="margin-top:5px;" onclick="deletarObjetoDoBanco()">🗑️ Remover Elemento</button>
+            <button class="btn-primary" style="margin-top:12px;" onclick="salvarAlteracoesNoBanco()">💾 Salvar Posição e Tamanho</button>
+            <button class="btn-danger" style="margin-top:5px;" onclick="deletarObjetoDoBanco()">🗑️ Remover Item</button>
         </div>
         
         <div class="secao">
-            <div class="secao-titulo">📋 Objetos no Cenário</div>
-            <select id="listaObjetosCenario" size="5" onchange="selecionarObjetoPorLista(this.value)"></select>
+            <div class="secao-titulo">📋 Elementos Ativos</div>
+            <select id="listaObjetosCenario" size="4" onchange="selecionarObjetoPorId(this.value)"></select>
         </div>
     </div>
 
     <div id="canvas-container"></div>
 
     <script>
-        // CONFIGURAÇÃO FIRESTORE BORGES
+        // CONFIGURAÇÃO FIRESTORE
         const firebaseConfig = {
             apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
             authDomain: "painel-financeiro-borges.firebaseapp.com",
@@ -133,194 +127,223 @@
         const db = firebase.firestore();
         const colecaoApartamento = db.collection("layout_apartamento");
 
-        // AMBIENTE THREE.JS
+        // SETUP THREE.JS
         const container = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x0a0a0a);
+        scene.background = new THREE.Color(0x080808);
 
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(10, 8, 12);
+        camera.position.set(0, 12, 15);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         container.appendChild(renderer.domElement);
 
+        // CONTROLES DA CÂMERA E DE ARRASTO
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
-        controls.maxPolarAngle = Math.PI / 2 - 0.05;
 
-        const luzAmbiente = new THREE.AmbientLight(0xffffff, 0.5);
-        scene.add(luzAmbiente);
-        const luzDirecional = new THREE.DirectionalLight(0xfffaed, 0.7);
-        luzDirecional.position.set(10, 15, 10);
-        scene.add(luzDirecional);
+        const transformControls = new THREE.TransformControls(camera, renderer.domElement);
+        scene.add(transformControls);
 
-        const grid = new THREE.GridHelper(30, 30, 0x00ff88, 0x222222);
-        grid.position.y = 0.01;
+        // Trava a câmera quando estiver arrastando o objeto
+        transformControls.addEventListener('dragging-changed', function (event) {
+            controls.enabled = !event.value;
+        });
+
+        // ILUMINAÇÃO NOIR
+        scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+        const luzAlvo = new THREE.DirectionalLight(0xffffff, 0.6);
+        luzAlvo.position.set(5, 20, 5);
+        scene.add(luzAlvo);
+
+        const grid = new THREE.GridHelper(40, 40, 0x00ff88, 0x1a1a1a);
         scene.add(grid);
 
+        // DICIONÁRIO DE CORES/MATERIAIS PARA IDENTIFICAÇÃO RÁPIDA
         const materiais = {
-            parede: new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.6 }),
-            armario: new THREE.MeshStandardMaterial({ color: 0x5c4033, roughness: 0.4 }),
-            cama: new THREE.MeshStandardMaterial({ color: 0x1f3a60, roughness: 0.5 }),
-            recurso: new THREE.MeshStandardMaterial({ color: 0x7f8c8d, metalness: 0.6, roughness: 0.2 })
+            parede: new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.7 }), // Escura estilosa
+            porta: new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 0.5 }),
+            janela: new THREE.MeshStandardMaterial({ color: 0x4169e1, transparent: true, opacity: 0.5 }),
+            quintal: new THREE.MeshStandardMaterial({ color: 0x222b22, roughness: 0.9 }), // Tom esverdeado/externo
+            armario: new THREE.MeshStandardMaterial({ color: 0x4a3b32 }),
+            pia: new THREE.MeshStandardMaterial({ color: 0xdddddd, metalness: 0.5 }),
+            cooktop: new THREE.MeshStandardMaterial({ color: 0x111111 }),
+            gas: new THREE.MeshStandardMaterial({ color: 0x7f8c8d }),
+            lavadora: new THREE.MeshStandardMaterial({ color: 0xffffff }),
+            painel: new THREE.MeshStandardMaterial({ color: 0x5c4033 }),
+            sofamodulo: new THREE.MeshStandardMaterial({ color: 0x2c3e50 }),
+            cama: new THREE.MeshStandardMaterial({ color: 0x16a085 })
         };
 
         let objetos3DLocais = {}; 
         let idObjetoSelecionado = null;
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
 
-        // Chão Físico do Apê
-        const chaoGeo = new THREE.BoxGeometry(20, 0.05, 16);
-        const chaoMat = new THREE.MeshStandardMaterial({ color: 0x1a1512, roughness: 0.7 });
-        const chaoMesh = new THREE.Mesh(chaoGeo, chaoMat);
-        chaoMesh.position.set(0, -0.025, 0);
-        scene.add(chaoMesh);
+        // Piso Interno Base
+        const pisoGeo = new THREE.BoxGeometry(25, 0.02, 20);
+        const pisoMat = new THREE.MeshStandardMaterial({ color: 0x121212 });
+        const piso = new THREE.Mesh(pisoGeo, pisoMat);
+        piso.position.y = -0.01;
+        scene.add(piso);
 
-        // SINCRONIZAÇÃO TRATADA CONTRA ERROS DE TIPO (STRINGS)
+        // ESCUTA EM TEMPO REAL DO FIREBASE
         colecaoApartamento.onSnapshot(snapshot => {
             snapshot.docChanges().forEach(change => {
                 const dados = change.doc.data();
                 const id = change.doc.id;
 
                 if (change.type === "added" || change.type === "modified") {
-                    if (objetos3DLocais[id]) {
-                        scene.remove(objetos3DLocais[id]);
-                    }
+                    if (objetos3DLocais[id]) { scene.remove(objetos3DLocais[id]); }
 
-                    // Força a conversão para Float para evitar quebras de renderização gráfica
+                    // Tratamento rigoroso de dimensões decimais
                     const l = parseFloat(dados.largura) || 1.0;
                     const a = parseFloat(dados.altura) || 1.0;
                     const p = parseFloat(dados.profundidade) || 1.0;
-                    const x = parseFloat(dados.posX) || 0;
-                    const y = parseFloat(dados.posY) || 0;
-                    const z = parseFloat(dados.posZ) || 0;
-                    const r = parseFloat(dados.rotY) || 0;
-
+                    
                     const geo = new THREE.BoxGeometry(l, a, p);
                     const mat = materiais[dados.tipo] || materiais.parede;
                     const mesh = new THREE.Mesh(geo, mat);
                     
-                    mesh.position.set(x, y, z);
-                    mesh.rotation.y = r;
-                    mesh.userData = { id: id };
+                    mesh.position.set(parseFloat(dados.posX)||0, parseFloat(dados.posY)||0, parseFloat(dados.posZ)||0);
+                    mesh.rotation.y = parseFloat(dados.rotY) || 0;
+                    mesh.userData = { id: id, tipo: dados.tipo };
 
                     scene.add(mesh);
                     objetos3DLocais[id] = mesh;
+
+                    if(idObjetoSelecionado === id) {
+                        transformControls.attach(mesh);
+                    }
                 }
-                
                 if (change.type === "removed") {
                     if (objetos3DLocais[id]) {
+                        if(idObjetoSelecionado === id) transformControls.detach();
                         scene.remove(objetos3DLocais[id]);
                         delete objetos3DLocais[id];
                     }
                 }
             });
-            atualizarInterfaceListagem();
+            atualizarListaInterface();
         });
 
-        function atualizarInterfaceListagem() {
-            const selectList = document.getElementById("listaObjetosCenario");
-            selectList.innerHTML = "";
-            colecaoApartamento.get().then(snapshot => {
-                snapshot.forEach(doc => {
+        // DETECÇÃO DE CLIQUE NO OBJETO NA TELA 3D
+        window.addEventListener('click', (e) => {
+            if (transformControls.dragging) return;
+            
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+            
+            raycaster.setFromCamera(mouse, camera);
+            const alvos = Object.values(objetos3DLocais);
+            const interseccoes = raycaster.intersectObjects(alvos);
+            
+            if (interseccoes.length > 0) {
+                const objetoClicado = interseccoes[0].object;
+                selecionarObjetoPorId(objetoClicado.userData.id);
+            }
+        });
+
+        function selecionarObjetoPorId(id) {
+            idObjetoSelecionado = id;
+            const mesh = objetos3DLocais[id];
+            if (mesh) {
+                transformControls.attach(mesh);
+                colecaoApartamento.doc(id).get().then(doc => {
                     const d = doc.data();
-                    const option = document.createElement("option");
-                    option.value = doc.id;
-                    option.text = `[${d.tipo.toUpperCase()}] ${d.nome}`;
-                    selectList.appendChild(option);
+                    document.getElementById("painelEdicao").style.display = "block";
+                    document.getElementById("edicaoTitulo").innerText = `📝 Selecionado: ${d.nome}`;
+                    document.getElementById("dimL").value = d.largura;
+                    document.getElementById("dimA").value = d.altura;
+                    document.getElementById("dimP").value = d.profundidade;
+                    document.getElementById("rotY").value = d.rotY || 0;
+                    document.getElementById("listaObjetosCenario").value = id;
                 });
-            });
+            }
+        }
+
+        function atualizarDimensoesLocais() {
+            if (!idObjetoSelecionado || !objetos3DLocais[idObjetoSelecionado]) return;
+            const mesh = objetos3DLocais[idObjetoSelecionado];
+            
+            const l = parseFloat(document.getElementById("dimL").value) || 1;
+            const a = parseFloat(document.getElementById("dimA").value) || 1;
+            const p = parseFloat(document.getElementById("dimP").value) || 1;
+            
+            mesh.geometry.dispose();
+            mesh.geometry = new THREE.BoxGeometry(l, a, p);
+            mesh.rotation.y = parseFloat(document.getElementById("rotY").value) || 0;
         }
 
         function criarNovoObjetoNoBanco() {
-            const nome = document.getElementById("novoNome").value || "Objeto Novo";
             const tipo = document.getElementById("novoTipo").value;
+            const nome = document.getElementById("novoNome").value || `Item ${tipo}`;
             
+            // Definições de tamanho padrão inteligentes baseadas no tipo escolhido
+            let padrao = { l: 1.0, a: 0.8, p: 0.6, y: 0.4 };
+            if (tipo === "parede") { padrao = { l: 3.0, a: 2.7, p: 0.15, y: 1.35 }; }
+            else if (tipo === "quintal") { padrao = { l: 6.0, a: 0.02, p: 5.0, y: 0.01 }; }
+            else if (tipo === "porta") { padrao = { l: 0.8, a: 2.1, p: 0.1, y: 1.05 }; }
+            else if (tipo === "janela") { padrao = { l: 1.5, a: 1.2, p: 0.1, y: 1.5 }; }
+            else if (tipo === "armario") { padrao = { l: 1.2, a: 0.7, p: 0.4, y: 1.8 }; } // Nasce alto
+
             const novoDoc = {
-                nome: nome,
-                tipo: tipo,
-                largura: tipo === "parede" ? 3.0 : 1.0,
-                altura: tipo === "parede" ? 2.8 : 0.6,
-                profundidade: tipo === "parede" ? 0.2 : 0.5,
-                posX: 0,
-                posY: tipo === "parede" ? 1.4 : 0.8, // Armário já nasce suspenso a 80cm do chão
-                posZ: 0,
-                rotY: 0
+                nome: nome, tipo: tipo,
+                largura: padrao.l, altura: padrao.a, profundidade: padrao.p,
+                posX: 0, posY: padrao.y, posZ: 0, rotY: 0
             };
 
             colecaoApartamento.add(novoDoc).then(docRef => {
                 document.getElementById("novoNome").value = "";
-                selecionarObjetoPorLista(docRef.id);
+                setTimeout(() => selecionarObjetoPorId(docRef.id), 300);
             });
-        }
-
-        function selecionarObjetoPorLista(id) {
-            idObjetoSelecionado = id;
-            colecaoApartamento.doc(id).get().then(doc => {
-                if (doc.exists) {
-                    const d = doc.data();
-                    document.getElementById("painelEdicao").style.display = "block";
-                    document.getElementById("edicaoTitulo").innerText = `📝 Editando: ${d.nome}`;
-                    
-                    document.getElementById("dimL").value = d.largura;
-                    document.getElementById("dimA").value = d.altura;
-                    document.getElementById("dimP").value = d.profundidade;
-                    
-                    document.getElementById("posX").value = d.posX;
-                    document.getElementById("posY").value = d.posY;
-                    document.getElementById("posZ").value = d.posZ;
-                    document.getElementById("rotY").value = d.rotY || 0;
-                }
-            });
-        }
-
-        function atualizarObjetoSelecionado() {
-            if (!idObjetoSelecionado || !objetos3DLocais[idObjetoSelecionado]) return;
-
-            const l = parseFloat(document.getElementById("dimL").value) || 1;
-            const a = parseFloat(document.getElementById("dimA").value) || 1;
-            const p = parseFloat(document.getElementById("dimP").value) || 1;
-            const x = parseFloat(document.getElementById("posX").value) || 0;
-            const y = parseFloat(document.getElementById("posY").value) || 0;
-            const z = parseFloat(document.getElementById("posZ").value) || 0;
-            const rot = parseFloat(document.getElementById("rotY").value) || 0;
-
-            const mesh = objetos3DLocais[idObjetoSelecionado];
-            mesh.geometry.dispose();
-            mesh.geometry = new THREE.BoxGeometry(l, a, p);
-            mesh.position.set(x, y, z);
-            mesh.rotation.y = rot;
         }
 
         function salvarAlteracoesNoBanco() {
-            if (!idObjetoSelecionado) return;
+            if (!idObjetoSelecionado || !objetos3DLocais[idObjetoSelecionado]) return;
+            const mesh = objetos3DLocais[idObjetoSelecionado];
 
-            const updateDoc = {
+            const dadosSalvar = {
                 largura: parseFloat(document.getElementById("dimL").value),
                 altura: parseFloat(document.getElementById("dimA").value),
                 profundidade: parseFloat(document.getElementById("dimP").value),
-                posX: parseFloat(document.getElementById("posX").value),
-                posY: parseFloat(document.getElementById("posY").value),
-                posZ: parseFloat(document.getElementById("posZ").value),
-                rotY: parseFloat(document.getElementById("rotY").value)
+                rotY: parseFloat(document.getElementById("rotY").value),
+                posX: parseFloat(mesh.position.x.toFixed(3)),
+                posY: parseFloat(mesh.position.y.toFixed(3)),
+                posZ: parseFloat(mesh.position.z.toFixed(3))
             };
 
-            colecaoApartamento.doc(idObjetoSelecionado).update(updateDoc).then(() => {
-                alert("Alterações salvas com sucesso!");
+            colecaoApartamento.doc(idObjetoSelecionado).update(dadosSalvar).then(() => {
+                alert("Posição e tamanho consolidados no Firebase!");
             });
         }
 
         function deletarObjetoDoBanco() {
             if (!idObjetoSelecionado) return;
-            if (confirm("Remover este item do cenário?")) {
+            if (confirm("Deseja deletar este objeto?")) {
                 colecaoApartamento.doc(idObjetoSelecionado).delete().then(() => {
                     document.getElementById("painelEdicao").style.display = "none";
+                    transformControls.detach();
                     idObjetoSelecionado = null;
                 });
             }
+        }
+
+        function atualizarListaInterface() {
+            const select = document.getElementById("listaObjetosCenario");
+            select.innerHTML = "";
+            colecaoApartamento.get().then(snapshot => {
+                snapshot.forEach(doc => {
+                    const d = doc.data();
+                    const opt = document.createElement("option");
+                    opt.value = doc.id;
+                    opt.text = `${d.nome} [${d.tipo.toUpperCase()}]`;
+                    select.appendChild(opt);
+                });
+            });
         }
 
         function animate() {
