@@ -931,21 +931,18 @@
       reorderReservationsByDefault();
       saveLocal();
       renderReservations();
+      }
 
-      // 2. Prompt for allocation simulation
+    function abrirSimuladorAlocacao() {
+      const defaults = getDefaultReservasConfig();
       const html = `
         <div class="small" style="margin-bottom:12px">Digite o valor total disponível para distribuir entre as reservas padrão.</div>
         <input id="modal_alloc_value" type="number" class="input" placeholder="Valor (R$)" />
         <div id="modal_alloc_result" style="margin-top:16px;max-height:300px;overflow:auto;border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:8px;display:none"></div>
       `;
 
-      showModal('Simular Alocação de Reservas', html, function () {
-        // This callback is for the "Confirmar" button of the modal, which usually closes it.
-        // We want to calculate BEFORE closing, or use a custom button inside.
-        // Since showModal is simple, let's inject a calculation button logic into the modal body after render.
-      });
+      showModal('Simular Alocação de Reservas', html, null);
 
-      // Inject logic into the opened modal (a bit hacky but fits the current simple modal system)
       setTimeout(() => {
         const input = document.getElementById('modal_alloc_value');
         const resultDiv = document.getElementById('modal_alloc_result');
@@ -975,7 +972,7 @@
         }
       }, 200);
     }
-
+    
     function reorderReservationsByDefault() {
       const priority = [
         'Reserva de Segurança',
