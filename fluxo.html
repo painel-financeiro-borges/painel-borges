@@ -861,39 +861,75 @@ function selectTab(id) {
 
 function createNewTab() {
   const nome = prompt("Nome do Bloco Ativo / Aba:");
-  if (!nome || nome.trim() === "") return;
+  if (!nome || !nome.trim()) return;
 
-  const antigo = document.getElementById('popupHorizonteAba');
+  const antigo = document.getElementById('popupConfigAba');
   if (antigo) antigo.remove();
 
   const popup = document.createElement('div');
-  popup.id = 'popupHorizonteAba';
-  popup.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:#0b0813; border:2px solid #a020f0; border-radius:16px; padding:20px; z-index:4000; width:90%; max-width:320px; box-shadow:0 0 30px rgba(160,32,240,0.4); backdrop-filter:blur(15px); color:#fff; font-family:sans-serif; text-align:center;';
+  popup.id = 'popupConfigAba';
+  popup.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:#0b0813; border:2px solid #a020f0; border-radius:16px; padding:20px; z-index:4000; width:90%; max-width:340px; box-shadow:0 0 35px rgba(160,32,240,0.5); backdrop-filter:blur(15px); color:#fff; font-family:sans-serif;';
 
   popup.innerHTML = `
-    <div style="font-weight:bold; margin-bottom:6px; font-size:14px; text-transform:uppercase; color:#00f5ff;">Vincular Horizonte</div>
-    <div style="font-size:12px; color:var(--muted); margin-bottom:15px;">Tudo digitado em "${nome}" somará em:</div>
-    <div style="display:flex; flex-direction:column; gap:8px;">
-      <button class="add-tab-btn" style="background:rgba(255,255,255,0.03); color:#fff !important; padding:10px; font-size:13px; text-align:left;" onclick="finalizarCriacaoAba('${nome.trim()}', 'hoje')">📅 Hoje</button>
-      <button class="add-tab-btn" style="background:rgba(255,255,255,0.03); color:#fff !important; padding:10px; font-size:13px; text-align:left;" onclick="finalizarCriacaoAba('${nome.trim()}', 'semana')">🗓️ Semana</button>
-      <button class="add-tab-btn" style="background:rgba(255,255,255,0.03); color:#fff !important; padding:10px; font-size:13px; text-align:left;" onclick="finalizarCriacaoAba('${nome.trim()}', 'mes')">📊 Mês</button>
-      <button class="add-tab-btn" style="background:rgba(255,255,255,0.03); color:#fff !important; padding:10px; font-size:13px; text-align:left;" onclick="finalizarCriacaoAba('${nome.trim()}', 'semestre')">⏳ Semestre</button>
-      <button class="add-tab-btn" style="background:rgba(255,255,255,0.03); color:#fff !important; padding:10px; font-size:13px; text-align:left;" onclick="finalizarCriacaoAba('${nome.trim()}', 'algumDia')">🗂️ Algum Dia</button>
+    <div style="font-weight:bold; margin-bottom:12px; font-size:14px; text-transform:uppercase; color:#00f5ff; text-align:center; letter-spacing:0.5px;">Configuração Estratégica</div>
+    
+    <div style="font-size:11px; color:var(--muted); margin-bottom:6px; text-transform:uppercase; font-weight:700;">1. Horizonte de Tempo:</div>
+    <select id="cfgHorizonte" style="width:100%; background:#161127; border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:8px; color:#fff; font-size:13px; margin-bottom:12px; outline:none;">
+      <option value="hoje">📅 Hoje</option>
+      <option value="semana" selected>🗓️ Semana</option>
+      <option value="mes">📊 Mês</option>
+      <option value="semestre">⏳ Semestre</option>
+      <option value="algumDia">🗂️ Algum Dia</option>
+    </select>
+
+    <div style="font-size:11px; color:var(--muted); margin-bottom:6px; text-transform:uppercase; font-weight:700;">2. Projeção no Calendário (Opcional):</div>
+    <div style="display:flex; gap:8px; margin-bottom:12px;">
+      <div style="flex:1;">
+        <span style="font-size:10px; color:#888;">Início:</span>
+        <input type="date" id="cfgDataInicio" value="2026-06-17" style="width:100%; background:#161127; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:4px; color:#fff; font-size:11px; outline:none;">
+      </div>
+      <div style="flex:1;">
+        <span style="font-size:10px; color:#888;">Fim:</span>
+        <input type="date" id="cfgDataFim" value="2026-06-17" style="width:100%; background:#161127; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:4px; color:#fff; font-size:11px; outline:none;">
+      </div>
+    </div>
+
+    <div style="font-size:11px; color:var(--muted); margin-bottom:6px; text-transform:uppercase; font-weight:700;">3. Cor Alvo Neon (Paleta Livre):</div>
+    <div style="display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.02); padding:8px; border-radius:8px; margin-bottom:20px; border:1px solid rgba(255,255,255,0.05);">
+      <input type="color" id="cfgColorPicker" value="#00f5ff" style="width:40px; height:32px; background:none; border:none; cursor:pointer;" oninput="document.getElementById('cfgColorHex').value = this.value.toUpperCase()">
+      <input type="text" id="cfgColorHex" value="#00F5FF" placeholder="#FFFFFF" style="flex:1; background:#161127; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:6px; color:#fff; font-size:13px; font-family:monospace; text-align:center; outline:none;" oninput="if(this.value.length === 7) document.getElementById('cfgColorPicker').value = this.value">
+    </div>
+
+    <div style="display:flex; gap:10px; justify-content:flex-end; border-top:1px solid rgba(255,255,255,0.05); padding-top:12px;">
+      <button class="add-tab-btn" style="background:rgba(255,255,255,0.05); color:#fff !important; font-size:11px; padding:6px 12px;" onclick="document.getElementById('popupConfigAba').remove()">Cancelar</button>
+      <button class="add-tab-btn" style="background:linear-gradient(135deg, #a020f0, #00f5ff); color:#000 !important; font-size:11px; padding:6px 14px; font-weight:bold;" onclick="salvarNovaAbaEstruturada('${nome.trim()}')">Criar Bloco</button>
     </div>
   `;
   document.body.appendChild(popup);
 }
 
-window.finalizarCriacaoAba = function(nomeAba, horizonteEscolhido) {
+window.salvarNovaAbaEstruturada = function(nomeAba) {
   const id = 'aba_' + Date.now();
+  const horizonte = document.getElementById('cfgHorizonte').value;
+  const dataInicio = document.getElementById('cfgDataInicio').value;
+  const dataFim = document.getElementById('cfgDataFim').value;
+  const corHex = document.getElementById('cfgColorHex').value;
+
   appState.abas.push({
     id: id,
     titulo: nomeAba,
     conteudo: '',
-    horizonte: horizonteEscolhido
+    horizonte: horizonte,
+    dataInicio: dataInicio,
+    dataFim: dataFim,
+    corHex: corHex
   });
-  document.getElementById('popupHorizonteAba').remove();
-  selectTab(id);
+
+  document.getElementById('popupConfigAba').remove();
+  
+  if (typeof selectTab === 'function') selectTab(id);
+  if (typeof renderGithubCalendar === 'function') renderGithubCalendar();
+  if (typeof updateMetricsUI === 'function') updateMetricsUI();
 };
 function deleteTab(id) {
   const target = appState.abas.find(a => a.id === id);
