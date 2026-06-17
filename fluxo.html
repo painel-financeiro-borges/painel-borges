@@ -358,24 +358,6 @@ body {
   transform: scale(1.02);
   background: rgba(255, 255, 255, 0.05);
 }
-
-/* ==========================================================================
-   ESTILO DO PREVIEW DAS ANOTAÇÕES NOS CARDS FIXOS DO TOPO
-   ========================================================================== */
-.horizon-preview-text {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.4); /* Branco fosco para não brigar com o número neon */
-  margin-top: 5px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-  
-  /* Proteção de segurança contra quebra de layout */
-  white-space: nowrap;       /* Obriga o texto a ficar em uma única linha */
-  overflow: hidden;          /* Corta o texto que sobrar */
-  text-overflow: ellipsis;   /* Coloca automaticamente os "..." no final */
-  display: block;
-  width: 100%;
-}
 </style>
 </head>
 <body>
@@ -1314,25 +1296,30 @@ function assignHorizon(horizonName) {
   init();
 })();
 
-// ==========================================================================
-// 🛡️ O SCRIPT ATIVADOR DO ARRASTE SUPERIOR VIA SORTABLE (BLINDAGEM TOTAL)
+ // ==========================================================================
+// 🛡️ 3. O SCRIPT ATIVADOR DO ARRASTE SUPERIOR E REORDENAÇÃO COMPLETA
 // ==========================================================================
 function ativarArrastoHorizontesSuperiores() {
-  const container = document.getElementById('topbarContainer');
-  if (!container || typeof Sortable === 'undefined') return;
-
-  // Inicializa o Sortable oficial sem loops de contagem
-  Sortable.create(container, {
-    animation: 150,
-    delay: 70,               
-    delayOnTouchOnly: true,  
-    onEnd: function () {
-      if (typeof saveLocalStorage === 'function') saveLocalStorage();
-    }
-  });
-
   const dropzones = document.querySelectorAll('.horizon-dropzone');
+  const container = document.getElementById('topbarContainer');
+  let cardArrastadoOrigem = null;
+
   dropzones.forEach(zone => {
+    // Captura quando o usuário começa a arrastar um dos próprios blocos do topo
+    zone.addEventListener('dragstart', (e) => {
+      cardArrastadoOrigem = zone;
+      e.dataTransfer.setData('text/horizon-card', 'true');
+      zone.style.opacity = '0.4';
+    });
+
+    zone.addEventListener('dragend', () => {
+      zone.style.opacity = '1';
+      dropzones.forEach(z => {
+        z.style.transform = 'none';
+        z.style.background = 'linear-gradient(145deg, #140f2b, #090614)';
+      });
+    });
+
     zone.addEventListener('dragover', (e) => {
       e.preventDefault();
       zone.style.transform = 'scale(1.03)';
@@ -1348,7 +1335,25 @@ function ativarArrastoHorizontesSuperiores() {
       e.preventDefault();
       zone.style.transform = 'none';
       zone.style.background = 'linear-gradient(145deg, #140f2b, #090614)';
+      
+      // CASO A: Se for reordenação interna dos cards do topo
+      if (e.dataTransfer.getData('text/horizon-card') === 'true' && cardArrastadoOrigem) {
+        if (cardArrastadoOrigem !== zone && container) {
+          const listaCards = Array.from(container.children);
+          const idxOrigem = listaCards.indexOf(cardArrastadoOrigem);
+          const idxDestino = listaCards.indexOf(zone);
 
+          if (idxOrigem < idxDestino) {
+            container.insertBefore(cardArrastadoOrigem, zone.nextSibling);
+          } else {
+            container.insertBefore(cardArrastadoOrigem, zone);
+          }
+        }
+        cardArrastadoOrigem = null;
+        return;
+      }
+
+      // CASO B: Se for uma aba de anotação de baixo sendo solta no horizonte
       const tabId = e.dataTransfer.getData('tab-id');
       const novoHorizonte = zone.getAttribute('data-horizon').toLowerCase();
       
@@ -1373,43 +1378,14 @@ function ativarArrastoHorizontesSuperiores() {
   });
 }
 
-// Injeção assíncrona controlada e segura para burlar o HTMLPreview
-// Injeção assíncrona controlada e segura para burlar o HTMLPreview com trava de DOM
-// Injeção assíncrona controlada com varredura ativa de escopo global para o HTMLPreview
-(function garantirCarregamentoSortable() {
-  const registrarGatilho = () => {
-    const originalInit = init;
-    init = function() {
-      if (typeof originalInit === 'function') originalInit();
-      ativarArrastoHorizontesSuperiores();
-    };
-  };
-
-  if (typeof Sortable !== 'undefined') {
-    registrarGatilho();
-    return;
-  }
+// Injeta o gatilho de execução dentro da inicialização nativa do fluxo
+const originalInit = init;
+init = function() {
+  if (typeof originalInit === 'function') originalInit();
+  ativarArrastoHorizontesSuperiores();
+};
   
-  console.log("🚀 Injetando Sortable via barramento de segurança...");
-  const script = document.createElement('script');
-  script.src = "https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js";
-  script.onload = () => {
-    console.log("✅ Sortable carregado com sucesso. Aguardando estabilização das funções globais...");
-    registrarGatilho();
-    
-    // 🔥 ENGENHARIA DO ROBÔ: Fica monitorando a memória de forma ativa até o Firebase indexar as funções
-    let checarFuncoes = setInterval(() => {
-      if (typeof loadLocalStorage === 'function' && typeof init === 'function') {
-        clearInterval(checarFuncoes);
-        console.log("⚡ [SISTEMA] Barramento estabilizado na memória. Disparando ignição.");
-        init();
-      }
-    }, 100);
-  };
-  document.head.appendChild(script);
-})();
-  
-  let modoChecklistAtivo = false; 
+  let modoChecklistAtivo = false;
 
 window.alternarModoChecklist = function() {
   const editor = document.getElementById('mainEditor');
@@ -1505,6 +1481,5 @@ window.atualizarConteudoAbaAovivo = function() {
   }
 };
 </script>
-  
 </body>
 </html>
