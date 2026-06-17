@@ -1782,21 +1782,42 @@
 
     /* ====== Dashboard render + summary computations ====== */
     function computeResumoFinanceiro(monthKey) {
-      // Entradas: transacoes tipo 'entrada' + fluxo type 'entrada'
-      const entradasFromTrans = (state.transacoes || []).filter(t => (t.tipo === 'entrada' || t.tipo === 'aporte')).reduce((s, t) => s + Number(t.valor || 0), 0);
-      const entradasFromFluxo = (state.fluxo || []).filter(f => f.type === 'entrada').reduce((s, f) => s + Number(f.value || 0), 0);
-      const totalEntradas = entradasFromTrans + entradasFromFluxo;
-      // Saídas
-      const saidasFromTrans = (state.transacoes || []).filter(t => t.tipo === 'saida' || t.tipo === 'retirada').reduce((s, t) => s + Number(t.valor || 0), 0);
-      const saidasFromFluxo = (state.fluxo || []).filter(f => f.type === 'saida').reduce((s, f) => s + Number(f.value || 0), 0);
-      const saidasFromCusto = (state.custo || []).reduce((s, c) => s + Number(c.value || 0), 0);
-      const totalSaidas = saidasFromTrans + saidasFromFluxo;
-      // Removido saidasFromCusto para não duplicar custo de vida
-      // Reservas total (saldo) - ONLY NORMAL RESERVES
+      // Garante que temos a chave do ano-mês atual (ex: "2026-06")
+      const currentMonth = monthKey || getSelectedMonthKey() || new Date().toISOString().slice(0, 7);
+
+      // 1. Filtrar ENTRADAS apenas do mês atual
+      const entradasFromFluxo = (state.fluxo || [])
+        .filter(f => f.type === 'entrada' && f.date && f.date.slice(0, 7) === currentMonth)
+        .reduce((s, f) => s + Number(f.value || 0), 0);
+
+      const entradasFromTrans = (state.transacoes || [])
+        .filter(t => (t.tipo === 'entrada' || t.tipo === 'aporte') && t.date && t.date.slice(0, 7) === currentMonth)
+        .reduce((s, t) => s + Number(t.valor || 0), 0);
+
+      const totalEntradas = entradasFromFluxo + entradasFromTrans;
+
+      // 2. Filtrar SAÍDAS apenas do mês atual
+      const saidasFromFluxo = (state.fluxo || [])
+        .filter(f => f.type === 'saida' && f.date && f.date.slice(0, 7) === currentMonth)
+        .reduce((s, f) => s + Number(f.value || 0), 0);
+
+      const saidasFromCusto = (state.custo || [])
+        .filter(c => c.date && c.date.slice(0, 7) === currentMonth)
+        .reduce((s, c) => s + Number(c.value || 0), 0);
+
+      const saidasFromTrans = (state.transacoes || [])
+        .filter(t => (t.tipo === 'saida' || t.tipo === 'retirada') && t.date && t.date.slice(0, 7) === currentMonth && t.reserva !== 'Custo de Vida') 
+        // t.reserva !== 'Custo de Vida' impede a duplicação se o custo de vida já gerar transação automática
+        .reduce((s, t) => s + Number(t.valor || 0), 0);
+
+      const totalSaidas = saidasFromFluxo + saidasFromCusto + saidasFromTrans;
+
+      // 3. Totais Patrimoniais Estáticos (não dependem do mês)
       const reservasTotal = (state.reservas || []).reduce((s, r) => s + Number(r.saldo || 0), 0);
-      // Investimentos total (quantidade * preco)
       const investimentosTotal = (state.investimentos || []).reduce((s, i) => s + (Number(i.quantidade || 0) * Number(i.preco || 0)), 0);
+      
       const resultado = totalEntradas - totalSaidas;
+
       return { totalEntradas, totalSaidas, resultado, reservasTotal, investimentosTotal };
     }
 
