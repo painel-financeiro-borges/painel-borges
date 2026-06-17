@@ -482,6 +482,12 @@ window.mudarZoomCalendario = function(modo) {
   renderGithubCalendar();
 };
 
+window.mudarZoomCalendario = function(modo) {
+  calendarMode = modo;
+  console.log(`🔍 Alternando lente do calendário para modo: ${modo}`);
+  renderGithubCalendar();
+};
+
 window.renderGithubCalendar = function() {
   const container = document.getElementById('githubGrid');
   if (!container) return;
@@ -517,22 +523,25 @@ window.renderGithubCalendar = function() {
       dayCell.style.cssText = 'aspect-ratio: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: var(--text); cursor: pointer; transition: all 0.2s ease;';
       dayCell.innerText = dia;
 
+      // Renderiza as cores salvas no banco
       const eventoItem = appState.eventos.find(e => e.data === dataString);
       if (eventoItem) {
-        if (eventoItem.tipo === 'hoje') {
-          dayCell.className = 'day-cell c-concluido';
-          dayCell.style.color = '#000';
-        } else if (eventoItem.tipo === 'evento') {
-          dayCell.className = 'day-cell c-evento';
-          dayCell.style.color = '#000';
-        }
+        if (eventoItem.tipo === 'hoje') dayCell.className = 'day-cell c-concluido';
+        else if (eventoItem.tipo === 'critico') dayCell.className = 'day-cell c-critico';
+        else if (eventoItem.tipo === 'importante') dayCell.className = 'day-cell c-importante';
+        else if (eventoItem.tipo === 'evento') dayCell.className = 'day-cell c-evento';
+        
+        dayCell.setAttribute('title', eventoItem.titulo);
       } else {
         dayCell.className = 'day-cell';
       }
 
+      // Gatilho do clique para abrir a edição visual
+      dayCell.addEventListener('click', () => abrirEditorDia(dataString, dia));
       container.appendChild(dayCell);
     }
   } else {
+    // Modo Ano / Semestre compacto em linhas
     container.style.display = 'flex';
     container.style.flexDirection = 'column';
     container.style.gap = '12px';
@@ -560,13 +569,12 @@ window.renderGithubCalendar = function() {
 
         const eventoItem = appState.eventos.find(e => e.data === dataString);
         if (eventoItem) {
-          if (eventoItem.tipo === 'hoje') {
-            dot.style.background = '#39ff14';
-            dot.style.boxShadow = '0 0 6px #39ff14';
-          } else {
-            dot.style.background = '#00f5ff';
-            dot.style.boxShadow = '0 0 6px #00f5ff';
-          }
+          if (eventoItem.tipo === 'hoje') dot.style.background = '#39ff14';
+          else if (eventoItem.tipo === 'critico') dot.style.background = '#ff007f';
+          else if (eventoItem.tipo === 'importante') dot.style.background = '#a020f0';
+          else if (eventoItem.tipo === 'evento') dot.style.background = '#00f5ff';
+          
+          dot.style.boxShadow = `0 0 6px ${dot.style.background}`;
           dot.style.width = '8px';
           dot.style.height = '8px';
         }
@@ -578,6 +586,59 @@ window.renderGithubCalendar = function() {
       container.appendChild(row);
     });
   }
+};
+
+// Nova Janela Flutuante Premium para Gerenciamento de Cores e Notas
+window.abrirEditorDia = function(dataString, numeroDia) {
+  // Remove popup anterior se existir aberto na tela
+  const antigo = document.getElementById('popupCalendario');
+  if (antigo) antigo.remove();
+
+  const eventoItem = appState.eventos.find(e => e.data === dataString) || { titulo: '', tipo: 'nenhum' };
+
+  const popup = document.createElement('div');
+  popup.id = 'popupCalendario';
+  popup.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:#0b0813; border:2px solid rgba(160,32,240,0.5); border-radius:16px; padding:20px; z-index:2000; width:90%; max-width:340px; box-shadow:0 0 30px rgba(160,32,240,0.4); backdrop-filter:blur(15px); color:#fff;';
+
+  popup.innerHTML = `
+    <div style="font-weight:bold; margin-bottom:12px; font-size:14px; text-transform:uppercase; color:#00f5ff;">Configurar Dia ${numeroDia}</div>
+    <div style="font-size:12px; color:var(--muted); margin-bottom:6px;">Título / Evento:</div>
+    <input type="text" id="popTexto" value="${eventoItem.titulo}" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:8px; color:#fff; font-size:13px; margin-bottom:15px; outline:none;">
+    
+    <div style="font-size:12px; color:var(--muted); margin-bottom:8px;">Definir Carga / Cor Visual:</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:20px;">
+      <button class="add-tab-btn" style="background:#ff007f; color:#fff !important; padding:6px; font-size:11px;" onclick="salvarCorDia('${dataString}', 'critico')">🔴 Crítico</button>
+      <button class="add-tab-btn" style="background:#a020f0; color:#fff !important; padding:6px; font-size:11px;" onclick="salvarCorDia('${dataString}', 'importante')">🟣 Importante</button>
+      <button class="add-tab-btn" style="background:#00f5ff; color:#000 !important; padding:6px; font-size:11px;" onclick="salvarCorDia('${dataString}', 'evento')">🔵 Evento/Feriado</button>
+      <button class="add-tab-btn" style="background:#39ff14; color:#000 !important; padding:6px; font-size:11px;" onclick="salvarCorDia('${dataString}', 'hoje')">🟢 Concluído</button>
+    </div>
+    
+    <div style="display:flex; gap:10px; justify-content:flex-end;">
+      <button class="add-tab-btn" style="background:rgba(255,255,255,0.05); color:#fff !important; font-size:11px; padding:6px 12px;" onclick="document.getElementById('popupCalendario').remove()">Cancelar</button>
+      <button class="add-tab-btn" style="background:none; border:1px solid #ff0055 !important; color:#ff0055 !important; font-size:11px; padding:6px 12px;" onclick="salvarCorDia('${dataString}', 'limpar')">Limpar Dia</button>
+    </div>
+  `;
+  document.body.appendChild(popup);
+};
+
+window.salvarCorDia = function(dataString, tipoCor) {
+  const txt = document.getElementById('popTexto').value;
+  
+  // Filtra para remover registro antigo se existir
+  appState.eventos = appState.eventos.filter(e => e.data !== dataString);
+
+  if (tipoCor !== 'limpar') {
+    appState.eventos.push({
+      data: dataString,
+      tipo: tipoCor,
+      titulo: txt || 'Obrigação'
+    });
+  }
+
+  // Remove a janela da tela, redesenha os blocos e envia à nuvem do Firebase
+  document.getElementById('popupCalendario').remove();
+  renderGithubCalendar();
+  if (typeof saveLocalStorage === 'function') saveLocalStorage();
 };
   
 function renderTabs() {
