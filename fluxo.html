@@ -1543,13 +1543,82 @@ function renderizarListaChecklist() {
 }
 
 window.atualizarConteudoAbaAovivo = function() {
-  const editor = document.getElementById('mainEditor');
-  const activeAba = appState.abas.find(a => a.id === appState.currentTabId);
-  if (activeAba) {
-    activeAba.conteudo = editor.value;
-    if (typeof saveLocalStorage === 'function') saveLocalStorage();
+    const editor = document.getElementById('mainEditor');
+    const activeAba = appState.abas.find(a => a.id === appState.currentTabId);
+    if (activeAba) {
+      activeAba.conteudo = editor.value;
+      if (typeof saveLocalStorage === 'function') saveLocalStorage();
+    }
+  };
+
+  /* ==========================================================================
+     MOTOR DE GESTÃO DE DADOS & FIREBASE (VERSÃO ESTÁVEL)
+     ========================================================================== */
+  
+  window.exportarFluxoBackupJSON = function() {
+    const data = JSON.stringify(appState, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'fluxo_backup_' + new Date().toISOString().slice(0, 10) + '.json';
+    a.click();
+  };
+
+  window.importarFluxoBackupJSON = function(input) {
+    const file = input.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      appState = JSON.parse(e.target.result);
+      saveLocalStorage();
+      location.reload();
+    };
+    reader.readAsText(file);
+  };
+
+  window.resetTotalFluxo = function() {
+    if (prompt("Digite ZERAR para confirmar a limpeza total:") === "ZERAR") {
+      localStorage.clear();
+      location.reload();
+    }
+  };
+
+  async function inicializarFirebase() {
+    const firebaseConfig = {
+      apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
+      authDomain: "painel-financeiro-borges.firebaseapp.com",
+      projectId: "painel-financeiro-borges",
+      storageBucket: "painel-financeiro-borges.firebasestorage.app",
+      messagingSenderId: "354997627208",
+      appId: "1:354997627208:web:90604d0a7dcd45b6e4eb7d"
+    };
+    
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const docRef = db.collection("fluxo_os").doc("dados_prioridades");
+
+    window.saveLocalStorage = async function() {
+      await docRef.set(appState);
+      console.log("☁️ Dados salvos na nuvem.");
+    };
+
+    docRef.onSnapshot((doc) => {
+      if (doc.exists) {
+        appState = doc.data();
+        renderAll();
+      }
+    });
   }
-};
+
+  // Ativa o Arrastar e Inicia tudo
+  function ativarArrastoHorizontesSuperiores() { /* Sua lógica de arrasto aqui */ }
+  
+  window.addEventListener('DOMContentLoaded', () => {
+    init();
+    inicializarFirebase();
+    ativarArrastoHorizontesSuperiores();
+  });
 </script>
 </body>
 </html>
