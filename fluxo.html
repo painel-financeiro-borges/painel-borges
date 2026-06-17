@@ -1367,6 +1367,102 @@ window.salvarCorGlobalHorizonte = function() {
   // Recarrega leve para repintar os cards superiores e injetar a cor nova
   location.reload();
 };
+
+  let modoChecklistAtivo = false;
+
+window.alternarModoChecklist = function() {
+  const editor = document.getElementById('mainEditor');
+  const checklistContainer = document.getElementById('checklistContainer');
+  const btn = document.getElementById('btnAlternarModo');
+
+  modoChecklistAtivo = !modoChecklistAtivo;
+
+  if (modoChecklistAtivo) {
+    btn.innerHTML = "✏️ Voltar para Editar";
+    btn.style.borderColor = "rgba(57, 255, 20, 0.4)";
+    btn.style.color = "#39ff14";
+    btn.style.background = "rgba(57, 255, 20, 0.1)";
+    
+    editor.style.display = 'none';
+    checklistContainer.style.display = 'flex';
+    
+    renderizarListaChecklist();
+  } else {
+    btn.innerHTML = "📝 Modo Checklist (Riscar)";
+    btn.style.borderColor = "rgba(0, 245, 255, 0.3)";
+    btn.style.color = "#00f5ff";
+    btn.style.background = "rgba(0, 245, 255, 0.08)";
+    
+    editor.style.display = 'block';
+    checklistContainer.style.display = 'none';
+  }
+};
+
+function renderizarListaChecklist() {
+  const editor = document.getElementById('mainEditor');
+  const checklistContainer = document.getElementById('checklistContainer');
+  checklistContainer.innerHTML = '';
+
+  // Quebra seu texto linha por linha
+  const linhas = editor.value.split('\n');
+
+  linhas.forEach((linha, index) => {
+    if (linha.trim() === '') return; // Ignora linhas vazias
+
+    // Identifica se a linha já foi marcada com emoji de check ou markdown
+    const jaConcluido = linha.trim().startsWith('✅') || linha.trim().startsWith('~~');
+    let textoLimpo = linha.replace('✅', '').replace(/~~/g, '').replace(/^-\s*/, '').trim();
+
+    const itemRow = document.createElement('div');
+    itemRow.style.cssText = 'display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.02); padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.04); transition: all 0.2s; cursor:pointer;';
+    
+    if (jaConcluido) {
+      itemRow.style.opacity = '0.5';
+      itemRow.style.background = 'rgba(57, 255, 20, 0.02)';
+    }
+
+    itemRow.innerHTML = `
+      <input type="checkbox" ${jaConcluido ? 'checked' : ''} style="width:16px; height:16px; cursor:pointer; accent-color:#39ff14;">
+      <span style="font-size:15px; color:#fff; transition:all 0.2s; ${jaConcluido ? 'text-decoration:line-through; color:#706594;' : ''}">${textoLimpo}</span>
+    `;
+
+    // Listener mágico: clicou na caixinha ou na linha inteira, ele risca!
+    itemRow.addEventListener('click', (e) => {
+      const checkbox = itemRow.querySelector('input');
+      if (e.target !== checkbox) checkbox.checked = !checkbox.checked;
+
+      const span = itemRow.querySelector('span');
+      const activeAba = appState.abas.find(a => a.id === appState.currentTabId);
+      
+      if (checkbox.checked) {
+        span.style.textDecoration = 'line-through';
+        span.style.color = '#706594';
+        itemRow.style.opacity = '0.5';
+        linhas[index] = `✅ ${textoLimpo}`; 
+      } else {
+        span.style.textDecoration = 'none';
+        span.style.color = '#fff';
+        itemRow.style.opacity = '1';
+        linhas[index] = `- ${textoLimpo}`; 
+      }
+
+      editor.value = linhas.join('\n');
+      if (activeAba) activeAba.conteudo = editor.value;
+      if (typeof saveLocalStorage === 'function') saveLocalStorage();
+    });
+
+    checklistContainer.appendChild(itemRow);
+  });
+}
+
+window.atualizarConteudoAbaAovivo = function() {
+  const editor = document.getElementById('mainEditor');
+  const activeAba = appState.abas.find(a => a.id === appState.currentTabId);
+  if (activeAba) {
+    activeAba.conteudo = editor.value;
+    if (typeof saveLocalStorage === 'function') saveLocalStorage();
+  }
+};
 </script>
 </body>
 </html>
