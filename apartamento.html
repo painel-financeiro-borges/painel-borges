@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Borges - Simulador Apê Térreo V5</title>
+    <title>Painel Borges - Simulador Apê Térreo V6</title>
     <style>
         * { box-sizing: border-box; }
         body { margin: 0; padding: 0; overflow: hidden; background-color: #090909; font-family: 'Outfit', sans-serif; color: white; }
@@ -58,7 +58,7 @@
 <body>
 
     <div class="painel-lateral">
-        <h5>🛠️ SIMULADOR BORGES V5</h5>
+        <h5>🛠️ SIMULADOR BORGES V6</h5>
         <subtitle>Mapeamento Térreo & Área Externa</subtitle>
         
         <div class="instrucoes">
@@ -124,7 +124,7 @@
         </div>
         
         <div class="secao">
-            <div class="secao-titulo">📋 Carga Rápida de Layout (Sua Ideia)</div>
+            <div class="secao-titulo">📋 Carga Rápida de Layout (Sua Idea)</div>
             <textarea id="txtImportar" rows="3" placeholder="Cole o código do layout aqui..."></textarea>
             <button class="btn-primary" style="background:#00ffd2; color:#000;" onclick="executarImportacaoEmMassa()">📥 Gerar Layout Automaticamente</button>
         </div>
@@ -183,6 +183,11 @@
         const grid = new THREE.GridHelper(50, 50, 0x00ff88, 0x161616);
         scene.add(grid);
 
+        window.objetos3DLocais = {}; // Exposto globalmente de forma explícita para o robô
+        let idObjetoSelecionado = null;
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
         const materiais = {
             parede: new THREE.MeshStandardMaterial({ color: 0x3a3a3a, roughness: 0.7 }),
             quintal: new THREE.MeshStandardMaterial({ color: 0x1e271e, roughness: 0.8 }),
@@ -202,11 +207,6 @@
             lustre: new THREE.MeshStandardMaterial({ color: 0xf1c40f, emissive: 0xf1c40f })
         };
 
-        let objetos3DLocais = {}; 
-        let idObjetoSelecionado = null;
-        const raycaster = new THREE.Raycaster();
-        const mouse = new THREE.Vector2();
-
         const pisoInternoGeo = new THREE.BoxGeometry(40, 0.02, 40);
         const pisoInternoMat = new THREE.MeshStandardMaterial({ color: 0x141414 });
         const pisoInterno = new THREE.Mesh(pisoInternoGeo, pisoInternoMat);
@@ -219,7 +219,7 @@
                 const id = change.doc.id;
 
                 if (change.type === "added" || change.type === "modified") {
-                    if (objetos3DLocais[id]) scene.remove(objetos3DLocais[id]);
+                    if (window.objetos3DLocais[id]) scene.remove(window.objetos3DLocais[id]);
 
                     const l = parseFloat(dados.largura) || 1.0;
                     const a = parseFloat(dados.altura) || 1.0;
@@ -231,18 +231,19 @@
                     
                     mesh.position.set(parseFloat(dados.posX) || 0, parseFloat(dados.posY) || (a/2), parseFloat(dados.posZ) || 0);
                     mesh.rotation.y = parseFloat(dados.rotY) || 0;
+                    mesh.name = dados.nome;
                     mesh.userData = { id: id, tipo: dados.tipo };
 
                     scene.add(mesh);
-                    objetos3DLocais[id] = mesh;
+                    window.objetos3DLocais[id] = mesh;
 
                     if(idObjetoSelecionado === id) transformControls.attach(mesh);
                 }
                 if (change.type === "removed") {
-                    if (objetos3DLocais[id]) {
+                    if (window.objetos3DLocais[id]) {
                         if(idObjetoSelecionado === id) transformControls.detach();
-                        scene.remove(objetos3DLocais[id]);
-                        delete objetos3DLocais[id];
+                        scene.remove(window.objetos3DLocais[id]);
+                        delete window.objetos3DLocais[id];
                     }
                 }
             });
@@ -256,13 +257,12 @@
             mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
             raycaster.setFromCamera(mouse, camera);
-            const interseccoes = raycaster.intersectObjects(Object.values(objetos3DLocais));
+            const interseccoes = raycaster.intersectObjects(Object.values(window.objetos3DLocais));
             if (interseccoes.length > 0) {
                 selecionarObjetoPorId(interseccoes[0].object.userData.id);
             }
         });
 
-        // FUNÇÃO DE ZOOM PARA QUEM NÃO TEM SCROLL NO MOUSE
         function controlarZoomManual(fator) {
             camera.position.x *= fator;
             camera.position.y *= fator;
@@ -279,7 +279,7 @@
 
         function selecionarObjetoPorId(id) {
             idObjetoSelecionado = id;
-            const mesh = objetos3DLocais[id];
+            const mesh = window.objetos3DLocais[id];
             if (mesh) {
                 transformControls.attach(mesh);
                 colecaoApartamento.doc(id).get().then(doc => {
@@ -293,8 +293,8 @@
         }
 
         function atualizarRotacaoLocal() {
-            if (!idObjetoSelecionado || !objetos3DLocais[idObjetoSelecionado]) return;
-            objetos3DLocais[idObjetoSelecionado].rotation.y = parseFloat(document.getElementById("rotY").value);
+            if (!idObjetoSelecionado || !window.objetos3DLocais[idObjetoSelecionado]) return;
+            window.objetos3DLocais[idObjetoSelecionado].rotation.y = parseFloat(document.getElementById("rotY").value);
         }
 
         function criarNovoObjetoNoBanco() {
@@ -317,8 +317,8 @@
         }
 
         function salvarAlteracoesNoBanco() {
-            if (!idObjetoSelecionado || !objetos3DLocais[idObjetoSelecionado]) return;
-            const mesh = objetos3DLocais[idObjetoSelecionado];
+            if (!idObjetoSelecionado || !window.objetos3DLocais[idObjetoSelecionado]) return;
+            const mesh = window.objetos3DLocais[idObjetoSelecionado];
             
             mesh.geometry.computeBoundingBox();
             const bbox = mesh.geometry.boundingBox;
@@ -358,7 +358,7 @@
             }
         }
 
-        function ejecutarImportacaoEmMassa() {
+        function executarImportacaoEmMassa() {
             const raw = document.getElementById("txtImportar").value;
             if(!raw) return alert("Cole os dados JSON primeiro!");
             try {
