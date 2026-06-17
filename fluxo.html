@@ -864,20 +864,40 @@ function selectTab(id) {
 
 function createNewTab() {
   const nome = prompt("Nome do Bloco Ativo / Aba:");
-  if(!nome || nome.trim() === "") return;
-  
-  // Cria um ID único limpo baseado no timestamp para evitar conflito se tiver nomes iguais
-  const id = 'aba_' + Date.now();
-  
-  appState.abas.push({
-    id: id,
-    titulo: nome.trim(),
-    conteudo: ''
-  });
-  
-  selectTab(id);
+  if (!nome || nome.trim() === "") return;
+
+  const antigo = document.getElementById('popupHorizonteAba');
+  if (antigo) antigo.remove();
+
+  const popup = document.createElement('div');
+  popup.id = 'popupHorizonteAba';
+  popup.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:#0b0813; border:2px solid #a020f0; border-radius:16px; padding:20px; z-index:4000; width:90%; max-width:320px; box-shadow:0 0 30px rgba(160,32,240,0.4); backdrop-filter:blur(15px); color:#fff; font-family:sans-serif; text-align:center;';
+
+  popup.innerHTML = `
+    <div style="font-weight:bold; margin-bottom:6px; font-size:14px; text-transform:uppercase; color:#00f5ff;">Vincular Horizonte</div>
+    <div style="font-size:12px; color:var(--muted); margin-bottom:15px;">Tudo digitado em "${nome}" somará em:</div>
+    <div style="display:flex; flex-direction:column; gap:8px;">
+      <button class="add-tab-btn" style="background:rgba(255,255,255,0.03); color:#fff !important; padding:10px; font-size:13px; text-align:left;" onclick="finalizarCriacaoAba('${nome.trim()}', 'hoje')">📅 Hoje</button>
+      <button class="add-tab-btn" style="background:rgba(255,255,255,0.03); color:#fff !important; padding:10px; font-size:13px; text-align:left;" onclick="finalizarCriacaoAba('${nome.trim()}', 'semana')">🗓️ Semana</button>
+      <button class="add-tab-btn" style="background:rgba(255,255,255,0.03); color:#fff !important; padding:10px; font-size:13px; text-align:left;" onclick="finalizarCriacaoAba('${nome.trim()}', 'mes')">📊 Mês</button>
+      <button class="add-tab-btn" style="background:rgba(255,255,255,0.03); color:#fff !important; padding:10px; font-size:13px; text-align:left;" onclick="finalizarCriacaoAba('${nome.trim()}', 'semestre')">⏳ Semestre</button>
+      <button class="add-tab-btn" style="background:rgba(255,255,255,0.03); color:#fff !important; padding:10px; font-size:13px; text-align:left;" onclick="finalizarCriacaoAba('${nome.trim()}', 'algumDia')">🗂️ Algum Dia</button>
+    </div>
+  `;
+  document.body.appendChild(popup);
 }
 
+window.finalizarCriacaoAba = function(nomeAba, horizonteEscolhido) {
+  const id = 'aba_' + Date.now();
+  appState.abas.push({
+    id: id,
+    titulo: nomeAba,
+    conteudo: '',
+    horizonte: horizonteEscolhido
+  });
+  document.getElementById('popupHorizonteAba').remove();
+  selectTab(id);
+};
 function deleteTab(id) {
   const target = appState.abas.find(a => a.id === id);
   if(!target) return;
