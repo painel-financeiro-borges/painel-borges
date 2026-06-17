@@ -711,28 +711,25 @@ window.salvarCorDia = function(dataString, hexCor) {
   if (typeof saveLocalStorage === 'function') saveLocalStorage();
 };
   
-function renderTabs() {
+window.renderTabs = function() {
   const container = document.getElementById('tabsContainer');
+  if (!container) return;
   container.innerHTML = '';
-  
-  if (appState.abas.length === 0) {
+
+  if (!appState.abas || appState.abas.length === 0) {
     container.innerHTML = '<span style="color:var(--muted); font-size:12px; padding:10px;">Sem blocos ativos. Crie um no [+]</span>';
     return;
   }
-  
-  appState.abas.forEach(aba => {
+
+  appState.abas.forEach((aba, index) => {
     const btn = document.createElement('button');
     btn.className = `tab-btn ${aba.id === appState.currentTabId ? 'active' : ''}`;
     
-    // Um clique seleciona a aba
-    btn.onclick = () => selectTab(aba.id);
+    // Ativa a capacidade de arrastar do HTML5 nesta guia
+    btn.setAttribute('draggable', 'true');
+    btn.setAttribute('data-index', index);
     
-    // DUPLO CLIQUE EDITA O NOME DA ABA (MUITO RÁPIDO)
-    btn.ondblclick = (e) => {
-      e.stopPropagation();
-      editTabTitle(aba.id);
-    };
-    
+    // Mantém a sua estrutura interna de Spans original
     const titleSpan = document.createElement('span');
     titleSpan.textContent = aba.titulo;
     
@@ -740,17 +737,65 @@ function renderTabs() {
     closeSpan.className = 'tab-close';
     closeSpan.innerHTML = ' &times;';
     
-    // O CLIQUE NO X AGORA APAGA DE VERDADE
-    closeSpan.onclick = (e) => {
-      e.stopPropagation(); // Impede de ativar a aba ao clicar no X
-      deleteTab(aba.id);
-    };
-    
     btn.appendChild(titleSpan);
     btn.appendChild(closeSpan);
+
+    // [Gatilhos de Clique Originais]
+    btn.addEventListener('click', () => {
+      if (typeof selectTab === 'function') selectTab(aba.id);
+    });
+
+    btn.addEventListener('dblclick', (e) => {
+      e.stopPropagation();
+      if (typeof editTabTitle === 'function') editTabTitle(aba.id);
+    });
+
+    closeSpan.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (typeof deleteTab === 'function') deleteTab(aba.id);
+    });
+
+    // [Motores de Arrasto - Drag and Drop]
+    btn.addEventListener('dragstart', (e) => {
+      e.target.classList.add('dragging');
+      e.dataTransfer.setData('text/plain', index);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+
+    btn.addEventListener('dragend', (e) => {
+      e.target.classList.remove('dragging');
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('drag-over'));
+    });
+
+    btn.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      btn.classList.add('drag-over');
+    });
+
+    btn.addEventListener('dragleave', () => {
+      btn.classList.remove('drag-over');
+    });
+
+    btn.addEventListener('drop', (e) => {
+      e.preventDefault();
+      btn.classList.remove('drag-over');
+      
+      const fromIndex = parseInt(e.dataTransfer.getData('text/plain'), 10);
+      const toIndex = parseInt(btn.getAttribute('data-index'), 10);
+
+      if (fromIndex !== toIndex && !isNaN(fromIndex) && !isNaN(toIndex)) {
+        const [abaArrastada] = appState.abas.splice(fromIndex, 1);
+        appState.abas.splice(toIndex, 0, abaArrastada);
+
+        renderTabs();
+        if (typeof saveLocalStorage === 'function') saveLocalStorage();
+      }
+    });
+
     container.appendChild(btn);
   });
-}
+};
 
 function editTabTitle(id) {
   const target = appState.abas.find(a => a.id === id);
