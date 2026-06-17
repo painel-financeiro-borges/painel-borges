@@ -1320,20 +1320,26 @@ function ativarArrastoHorizontesSuperiores() {
       zone.style.background = 'linear-gradient(145deg, #140f2b, #090614)';
       
       const tabId = e.dataTransfer.getData('tab-id');
+      
+      // FIX 1: Captura o horizonte e força a conversão para minúsculo na hora
       const novoHorizonte = zone.getAttribute('data-horizon').toLowerCase();
       
       if (tabId) {
-        const abaAlvo = appState.abas.find(a => a.id === tabId);
-        if (abaAlvo) {
-          abaAlvo.horizonte = novoHorizonte;
-          
-          const corOriginalBorder = zone.style.borderColor;
-          zone.style.borderColor = 'var(--concluido)';
-          setTimeout(() => { zone.style.borderColor = corOriginalBorder; }, 600);
-          
-          updateMetricsUI();
-          renderTabs();
-          if (typeof saveLocalStorage === 'function') saveLocalStorage();
+        // FIX 2: Busca direto no escopo global (window.appState) para não dar erro de indefinição
+        const estadoAtual = window.appState || appState;
+        if (estadoAtual && estadoAtual.abas) {
+          const abaAlvo = estadoAtual.abas.find(a => a.id === tabId);
+          if (abaAlvo) {
+            abaAlvo.horizonte = novoHorizonte;
+            
+            const corOriginalBorder = zone.style.borderColor;
+            zone.style.borderColor = 'var(--concluido)';
+            setTimeout(() => { zone.style.borderColor = corOriginalBorder; }, 600);
+            
+            if (typeof updateMetricsUI === 'function') updateMetricsUI();
+            if (typeof renderTabs === 'function') renderTabs();
+            if (typeof saveLocalStorage === 'function') saveLocalStorage();
+          }
         }
       }
     });
