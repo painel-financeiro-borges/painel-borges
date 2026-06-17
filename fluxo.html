@@ -551,7 +551,6 @@ window.renderGithubCalendar = function() {
     container.style.gap = '8px';
     container.style.width = '100%';
 
-    // NOVO: Adiciona um cabeçalho de título para indicar qual mês está ativo na tela
     const titleHeader = document.createElement('div');
     titleHeader.style.cssText = 'grid-column: span 7; text-align: center; color: #00f5ff; font-weight: bold; font-size: 15px; text-transform: uppercase; letter-spacing: 1px; padding: 5px 0 10px 0; text-shadow: 0 0 8px rgba(0,245,255,0.3);';
     titleHeader.innerText = `📅 ${NOMES_MESES[DATA_BASE.mes]} / ${DATA_BASE.ano}`;
@@ -576,25 +575,30 @@ window.renderGithubCalendar = function() {
       const dayCell = document.createElement('div');
       const dataString = `${DATA_BASE.ano}-${String(DATA_BASE.mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
       
-      dayCell.style.cssText = 'aspect-ratio: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: var(--text); cursor: pointer; transition: all 0.2s ease;';
+      dayCell.className = 'day-cell';
+      dayCell.style.cssText = 'aspect-ratio: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: var(--text); cursor: default; transition: all 0.2s ease;';
       dayCell.innerText = dia;
 
-      const eventoItem = appState.eventos.find(e => e.data === dataString);
-      if (eventoItem) {
-        if (eventoItem.tipo === 'hoje') dayCell.className = 'day-cell c-concluido';
-        else if (eventoItem.tipo === 'critico') dayCell.className = 'day-cell c-critico';
-        else if (eventoItem.tipo === 'importante') dayCell.className = 'day-cell c-importante';
-        else if (eventoItem.tipo === 'evento') dayCell.className = 'day-cell c-evento';
-        
-        dayCell.setAttribute('title', eventoItem.titulo);
-      } else {
-        dayCell.className = 'day-cell';
+      // PROJEÇÃO AUTOMÁTICA: Pinta o dia se ele estiver dentro do período de alguma aba ativa
+      if (appState.abas && appState.abas.length > 0) {
+        const abaCorrespondente = appState.abas.find(aba => {
+          if (!aba.dataInicio || !aba.dataFim) return false;
+          return dataString >= aba.dataInicio && dataString <= aba.dataFim;
+        });
+
+        if (abaCorrespondente && abaCorrespondente.corHex) {
+          const cor = abaCorrespondente.corHex;
+          dayCell.style.background = `linear-gradient(135deg, ${cor}dd, ${cor})`;
+          dayCell.style.boxShadow = `0 0 12px ${cor}aa`;
+          dayCell.style.border = `1px solid #ffffffaa`;
+          dayCell.setAttribute('title', abaCorrespondente.titulo);
+        }
       }
 
-      dayCell.addEventListener('click', () => abrirEditorDia(dataString, dia));
       container.appendChild(dayCell);
     }
   } else {
+    // Modo Anual adaptado para ler a projeção direto das abas
     container.style.display = 'flex';
     container.style.flexDirection = 'column';
     container.style.gap = '12px';
@@ -602,10 +606,8 @@ window.renderGithubCalendar = function() {
 
     NOMES_MESES.forEach((nomeMes, indexMes) => {
       const row = document.createElement('div');
-      // NOVO: Cursor pointer e transição de hover para indicar que a linha é clicável
       row.style.cssText = 'display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.01); padding: 6px 8px; border-radius: 8px; border-left: 3px solid rgba(160,32,240,0.3); width: 100%; cursor: pointer; transition: background 0.2s;';
       
-      // NOVO: Gatilho que altera o mês ativo e dá o "Zoom" ao clicar na linha do mês
       row.addEventListener('click', () => {
         DATA_BASE.mes = indexMes;
         calendarMode = 'mes';
@@ -628,16 +630,18 @@ window.renderGithubCalendar = function() {
         
         dot.style.cssText = 'width: 6px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 1px; transition: all 0.2s;';
 
-        const eventoItem = appState.eventos.find(e => e.data === dataString);
-        if (eventoItem) {
-          if (eventoItem.tipo === 'hoje') dot.style.background = '#39ff14';
-          else if (eventoItem.tipo === 'critico') dot.style.background = '#ff007f';
-          else if (eventoItem.tipo === 'importante') dot.style.background = '#a020f0';
-          else if (eventoItem.tipo === 'evento') dot.style.background = '#00f5ff';
-          
-          dot.style.boxShadow = `0 0 6px ${dot.style.background}`;
-          dot.style.width = '8px';
-          dot.style.height = '8px';
+        if (appState.abas && appState.abas.length > 0) {
+          const abaCorrespondente = appState.abas.find(aba => {
+            if (!aba.dataInicio || !aba.dataFim) return false;
+            return dataString >= aba.dataInicio && dataString <= aba.dataFim;
+          });
+
+          if (abaCorrespondente && abaCorrespondente.corHex) {
+            dot.style.background = abaCorrespondente.corHex;
+            dot.style.boxShadow = `0 0 6px ${abaCorrespondente.corHex}`;
+            dot.style.width = '8px';
+            dot.style.height = '8px';
+          }
         }
 
         dotsContainer.appendChild(dot);
