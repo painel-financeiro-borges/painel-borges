@@ -8,22 +8,20 @@
         :root { --bg: #050505; --card: #0a0a0a; --neon: #39ff14; --alert: #ff003c; --gold: #ffd700; }
         body { background: var(--bg); color: #fff; font-family: 'Courier New', monospace; padding: 20px; }
         
-        /* TÍTULO DOURADO */
         .title-main { text-align: center; font-size: 2.5rem; margin-bottom: 40px; color: var(--gold); 
                       text-shadow: 0 0 15px rgba(255,215,0,0.5); border-bottom: 2px solid var(--gold); padding-bottom: 10px; }
 
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
         
-        /* BOX COM BORDA DOURADA */
         .box { background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid var(--gold); 
                box-shadow: 0 0 15px rgba(255,215,0,0.1), inset 0 0 10px rgba(0,0,0,0.5); }
         
-        h2 { font-size: 0.8rem; color: var(--gold); letter-spacing: 2px; margin-bottom: 15px; }
+        h2 { font-size: 0.8rem; color: var(--gold); letter-spacing: 2px; margin-bottom: 15px; text-transform: uppercase; }
         .num { font-size: 2.5rem; font-weight: 900; color: #fff; margin: 10px 0; }
         .saude { font-size: 1rem; font-weight: bold; }
         .pos { color: var(--neon); } .neg { color: var(--alert); }
         
-        input, select { width: 100%; padding: 12px; background: #000; border: 1px solid #333; color: var(--neon); border-radius: 8px; margin: 5px 0; }
+        input, select { width: 100%; padding: 12px; background: #000; border: 1px solid #333; color: var(--neon); border-radius: 8px; margin: 5px 0; box-sizing: border-box; }
         button { width: 100%; padding: 10px; cursor: pointer; border: none; font-weight: 900; border-radius: 8px; margin-top: 5px; text-transform: uppercase; }
         .btn-green { background: var(--neon); color: #000; }
         .btn-red { background: var(--alert); color: #fff; margin-top: 15px; }
@@ -31,9 +29,9 @@
         .item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #111; margin-bottom: 8px; border-radius: 8px; border-left: 5px solid transparent; }
         .item.pago { border-left-color: var(--neon); color: var(--neon); }
         .item.pendente { border-left-color: var(--alert); color: var(--alert); }
+        .controls { display: flex; gap: 5px; }
         
-        /* SPRINT CARD 3D */
-        .sprint-card { background: #111; border: 1px solid var(--gold); padding: 20px; border-radius: 15px; margin-top: 15px; position: relative; }
+        .sprint-card { background: #111; border: 1px solid var(--gold); padding: 20px; border-radius: 15px; margin-top: 15px; }
         .progress-bar { height: 10px; background: #333; border-radius: 5px; margin-top: 10px; overflow: hidden; }
         .progress-fill { height: 100%; background: var(--gold); width: 0%; }
     </style>
@@ -43,7 +41,6 @@
 <h1 class="title-main">PLANEJAMENTO FINANCEIRO</h1>
 
 <div class="grid">
-    <!-- CICLOS -->
     <div class="box">
         <h2>CICLO SEMANAL</h2>
         <div class="num" id="gSem">R$ 0</div>
@@ -87,8 +84,8 @@
     </div>
 
     <div class="box">
-        <h2>PLANEJAMENTO ESTRATÉGICO (SPRINTS)</h2>
-        <input type="text" id="nSprint" placeholder="Ex: Apartamento">
+        <h2>PLANEJAMENTO ESTRATÉGICO</h2>
+        <input type="text" id="nSprint" placeholder="Objetivo">
         <input type="date" id="dSprint">
         <input type="number" id="mSprint" placeholder="Meta de Ganho R$">
         <button class="btn-green" onclick="addSprint()">CRIAR OBJETIVO</button>
@@ -102,11 +99,15 @@
     const db = firebase.initializeApp({apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8", authDomain: "painel-financeiro-borges.firebaseapp.com", projectId: "painel-financeiro-borges", storageBucket: "painel-financeiro-borges.firebasestorage.app", messagingSenderId: "354997627208", appId: "1:354997627208:web:90604d0a7dcd45b6e4eb7d"}).firestore();
     const ref = db.collection("planejamento_financeiro").doc("status_atual");
 
+    new Sortable(document.getElementById('listaCustos'), { animation: 150 });
+
     function att(c, id) { let v = parseFloat(document.getElementById(id).value); if(!isNaN(v)) ref.set({[c]: v}, {merge: true}); }
+    
     function addSprint() {
         let n = document.getElementById('nSprint').value, d = document.getElementById('dSprint').value, m = parseFloat(document.getElementById('mSprint').value);
         if(n && d && m) ref.set({ sprints: firebase.firestore.FieldValue.arrayUnion({n, d, m, ganhoAtual: 0, id: Date.now()}) }, {merge: true});
     }
+
     function injetarSem() {
         let v = parseFloat(document.getElementById('inGSem').value);
         if(!v) return;
@@ -115,11 +116,23 @@
             t.set(ref, { gSem: (d.gSem||0)+v, gMes: (d.gMes||0)+v }, {merge: true});
         });
     }
+
     function zerar(m, g) { if(confirm("ZERAR?")) ref.set({[m]: 0, [g]: 0}, {merge: true}); }
+
     function addCusto() {
         let n = document.getElementById('nCusto').value, v = parseFloat(document.getElementById('vCusto').value), t = document.getElementById('tipoCusto').value;
         if(n && v) ref.set({ lista: firebase.firestore.FieldValue.arrayUnion({n, v, t, pago: false, id: Date.now()}) }, {merge: true});
     }
+
+    function editarCusto(id) {
+        ref.get().then(doc => {
+            let l = doc.data().lista;
+            let i = l.find(x => x.id === id);
+            let n = prompt("Novo Nome:", i.n), v = prompt("Novo Valor:", i.v);
+            if(n && v) { i.n = n; i.v = v; ref.update({ lista: l }); }
+        });
+    }
+
     function toggle(id) {
         ref.get().then(doc => {
             let l = doc.data().lista;
@@ -131,7 +144,25 @@
 
     ref.onSnapshot(doc => {
         const d = doc.data() || { lista: [], sprints: [] };
-        // Atualiza cards... (manter lógica anterior)
+        ['Sem','Mes','Ano'].forEach(p => {
+            let g = d['g'+p]||0, m = d['m'+p]||0, s = g-m;
+            let elG = document.getElementById('g'+p), elS = document.getElementById('s'+p);
+            if(elG) elG.innerText = 'R$ '+g;
+            if(elS) { elS.innerText = 'SAÚDE: R$ '+s; elS.className = 'saude ' + (s >= 0 ? 'pos' : 'neg'); }
+        });
+        
+        document.getElementById('listaCustos').innerHTML = '';
+        let tm = 0, ta = 0;
+        (d.lista || []).forEach(i => {
+            let div = document.createElement('div');
+            div.className = 'item ' + (i.pago ? 'pago' : 'pendente');
+            div.innerHTML = `<span>${i.n} - R$${i.v} (${i.t})</span> 
+                             <div class="controls"><button onclick="editarCusto(${i.id})">✏️</button><button onclick="toggle(${i.id})">${i.pago ? '✅' : '❌'}</button></div>`;
+            document.getElementById('listaCustos').appendChild(div);
+            if(!i.pago) { if(i.t==='mensal') tm += parseFloat(i.v); else ta += parseFloat(i.v); }
+        });
+        document.getElementById('totMensal').innerText = tm; document.getElementById('totAnual').innerText = ta;
+
         document.getElementById('listaSprints').innerHTML = '';
         (d.sprints || []).forEach(s => {
             let perc = Math.min((s.ganhoAtual / s.m) * 100, 100);
@@ -142,7 +173,6 @@
                     <div class="progress-bar"><div class="progress-fill" style="width:${perc}%"></div></div>
                 </div>`;
         });
-        // ... rest of logic
     });
 </script>
 </body>
