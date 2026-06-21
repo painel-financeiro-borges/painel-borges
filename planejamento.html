@@ -85,8 +85,8 @@
     <div class="box">
         <h2>PLANEJAMENTO ESTRATÉGICO</h2>
         <input type="text" id="nSprint" placeholder="Objetivo">
-        <input type="text" id="dInicio" placeholder="Data Início (AAAA-MM-DD)">
-        <input type="text" id="dFim" placeholder="Data Término (AAAA-MM-DD)">
+        <input type="text" id="dInicio" placeholder="DD/MM/AAAA" maxlength="10" oninput="formatarData(this)">
+        <input type="text" id="dFim" placeholder="DD/MM/AAAA" maxlength="10" oninput="formatarData(this)">
         <input type="number" id="mSprint" placeholder="Meta Ganho R$">
         <button class="btn-green" onclick="addSprint()">CRIAR OBJETIVO</button>
         <div id="listaSprints"></div>
