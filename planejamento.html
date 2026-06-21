@@ -113,8 +113,17 @@
     }
     
     function addSprint() {
-        let n = document.getElementById('nSprint').value, dI = document.getElementById('dInicio').value, dF = document.getElementById('dFim').value, m = parseFloat(document.getElementById('mSprint').value);
-        if(n && dI && dF && m) ref.set({ sprints: firebase.firestore.FieldValue.arrayUnion({n, dI, dF, m, ganhoAtual: 0, id: Date.now()}) }, {merge: true});
+        let n = document.getElementById('nSprint').value, 
+            dI = document.getElementById('dInicio').value, 
+            dF = document.getElementById('dFim').value, 
+            m = parseFloat(document.getElementById('mSprint').value);
+            
+        if(n && dI && dF && m) { 
+            ref.set({ sprints: firebase.firestore.FieldValue.arrayUnion({n, dI, dF, m, ganhoAtual: 0, id: Date.now()}) }, {merge: true})
+            .then(() => alert("SUCESSO: Objetivo criado!"));
+        } else {
+            alert("ERRO: Preencha todos os campos corretamente (Data no formato AAAA-MM-DD)");
+        }
     }
 
     function removeSprint(id) {
