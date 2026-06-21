@@ -255,23 +255,15 @@
                     <div style="height:15px; background:#222; border-radius:10px; overflow:hidden; margin-bottom:20px; border: 1px solid #444;">
                         <div style="height:100%; width:${progresso}%; background:${corBarra}; box-shadow: 0 0 10px ${corBarra};"></div>
                     </div>
-                    <div id="mioloBtn" style="padding:15px; background:#1a1a1a; border-radius:10px; cursor:pointer; text-align:center; border:1px solid #ffd700; color:#ffd700; font-weight:bold; margin-bottom:10px;">
+                    <div onclick="const c = document.getElementById('contCalendar'); c.style.display = (c.style.display === 'none' || c.style.display === '') ? 'block' : 'none';" style="padding:15px; background:#1a1a1a; border-radius:10px; cursor:pointer; text-align:center; border:1px solid #ffd700; color:#ffd700; font-weight:bold; margin-bottom:10px;">
                         CALENDÁRIO ATIVO: ${hoje.toLocaleString('pt-BR', { month: 'long', year: 'numeric' }).toUpperCase()} (CLIQUE PARA OCULTAR/MOSTRAR)
                     </div>
                     <div id="contCalendar" style="display:none; padding:15px; background:#000; border:1px solid #ffd700; border-radius:10px;">
-                        <div style="display:grid; grid-template-columns:repeat(7, 1fr); gap:5px;">${gerarDias(hoje.getFullYear(), hoje.getMonth(), hoje.getDate())}</div>
+                        <div style="display:grid; grid-template-columns:repeat(7, 1fr); gap:5px; background:#222; border:1px solid #444;">${gerarDias(hoje.getFullYear(), hoje.getMonth(), hoje.getDate())}</div>
                     </div>
                 </div>
             `;
         }).join('');
-
-        // Adicione esta linha no final da função abrirCalendarioVisual (logo antes do fechamento dela)
-        setTimeout(() => {
-            document.getElementById('mioloBtn').onclick = function() {
-                const c = document.getElementById('contCalendar');
-                c.style.display = (c.style.display === 'none' || c.style.display === '') ? 'block' : 'none';
-            };
-        }, 100);
 
         overlay.innerHTML = `
             <div style="max-width:1000px; margin:0 auto; background:#050505; padding:30px; border-radius:20px; border:2px solid #ffd700;">
