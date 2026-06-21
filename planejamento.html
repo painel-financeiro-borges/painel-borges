@@ -98,8 +98,8 @@
     function att(c, id) { let v = parseFloat(document.getElementById(id).value); if(!isNaN(v)) ref.set({[c]: v}, {merge: true}); }
     
     function addSprint() {
-        let n = document.getElementById('nSprint').value, d = document.getElementById('dSprint').value, m = parseFloat(document.getElementById('mSprint').value);
-        if(n && d && m) ref.set({ sprints: firebase.firestore.FieldValue.arrayUnion({n, d, m, ganhoAtual: 0, id: Date.now()}) }, {merge: true});
+        let n = document.getElementById('nSprint').value, dI = document.getElementById('dInicio').value, dF = document.getElementById('dFim').value, m = parseFloat(document.getElementById('mSprint').value);
+        if(n && dI && dF && m) ref.set({ sprints: firebase.firestore.FieldValue.arrayUnion({n, dI, dF, m, ganhoAtual: 0, id: Date.now()}) }, {merge: true});
     }
 
     function removeSprint(id) {
