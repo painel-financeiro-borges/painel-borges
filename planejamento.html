@@ -1,64 +1,72 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="dark-mode">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BORGES | ELITE COMMAND</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;800;900&display=swap" rel="stylesheet">
+    <title>BORGES | COMMAND CENTER</title>
     <style>
-        /* APLICAÇÃO DO SEU CSS ELITE */
-        :root { --bg-color: #0f0f12; --text-primary: #ffffff; --card-bg: #1c1c1e; --radius: 24px; }
-        body { font-family: 'Outfit', sans-serif; background-color: var(--bg-color); color: var(--text-primary); padding: 20px; }
-        .glass-panel { background: rgba(30,30,30,0.7); backdrop-filter: blur(20px); border-radius: var(--radius); padding: 25px; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 20px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-        .num { font-size: 2.5rem; font-weight: 900; margin: 10px 0; }
-        .pos { color: var(--green, #2ed573); } .neg { color: var(--red, #ff4757); }
-        .input-group { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
-        input, select { background: #2c2c2e; border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 12px; border-radius: 12px; }
-        button { padding: 12px; border-radius: 12px; border: none; font-weight: 800; cursor: pointer; transition: 0.2s; }
-        .btn-add { background: #fff; color: #000; }
-        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .status-badge { padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; cursor: pointer; }
+        :root { --bg: #050505; --card: #121212; --green: #39ff14; --red: #ff003c; --white: #ffffff; }
+        body { background: var(--bg); color: var(--white); font-family: 'Outfit', sans-serif; padding: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; }
+        .box { 
+            background: var(--card); padding: 30px; border-radius: 25px; 
+            border: 1px solid #222; position: relative;
+            box-shadow: 15px 15px 30px #000, inset 1px 1px 1px #333;
+        }
+        h2 { font-size: 0.7rem; color: #666; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 20px; }
+        .num { font-size: 3rem; font-weight: 900; margin: 10px 0; }
+        .saude { font-size: 1rem; font-weight: bold; }
+        input { width: 100%; padding: 15px; background: #000; border: 1px solid #333; color: #fff; border-radius: 12px; margin: 5px 0; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; border-radius: 12px; border: none; font-weight: 900; cursor: pointer; text-transform: uppercase; margin-top: 10px; }
+        .btn-injetar { background: var(--green); color: #000; }
+        .btn-zerar { background: var(--red); color: #fff; margin-top: 20px; }
+        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #222; }
+        .status-badge { padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.7rem; }
     </style>
 </head>
 <body>
 
 <div class="grid">
-    <div class="glass-panel">
-        <div class="section-title">Semanal</div>
+    <div class="box" id="boxSem">
+        <h2>CICLO SEMANAL</h2>
+        <div id="mSem">Meta: 0</div>
         <div class="num" id="gSem">R$ 0</div>
-        <div id="sSem" class="neg">SAÚDE: R$ 0</div>
+        <div id="sSem" class="saude">SAÚDE: R$ 0</div>
         <input type="number" id="inMSem" placeholder="Meta Semanal">
-        <button class="btn-add" onclick="att('mSem', 'inMSem')">SETAR META</button>
+        <button onclick="att('mSem', 'inMSem')">DEFINIR META</button>
         <input type="number" id="inGSem" placeholder="Ganho Semanal">
-        <button class="btn-add" onclick="injetarSem()">INJETAR GANHO</button>
-        <button onclick="zerar('mSem', 'gSem')">ZERAR SEMANA</button>
+        <button class="btn-injetar" onclick="injetarSem()">INJETAR GANHO</button>
+        <button class="btn-zerar" onclick="zerar('mSem', 'gSem')">ZERAR SEMANA</button>
     </div>
 
-    <div class="glass-panel">
-        <div class="section-title">Mensal</div>
+    <div class="box" id="boxMes">
+        <h2>CICLO MENSAL</h2>
+        <div id="mMes">Meta: 0</div>
         <div class="num" id="gMes">R$ 0</div>
-        <div id="sMes" class="neg">SAÚDE: R$ 0</div>
+        <div id="sMes" class="saude">SAÚDE: R$ 0</div>
         <input type="number" id="inMMes" placeholder="Meta Mensal">
-        <button class="btn-add" onclick="att('mMes', 'inMMes')">SETAR META</button>
-        <button onclick="zerar('mMes', 'gMes')">ZERAR MÊS</button>
+        <button onclick="att('mMes', 'inMMes')">DEFINIR META</button>
+        <button class="btn-zerar" onclick="zerar('mMes', 'gMes')">ZERAR MÊS</button>
     </div>
 
-    <div class="glass-panel">
-        <div class="section-title">Anual</div>
+    <div class="box" id="boxAno">
+        <h2>CICLO ANUAL</h2>
+        <div id="mAno">Meta: 0</div>
         <div class="num" id="gAno">R$ 0</div>
-        <input type="number" id="inGAno" placeholder="Ganho Anual">
-        <button class="btn-add" onclick="att('gAno', 'inGAno')">INJETAR GANHO</button>
-        <button onclick="zerar('mAno', 'gAno')">ZERAR ANO</button>
+        <div id="sAno" class="saude">SAÚDE: R$ 0</div>
+        <input type="number" id="inMAno" placeholder="Meta Anual">
+        <button onclick="att('mAno', 'inMAno')">DEFINIR META</button>
+        <input type="number" id="inGAno" placeholder="Injetar Ganho Anual">
+        <button class="btn-injetar" onclick="att('gAno', 'inGAno')">INJETAR GANHO</button>
+        <button class="btn-zerar" onclick="zerar('mAno', 'gAno')">ZERAR ANO</button>
     </div>
 </div>
 
-<div class="glass-panel">
-    <div class="section-title">Gestão de Custos</div>
+<div class="box" style="margin-top:25px;">
+    <h2>GESTÃO DE CUSTOS (MENSAL/ANUAL)</h2>
     <input type="text" id="nCusto" placeholder="Nome do Custo">
     <input type="number" id="vCusto" placeholder="Valor">
-    <select id="tipoCusto"><option value="mensal">Mensal</option><option value="anual">Anual</option></select>
-    <button class="btn-add" onclick="addCusto()">ADICIONAR CUSTO</button>
+    <select id="tipoCusto" style="width:100%; padding:10px; background:#000; color:#fff; border-radius:8px;"><option value="mensal">Mensal</option><option value="anual">Anual</option></select>
+    <button class="btn-injetar" onclick="addCusto()">ADICIONAR CUSTO</button>
     
     <h3>MENSAL: R$ <span id="totMensal">0</span></h3>
     <div id="listaMensal"></div>
@@ -72,21 +80,27 @@
     const db = firebase.initializeApp({apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8", authDomain: "painel-financeiro-borges.firebaseapp.com", projectId: "painel-financeiro-borges", storageBucket: "painel-financeiro-borges.firebasestorage.app", messagingSenderId: "354997627208", appId: "1:354997627208:web:90604d0a7dcd45b6e4eb7d"}).firestore();
     const ref = db.collection("planejamento_financeiro").doc("status_atual");
 
-    function att(c, id) { ref.update({ [c]: parseFloat(document.getElementById(id).value) }); }
+    function att(c, id) { 
+        let val = parseFloat(document.getElementById(id).value); 
+        if(val) ref.update({ [c]: val }); 
+    }
     
     function injetarSem() {
         let v = parseFloat(document.getElementById('inGSem').value);
+        if(!v) return;
         db.runTransaction(async t => {
             const d = (await t.get(ref)).data();
             t.update(ref, { gSem: (d.gSem||0)+v, gMes: (d.gMes||0)+v, gAno: (d.gAno||0)+v });
         });
     }
 
+    function zerar(m, g) { if(confirm("RESETAR?")) ref.update({ [m]: 0, [g]: 0 }); }
+
     function addCusto() {
         let n = document.getElementById('nCusto').value;
         let v = parseFloat(document.getElementById('vCusto').value);
         let t = document.getElementById('tipoCusto').value;
-        ref.update({ lista: firebase.firestore.FieldValue.arrayUnion({n, v, t, pago: false, id: Date.now()}) });
+        if(n && v) ref.update({ lista: firebase.firestore.FieldValue.arrayUnion({n, v, t, pago: false, id: Date.now()}) });
     }
 
     function toggle(id) {
@@ -98,24 +112,28 @@
         });
     }
 
-    function zerar(m, g) { ref.update({ [m]: 0, [g]: 0 }); }
-
     ref.onSnapshot(doc => {
         const d = doc.data() || { lista: [] };
         ['Sem','Mes','Ano'].forEach(p => {
-            let g = d['g'+p]||0, m = d['m'+p]||0, s = g-m;
-            document.getElementById('g'+p).innerText = 'R$ '+g;
-            let el = document.getElementById('s'+p);
-            el.innerText = 'SAÚDE: R$ '+s;
-            el.className = s >= 0 ? 'pos' : 'neg';
+            let g = d['g'+p] || 0, m = d['m'+p] || 0, s = g - m;
+            let elG = document.getElementById('g'+p);
+            let elS = document.getElementById('s'+p);
+            let elM = document.getElementById('m'+p);
+            if(elG) elG.innerText = 'R$ ' + g;
+            if(elS) {
+                elS.innerText = 'SAÚDE: R$ ' + s;
+                elS.className = 'saude ' + (s >= 0 ? 'pos' : 'neg');
+            }
+            if(elM) elM.innerText = 'Meta: ' + m;
         });
+
         document.getElementById('listaMensal').innerHTML = '';
         document.getElementById('listaAnual').innerHTML = '';
         let tm = 0, ta = 0;
-        d.lista.forEach(i => {
+        (d.lista || []).forEach(i => {
             let div = document.createElement('div');
             div.className = 'item-row';
-            div.innerHTML = `<span>${i.n}</span> <span class="status-badge ${i.pago?'pos':'neg'}" onclick="toggle(${i.id})">${i.pago?'PAGO':'PENDENTE'}</span>`;
+            div.innerHTML = `<span>${i.n} (R$${i.v})</span> <span class="status-badge ${i.pago?'pos':'neg'}" onclick="toggle(${i.id})">${i.pago?'PAGO':'PENDENTE'}</span>`;
             if(i.t==='mensal') { if(!i.pago) tm += parseFloat(i.v); document.getElementById('listaMensal').appendChild(div); }
             else { if(!i.pago) ta += parseFloat(i.v); document.getElementById('listaAnual').appendChild(div); }
         });
