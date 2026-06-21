@@ -152,9 +152,9 @@
         if(!v) return;
         db.runTransaction(async t => {
             const d = (await t.get(ref)).data() || {};
-            t.set(ref, { gSem: (d.gSem||0)+v, gMes: (d.gMes||0)+v, gAno: (d.gAno||0)+v }, {merge: true});
+            t.set(ref, { gSem: (d.gSem||0)+v, gMes: (d.gMes||0)+v }, {merge: true});
         }).then(() => {
-            alert("SUCESSO: Ganho injetado em todos os ciclos!");
+            alert("SUCESSO: Ganho injetado nos ciclos Semanal e Mensal!");
         });
     }
 
