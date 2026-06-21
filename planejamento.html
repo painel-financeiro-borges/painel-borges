@@ -102,7 +102,14 @@
     new Sortable(document.getElementById('listaCustosMensal'), { animation: 150 });
     new Sortable(document.getElementById('listaCustosAnual'), { animation: 150 });
     new Sortable(document.getElementById('listaSprints'), { animation: 150 });
-    function att(c, id) { let v = parseFloat(document.getElementById(id).value); if(!isNaN(v)) ref.set({[c]: v}, {merge: true}); }
+    function att(c, id) { 
+        let v = parseFloat(document.getElementById(id).value); 
+        if(!isNaN(v)) {
+            ref.set({[c]: v}, {merge: true}).then(() => {
+                alert("SUCESSO: Meta definida com êxito!");
+            });
+        }
+    }
     
     function addSprint() {
         let n = document.getElementById('nSprint').value, dI = document.getElementById('dInicio').value, dF = document.getElementById('dFim').value, m = parseFloat(document.getElementById('mSprint').value);
