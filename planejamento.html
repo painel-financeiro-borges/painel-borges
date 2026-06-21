@@ -195,11 +195,14 @@
 
     ref.onSnapshot(doc => {
         const d = doc.data() || { lista: [], sprints: [] };
-        ['Sem','Mes','Ano'].forEach(p => {
+       ['Sem','Mes','Ano'].forEach(p => {
             let g = d['g'+p]||0, m = d['m'+p]||0, s = g-m;
             let elG = document.getElementById('g'+p), elS = document.getElementById('s'+p);
             if(elG) elG.innerText = 'R$ '+g;
-            if(elS) { elS.innerText = 'SAÚDE: R$ '+s; elS.className = 'saude ' + (s >= 0 ? 'pos' : 'neg'); }
+            if(elS) { 
+                elS.innerText = 'SAÚDE: R$ '+s; 
+                elS.className = 'saude ' + (s >= 0 ? 'pos' : 'neg'); 
+            }
         });
         
         document.getElementById('listaCustosMensal').innerHTML = '';
