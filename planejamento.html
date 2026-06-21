@@ -185,6 +185,20 @@
                 </div>`;
         });
     });
+
+    function adicionarGanhoSprint(id) {
+        ref.get().then(doc => {
+            let s = doc.data().sprints;
+            let i = s.find(x => x.id === id);
+            let novoGanho = prompt("Quanto ganhou para este objetivo?", i.ganhoAtual || 0);
+            if (novoGanho !== null) {
+                i.ganhoAtual = parseFloat(novoGanho);
+                ref.update({ sprints: s });
+            }
+        });
+    }
+
+    
 </script>
 </body>
 </html>
