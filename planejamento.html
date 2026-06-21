@@ -177,17 +177,21 @@
             if(elS) { elS.innerText = 'SAÚDE: R$ '+s; elS.className = 'saude ' + (s >= 0 ? 'pos' : 'neg'); }
         });
         
-        document.getElementById('listaCustos').innerHTML = '';
+        document.getElementById('listaCustosMensal').innerHTML = '';
+        document.getElementById('listaCustosAnual').innerHTML = '';
+        
         (d.lista || []).forEach(i => {
             let div = document.createElement('div');
             div.className = 'item ' + (i.pago ? 'pago' : 'pendente');
-            div.innerHTML = `<span>${i.n} - R$${i.v} (${i.t})</span> 
+            div.innerHTML = `<span>${i.n} - R$${i.v}</span> 
                              <div class="controls"><button onclick="editarCusto(${i.id})">✏️</button><button onclick="toggle(${i.id})">${i.pago ? '✅' : '❌'}</button><button onclick="removeCusto(${i.id})">🗑️</button></div>`;
-            document.getElementById('listaCustos').appendChild(div);
+            
+            if(i.t === 'mensal') document.getElementById('listaCustosMensal').appendChild(div);
+            else document.getElementById('listaCustosAnual').appendChild(div);
         });
 
-       document.getElementById('listaSprints').innerHTML = '';
-       (d.sprints || []).forEach(s => {
+        document.getElementById('listaSprints').innerHTML = '';
+        (d.sprints || []).forEach(s => {
             let perc = Math.min(((s.ganhoAtual || 0) / s.m) * 100, 100);
             document.getElementById('listaSprints').innerHTML += `
                 <div class="sprint-card" onclick="abrirCalendarioVisual([${JSON.stringify(s).replace(/"/g, "'")}])" style="cursor:pointer;">
