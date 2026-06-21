@@ -2,13 +2,14 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>BORGES | COMMAND CENTER ELITE</title>
+    <title>BORGES | FINANCIAL WAR ROOM</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
         :root { --bg: #050505; --card: #0a0a0a; --neon: #39ff14; --alert: #ff003c; }
         body { background: var(--bg); color: #fff; font-family: 'Courier New', monospace; padding: 20px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
         .box { background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid #222; box-shadow: 10px 10px 30px #000; }
+        .title-main { text-align: center; font-size: 2rem; margin-bottom: 30px; letter-spacing: 5px; color: var(--neon); text-shadow: 0 0 10px rgba(57,255,20,0.3); }
         .num { font-size: 2.5rem; font-weight: 900; color: #fff; margin: 10px 0; }
         .saude { font-size: 1rem; font-weight: bold; }
         .pos { color: var(--neon); } .neg { color: var(--alert); }
@@ -21,9 +22,12 @@
         .item.pago { border-left-color: var(--neon); color: var(--neon); }
         .item.pendente { border-left-color: var(--alert); color: var(--alert); }
         .controls { display: flex; gap: 5px; }
+        .sprint-card { background: #151515; border: 1px solid #333; padding: 15px; border-radius: 12px; margin-top: 10px; }
     </style>
 </head>
 <body>
+
+<h1 class="title-main">FINANCIAL WAR ROOM</h1>
 
 <div class="grid">
     <div class="box">
@@ -57,14 +61,25 @@
     </div>
 </div>
 
-<div class="box" style="margin-top:25px;">
-    <h2>GESTÃO DE CUSTOS</h2>
-    <input type="text" id="nCusto" placeholder="Nome">
-    <input type="number" id="vCusto" placeholder="Valor">
-    <select id="tipoCusto"><option value="mensal">Mensal</option><option value="anual">Anual</option></select>
-    <button class="btn-green" onclick="addCusto()">ADICIONAR CUSTO</button>
-    <h3>MENSAL PENDENTE: R$ <span id="totMensal">0</span> | ANUAL PENDENTE: R$ <span id="totAnual">0</span></h3>
-    <div id="listaCustos"></div>
+<div class="grid" style="margin-top:20px;">
+    <div class="box">
+        <h2>GESTÃO DE CUSTOS</h2>
+        <input type="text" id="nCusto" placeholder="Nome">
+        <input type="number" id="vCusto" placeholder="Valor">
+        <select id="tipoCusto"><option value="mensal">Mensal</option><option value="anual">Anual</option></select>
+        <button class="btn-green" onclick="addCusto()">ADICIONAR CUSTO</button>
+        <h3>MENSAL PENDENTE: R$ <span id="totMensal">0</span> | ANUAL PENDENTE: R$ <span id="totAnual">0</span></h3>
+        <div id="listaCustos"></div>
+    </div>
+
+    <div class="box">
+        <h2>PLANEJAMENTO ESTRATÉGICO</h2>
+        <input type="text" id="nSprint" placeholder="Objetivo (ex: Reforma Cozinha)">
+        <input type="date" id="dSprint">
+        <input type="number" id="mSprint" placeholder="Meta de Ganho R$">
+        <button class="btn-green" onclick="addSprint()">CRIAR OBJETIVO</button>
+        <div id="listaSprints"></div>
+    </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -77,6 +92,11 @@
 
     function att(c, id) { let v = parseFloat(document.getElementById(id).value); if(!isNaN(v)) ref.set({[c]: v}, {merge: true}); }
     
+    function addSprint() {
+        let n = document.getElementById('nSprint').value, d = document.getElementById('dSprint').value, m = document.getElementById('mSprint').value;
+        if(n && d && m) ref.set({ sprints: firebase.firestore.FieldValue.arrayUnion({n, d, m, id: Date.now()}) }, {merge: true});
+    }
+
     function injetarSem() {
         let v = parseFloat(document.getElementById('inGSem').value);
         if(!v) return;
@@ -97,12 +117,8 @@
         ref.get().then(doc => {
             let l = doc.data().lista;
             let i = l.find(x => x.id === id);
-            let n = prompt("Novo Nome:", i.n);
-            let v = prompt("Novo Valor:", i.v);
-            if(n && v) {
-                i.n = n; i.v = v;
-                ref.update({ lista: l });
-            }
+            let n = prompt("Novo Nome:", i.n), v = prompt("Novo Valor:", i.v);
+            if(n && v) { i.n = n; i.v = v; ref.update({ lista: l }); }
         });
     }
 
@@ -116,27 +132,30 @@
     }
 
     ref.onSnapshot(doc => {
-        const d = doc.data() || { lista: [] };
+        const d = doc.data() || { lista: [], sprints: [] };
         ['Sem','Mes','Ano'].forEach(p => {
             let g = d['g'+p]||0, m = d['m'+p]||0, s = g-m;
             let elG = document.getElementById('g'+p), elS = document.getElementById('s'+p);
             if(elG) elG.innerText = 'R$ '+g;
             if(elS) { elS.innerText = 'SAÚDE: R$ '+s; elS.className = 'saude ' + (s >= 0 ? 'pos' : 'neg'); }
         });
+        
         document.getElementById('listaCustos').innerHTML = '';
         let tm = 0, ta = 0;
         (d.lista || []).forEach(i => {
             let div = document.createElement('div');
             div.className = 'item ' + (i.pago ? 'pago' : 'pendente');
             div.innerHTML = `<span>${i.n} - R$${i.v} (${i.t})</span> 
-                             <div class="controls">
-                                <button onclick="editarCusto(${i.id})">✏️</button>
-                                <button onclick="toggle(${i.id})">${i.pago ? '✅' : '❌'}</button>
-                             </div>`;
+                             <div class="controls"><button onclick="editarCusto(${i.id})">✏️</button><button onclick="toggle(${i.id})">${i.pago ? '✅' : '❌'}</button></div>`;
             document.getElementById('listaCustos').appendChild(div);
             if(!i.pago) { if(i.t==='mensal') tm += parseFloat(i.v); else ta += parseFloat(i.v); }
         });
         document.getElementById('totMensal').innerText = tm; document.getElementById('totAnual').innerText = ta;
+
+        document.getElementById('listaSprints').innerHTML = '';
+        (d.sprints || []).forEach(s => {
+            document.getElementById('listaSprints').innerHTML += `<div class="sprint-card"><strong>${s.n}</strong><br>Data: ${s.d} | Meta: R$${s.m}</div>`;
+        });
     });
 </script>
 </body>
