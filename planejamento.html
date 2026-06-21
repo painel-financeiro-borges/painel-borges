@@ -94,13 +94,15 @@
     }
 
     function editarCusto(id) {
-        let novoNome = prompt("Novo Nome:");
-        if(!novoNome) return;
         ref.get().then(doc => {
             let l = doc.data().lista;
             let i = l.find(x => x.id === id);
-            i.n = novoNome;
-            ref.update({ lista: l });
+            let n = prompt("Novo Nome:", i.n);
+            let v = prompt("Novo Valor:", i.v);
+            if(n && v) {
+                i.n = n; i.v = v;
+                ref.update({ lista: l });
+            }
         });
     }
 
