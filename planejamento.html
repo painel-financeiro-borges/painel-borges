@@ -97,9 +97,9 @@
     const db = firebase.initializeApp({apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8", authDomain: "painel-financeiro-borges.firebaseapp.com", projectId: "painel-financeiro-borges", storageBucket: "painel-financeiro-borges.firebasestorage.app", messagingSenderId: "354997627208", appId: "1:354997627208:web:90604d0a7dcd45b6e4eb7d"}).firestore();
     const ref = db.collection("planejamento_financeiro").doc("status_atual");
 
-    new Sortable(document.getElementById('listaCustos'), { animation: 150 });
+    new Sortable(document.getElementById('listaCustosMensal'), { animation: 150 });
+    new Sortable(document.getElementById('listaCustosAnual'), { animation: 150 });
     new Sortable(document.getElementById('listaSprints'), { animation: 150 });
-
     function att(c, id) { let v = parseFloat(document.getElementById(id).value); if(!isNaN(v)) ref.set({[c]: v}, {merge: true}); }
     
     function addSprint() {
