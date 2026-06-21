@@ -145,6 +145,15 @@
         });
     }
 
+    function removeCusto(id) {
+        if(confirm("Tem certeza que deseja excluir este custo?")) {
+            ref.get().then(doc => {
+                let l = doc.data().lista.filter(x => x.id !== id);
+                ref.update({ lista: l });
+            });
+        }
+    }
+    
     function toggle(id) {
         ref.get().then(doc => {
             let l = doc.data().lista;
