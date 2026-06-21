@@ -236,10 +236,13 @@
             const progresso = Math.min(((obj.ganhoAtual || 0) / obj.m) * 100, 100);
             const corBarra = (obj.ganhoAtual >= obj.m) ? '#39ff14' : '#ff003c';
             return `
-                <div style="margin-bottom:40px; border:1px solid #444; padding:20px; border-radius:10px; background:#0a0a0a;">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                        <span style="color:#ffd700; font-weight:bold;">${obj.n}</span>
-                        <span>META: R$${obj.m} | ATUAL: R$${obj.ganhoAtual || 0}</span>
+               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; padding:10px; background:#1a1a1a; border-radius:8px;">
+                        <span style="color:#ffd700; font-weight:bold; font-size:1.2rem;">${obj.n}</span>
+                        <div style="text-align:right;">
+                            <div style="font-size:0.8rem; color:#888;">META: R$${obj.m}</div>
+                            <div style="font-size:1.5rem; font-weight:900; color:#fff;">ATUAL: R$${obj.ganhoAtual || 0}</div>
+                        </div>
+                    </div>
                     </div>
                     <div style="height:15px; background:#222; border-radius:10px; overflow:hidden; margin-bottom:15px;">
                         <div style="height:100%; width:${progresso}%; background:${corBarra};"></div>
