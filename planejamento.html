@@ -176,13 +176,13 @@
        (d.sprints || []).forEach(s => {
             let perc = Math.min(((s.ganhoAtual || 0) / s.m) * 100, 100);
             document.getElementById('listaSprints').innerHTML += `
-                <div class="sprint-card">
+                <div class="sprint-card" onclick="abrirCalendarioVisual([${JSON.stringify(s).replace(/"/g, "'")}])" style="cursor:pointer;">
                     <div style="display:flex; justify-content:space-between; width:100%;">
                         <span><strong>${s.n}</strong> | ${s.dI} a ${s.dF}</span>
                         <div class="controls">
-                            <button onclick="adicionarGanhoSprint(${s.id})">💰</button>
-                            <button onclick="editarSprint(${s.id})">✏️</button>
-                            <button onclick="removeSprint(${s.id})">🗑️</button>
+                            <button onclick="event.stopPropagation(); adicionarGanhoSprint(${s.id})">💰</button>
+                            <button onclick="event.stopPropagation(); editarSprint(${s.id})">✏️</button>
+                            <button onclick="event.stopPropagation(); removeSprint(${s.id})">🗑️</button>
                         </div>
                     </div>
                     <div style="width:100%;">Meta: R$${s.m} | Atual: R$${s.ganhoAtual || 0}</div>
