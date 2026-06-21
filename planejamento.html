@@ -16,8 +16,6 @@
         button { width: 100%; padding: 10px; cursor: pointer; border: none; font-weight: 900; border-radius: 8px; margin-top: 5px; text-transform: uppercase; }
         .btn-green { background: var(--neon); color: #000; }
         .btn-red { background: var(--alert); color: #fff; margin-top: 15px; }
-        
-        /* Lista de Custos Interativa */
         #listaCustos { cursor: grab; }
         .item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #111; margin-bottom: 8px; border-radius: 8px; border-left: 5px solid transparent; }
         .item.pago { border-left-color: var(--neon); color: var(--neon); }
@@ -75,14 +73,21 @@
     const db = firebase.initializeApp({apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8", authDomain: "painel-financeiro-borges.firebaseapp.com", projectId: "painel-financeiro-borges", storageBucket: "painel-financeiro-borges.firebasestorage.app", messagingSenderId: "354997627208", appId: "1:354997627208:web:90604d0a7dcd45b6e4eb7d"}).firestore();
     const ref = db.collection("planejamento_financeiro").doc("status_atual");
 
-    // Inicializa SortableJS
-    new Sortable(document.getElementById('listaCustos'), { 
-        animation: 150, 
-        onEnd: () => console.log("Ordem alterada") 
-    });
+    new Sortable(document.getElementById('listaCustos'), { animation: 150 });
 
     function att(c, id) { let v = parseFloat(document.getElementById(id).value); if(!isNaN(v)) ref.set({[c]: v}, {merge: true}); }
     
+    function injetarSem() {
+        let v = parseFloat(document.getElementById('inGSem').value);
+        if(!v) return;
+        db.runTransaction(async t => {
+            const d = (await t.get(ref)).data() || {};
+            t.set(ref, { gSem: (d.gSem||0)+v, gMes: (d.gMes||0)+v }, {merge: true});
+        });
+    }
+
+    function zerar(m, g) { if(confirm("ZERAR?")) ref.set({[m]: 0, [g]: 0}, {merge: true}); }
+
     function addCusto() {
         let n = document.getElementById('nCusto').value, v = parseFloat(document.getElementById('vCusto').value), t = document.getElementById('tipoCusto').value;
         if(n && v) ref.set({ lista: firebase.firestore.FieldValue.arrayUnion({n, v, t, pago: false, id: Date.now()}) }, {merge: true});
@@ -110,14 +115,12 @@
 
     ref.onSnapshot(doc => {
         const d = doc.data() || { lista: [] };
-        // Atualiza Cards
         ['Sem','Mes','Ano'].forEach(p => {
             let g = d['g'+p]||0, m = d['m'+p]||0, s = g-m;
             let elG = document.getElementById('g'+p), elS = document.getElementById('s'+p);
             if(elG) elG.innerText = 'R$ '+g;
             if(elS) { elS.innerText = 'SAÚDE: R$ '+s; elS.className = 'saude ' + (s >= 0 ? 'pos' : 'neg'); }
         });
-        // Atualiza Lista
         document.getElementById('listaCustos').innerHTML = '';
         let tm = 0, ta = 0;
         (d.lista || []).forEach(i => {
