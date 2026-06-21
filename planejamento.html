@@ -2,82 +2,81 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>BORGES | CONTROLE DE CICLOS</title>
+<title>BORGES | COMMAND CENTER</title>
 <style>
-    :root { --preto: #050505; --verde: #39ff14; --vermelho: #ff003c; --cinza: #222; }
-    body { background: var(--preto); color: #fff; font-family: 'Courier New', monospace; padding: 20px; }
-    .painel { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-    .bloco { border: 1px solid var(--cinza); padding: 20px; border-radius: 12px; background: #0a0a0a; }
-    .display { font-size: 24px; font-weight: 900; color: var(--verde); margin: 10px 0; }
-    input { width: 100%; padding: 10px; background: #000; border: 1px solid var(--cinza); color: #fff; margin-top: 5px; border-radius: 4px; box-sizing: border-box; }
-    button { width: 100%; padding: 10px; margin-top: 10px; font-weight: bold; cursor: pointer; border: none; border-radius: 4px; }
-    .btn-injetar { background: var(--verde); }
+    :root { --bg: #000; --verde: #39ff14; --vermelho: #ff003c; --cinza: #1a1a1a; --branco: #fff; }
+    body { background: var(--bg); color: var(--branco); font-family: 'Arial Black', sans-serif; padding: 20px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+    .box { border: 2px solid #333; padding: 20px; border-radius: 8px; background: #050505; }
+    h2 { font-size: 12px; color: #666; margin-bottom: 15px; letter-spacing: 1px; }
+    .num { font-size: 40px; margin: 10px 0; color: var(--verde); }
+    input { width: 100%; padding: 12px; background: #111; border: 1px solid #333; color: #fff; border-radius: 4px; box-sizing: border-box; }
+    .btn-act { width: 100%; padding: 12px; margin-top: 10px; cursor: pointer; border: none; font-weight: bold; border-radius: 4px; }
+    .btn-meta { background: #333; color: #fff; }
+    .btn-injetar { background: var(--verde); color: #000; }
     .btn-zerar { background: var(--vermelho); color: #fff; margin-top: 20px; }
+    .health { border: 2px solid var(--verde); }
 </style>
 </head>
 <body>
 
-<h1 style="text-align:center; font-size: 18px; margin-bottom: 30px;">CENTRAL DE PLANEJAMENTO</h1>
-
-<div class="painel">
-    <!-- SEMANAL -->
-    <div class="bloco">
-        <h2>🗓️ SEMANA</h2>
-        <div>Meta: <span id="metaSem">0</span></div>
-        <div class="display" id="ganhoSem">R$ 0</div>
-        <input type="number" id="inMetaSem" placeholder="Definir nova meta semanal">
-        <button class="btn-injetar" onclick="atualizar('metaSem', 'inMetaSem')">DEFINIR META</button>
-        <input type="number" id="inGanhoSem" placeholder="Injetar ganho semanal">
-        <button class="btn-injetar" onclick="atualizar('ganhoSem', 'inGanhoSem')">INJETAR GANHO</button>
-        <button class="btn-zerar" onclick="zerar('metaSem', 'ganhoSem')">ZERAR SEMANA</button>
+<div class="grid">
+    <!-- SEMANA -->
+    <div class="box">
+        <h2>CICLO SEMANAL</h2>
+        <div style="font-size:14px">META: <span id="mSem">0</span></div>
+        <div class="num" id="gSem">R$ 0</div>
+        <input type="number" id="inMSem" placeholder="Definir meta semanal">
+        <button class="btn-act btn-meta" onclick="att('mSem', 'inMSem')">SETAR META</button>
+        <input type="number" id="inGSem" placeholder="Injetar ganho semanal">
+        <button class="btn-act btn-injetar" onclick="injetarSem()">INJETAR GANHO</button>
+        <button class="btn-act btn-zerar" onclick="zerar('mSem', 'gSem', 'semana')">ZERAR SEMANA</button>
     </div>
 
-    <!-- MENSAL -->
-    <div class="bloco">
-        <h2>📊 MÊS</h2>
-        <div>Meta: <span id="metaMes">0</span></div>
-        <div class="display" id="ganhoMes">R$ 0</div>
-        <input type="number" id="inMetaMes" placeholder="Definir nova meta mensal">
-        <button class="btn-injetar" onclick="atualizar('metaMes', 'inMetaMes')">DEFINIR META</button>
-        <input type="number" id="inGanhoMes" placeholder="Injetar ganho mensal">
-        <button class="btn-injetar" onclick="atualizar('ganhoMes', 'inGanhoMes')">INJETAR GANHO</button>
-        <button class="btn-zerar" onclick="zerar('metaMes', 'ganhoMes')">ZERAR MÊS</button>
+    <!-- MÊS -->
+    <div class="box">
+        <h2>CICLO MENSAL</h2>
+        <div style="font-size:14px">META: <span id="mMes">0</span></div>
+        <div class="num" id="gMes">R$ 0</div>
+        <input type="number" id="inMMes" placeholder="Definir meta mensal">
+        <button class="btn-act btn-meta" onclick="att('mMes', 'inMMes')">SETAR META</button>
+        <button class="btn-act btn-zerar" onclick="zerar('mMes', 'gMes', 'mes')">ZERAR MÊS</button>
     </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 <script>
-    const firebaseConfig = { apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8", authDomain: "painel-financeiro-borges.firebaseapp.com", projectId: "painel-financeiro-borges", storageBucket: "painel-financeiro-borges.firebasestorage.app", messagingSenderId: "354997627208", appId: "1:354997627208:web:90604d0a7dcd45b6e4eb7d" };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const docRef = db.collection("planejamento_financeiro").doc("status_atual");
+    const db = firebase.initializeApp({apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8", authDomain: "painel-financeiro-borges.firebaseapp.com", projectId: "painel-financeiro-borges", storageBucket: "painel-financeiro-borges.firebasestorage.app", messagingSenderId: "354997627208", appId: "1:354997627208:web:90604d0a7dcd45b6e4eb7d"}).firestore();
+    const ref = db.collection("planejamento_financeiro").doc("status_atual");
 
-    function atualizar(campo, inputId) {
-        const val = parseFloat(document.getElementById(inputId).value);
-        if(isNaN(val)) return;
+    function att(campo, id) {
+        let v = parseFloat(document.getElementById(id).value);
+        if(!v) return;
+        ref.update({ [campo]: v });
+    }
+
+    function injetarSem() {
+        let v = parseFloat(document.getElementById('inGSem').value);
+        if(!v) return;
         db.runTransaction(async t => {
-            const doc = await t.get(docRef);
-            let d = doc.exists ? doc.data() : { metaSem:0, ganhoSem:0, metaMes:0, ganhoMes:0 };
-            d[campo] = (d[campo] || 0) + val;
-            t.set(docRef, d);
+            const d = (await t.get(ref)).data();
+            t.update(ref, { gSem: (d.gSem || 0) + v, gMes: (d.gMes || 0) + v });
         });
     }
 
-    function zerar(metaCampo, ganhoCampo) {
-        if(!confirm("Zerar este ciclo?")) return;
-        let update = {}; update[metaCampo] = 0; update[ganhoCampo] = 0;
-        docRef.update(update);
+    function zerar(m, g, tipo) {
+        if(!confirm("CONFIRMA ZERAR?")) return;
+        let obj = {}; obj[m] = 0; obj[g] = 0;
+        ref.update(obj);
     }
 
-    docRef.onSnapshot(doc => {
-        if(doc.exists) {
-            const d = doc.data();
-            document.getElementById('metaSem').innerText = d.metaSem || 0;
-            document.getElementById('ganhoSem').innerText = 'R$ ' + (d.ganhoSem || 0);
-            document.getElementById('metaMes').innerText = d.metaMes || 0;
-            document.getElementById('ganhoMes').innerText = 'R$ ' + (d.ganhoMes || 0);
-        }
+    ref.onSnapshot(doc => {
+        const d = doc.data() || {};
+        document.getElementById('mSem').innerText = d.mSem || 0;
+        document.getElementById('gSem').innerText = 'R$ ' + (d.gSem || 0);
+        document.getElementById('mMes').innerText = d.mMes || 0;
+        document.getElementById('gMes').innerText = 'R$ ' + (d.gMes || 0);
     });
 </script>
 </body>
