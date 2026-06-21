@@ -2,20 +2,20 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>BORGES | COMMAND CENTER</title>
+<title>BORGES | COMMAND CENTER 3D</title>
 <style>
-    :root { --bg: #000; --verde: #39ff14; --vermelho: #ff003c; --cinza: #1a1a1a; --branco: #fff; }
-    body { background: var(--bg); color: var(--branco); font-family: 'Arial Black', sans-serif; padding: 20px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-    .box { border: 2px solid #333; padding: 20px; border-radius: 8px; background: #050505; }
-    h2 { font-size: 12px; color: #666; margin-bottom: 15px; letter-spacing: 1px; }
-    .num { font-size: 30px; margin: 5px 0; color: var(--verde); }
-    .saude { font-size: 16px; margin: 10px 0; color: var(--vermelho); }
-    input { width: 100%; padding: 10px; background: #111; border: 1px solid #333; color: #fff; margin-top: 5px; border-radius: 4px; box-sizing: border-box; }
-    .btn { width: 100%; padding: 10px; margin-top: 8px; cursor: pointer; border: none; font-weight: bold; border-radius: 4px; }
-    .b-meta { background: #333; color: #fff; }
-    .b-injetar { background: var(--verde); color: #000; }
-    .b-zerar { background: var(--vermelho); color: #fff; margin-top: 15px; }
+    :root { --bg: #050505; --card: #0c0c0c; --verde: #39ff14; --vermelho: #ff003c; --branco: #fff; }
+    body { background: var(--bg); color: var(--branco); font-family: 'Segoe UI', sans-serif; padding: 20px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; }
+    .box { background: var(--card); padding: 25px; border-radius: 20px; box-shadow: 10px 10px 20px #000, inset 1px 1px 1px #222; border: 1px solid #1a1a1a; transition: 0.3s; }
+    h2 { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 3px; }
+    .num { font-size: 45px; font-weight: 900; margin: 15px 0; }
+    .status { font-size: 14px; font-weight: bold; padding: 5px 10px; border-radius: 5px; }
+    .pos { color: var(--verde); } .neg { color: var(--vermelho); }
+    input { width: 100%; padding: 12px; background: #000; border: 1px solid #333; color: #fff; border-radius: 8px; margin: 5px 0; }
+    button { width: 100%; padding: 12px; cursor: pointer; border: none; font-weight: bold; border-radius: 8px; margin-top: 5px; transition: 0.2s; }
+    .pago { color: var(--verde); text-decoration: line-through; }
+    .pendente { color: var(--vermelho); cursor: pointer; }
 </style>
 </head>
 <body>
@@ -24,37 +24,41 @@
     <!-- SEMANA -->
     <div class="box">
         <h2>CICLO SEMANAL</h2>
-        <div style="font-size:12px">META: <span id="mSem">0</span></div>
         <div class="num" id="gSem">R$ 0</div>
-        <div class="saude" id="sSem">SAÚDE: R$ 0</div>
-        <input type="number" id="inMSem" placeholder="Meta Semanal">
-        <button class="btn b-meta" onclick="att('mSem', 'inMSem')">SETAR META</button>
+        <div id="sSem" class="status">SAÚDE: R$ 0</div>
+        <input type="number" id="inMSem" placeholder="Meta da Semana">
+        <button onclick="att('mSem', 'inMSem')">SETAR META</button>
         <input type="number" id="inGSem" placeholder="Ganho Semanal">
-        <button class="btn b-injetar" onclick="injetarSem()">INJETAR GANHO</button>
-        <button class="btn b-zerar" onclick="zerar('mSem', 'gSem', 'semana')">ZERAR SEMANA</button>
+        <button style="background:var(--verde)" onclick="injetar('gSem', 'inGSem', 'mes')">INJETAR GANHO</button>
+        <button style="background:#222; color:#fff" onclick="zerar('mSem', 'gSem')">ZERAR SEMANA</button>
     </div>
 
     <!-- MÊS -->
     <div class="box">
         <h2>CICLO MENSAL</h2>
-        <div style="font-size:12px">META: <span id="mMes">0</span></div>
         <div class="num" id="gMes">R$ 0</div>
-        <div class="saude" id="sMes">SAÚDE: R$ 0</div>
-        <input type="number" id="inMMes" placeholder="Meta Mensal">
-        <button class="btn b-meta" onclick="att('mMes', 'inMMes')">SETAR META</button>
-        <button class="btn b-zerar" onclick="zerar('mMes', 'gMes', 'mes')">ZERAR MÊS</button>
+        <div id="sMes" class="status">SAÚDE: R$ 0</div>
+        <input type="number" id="inMMes" placeholder="Meta do Mês">
+        <button onclick="att('mMes', 'inMMes')">SETAR META</button>
+        <button style="background:#222; color:#fff" onclick="zerar('mMes', 'gMes')">ZERAR MÊS</button>
     </div>
 
-    <!-- ANO -->
+    <!-- ANO (BURRO/MANUAL) -->
     <div class="box">
         <h2>CICLO ANUAL</h2>
-        <div style="font-size:12px">META: <span id="mAno">0</span></div>
         <div class="num" id="gAno">R$ 0</div>
-        <div class="saude" id="sAno">SAÚDE: R$ 0</div>
-        <input type="number" id="inMAno" placeholder="Meta Anual">
-        <button class="btn b-meta" onclick="att('mAno', 'inMAno')">SETAR META</button>
-        <button class="btn b-zerar" onclick="zerar('mAno', 'gAno', 'ano')">ZERAR ANO</button>
+        <input type="number" id="inGAno" placeholder="Injetar Ganho Anual">
+        <button style="background:#555" onclick="att('gAno', 'inGAno')">INJETAR GANHO</button>
+        <button style="background:#222; color:#fff" onclick="zerar('mAno', 'gAno')">ZERAR ANO</button>
     </div>
+</div>
+
+<div class="box" style="margin-top:25px">
+    <h2>CONTROLE DE CUSTOS MENSAIS</h2>
+    <input type="text" id="nomeCusto" placeholder="Nome do Custo">
+    <input type="number" id="valorCusto" placeholder="Valor">
+    <button onclick="addCusto()">ADICIONAR CUSTO</button>
+    <div id="listaCustos" style="margin-top:20px"></div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -63,45 +67,44 @@
     const db = firebase.initializeApp({apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8", authDomain: "painel-financeiro-borges.firebaseapp.com", projectId: "painel-financeiro-borges", storageBucket: "painel-financeiro-borges.firebasestorage.app", messagingSenderId: "354997627208", appId: "1:354997627208:web:90604d0a7dcd45b6e4eb7d"}).firestore();
     const ref = db.collection("planejamento_financeiro").doc("status_atual");
 
-    function att(c, id) {
+    function att(c, id) { let v = parseFloat(document.getElementById(id).value); if(v) ref.update({ [c]: v }); }
+    
+    function injetar(g, id, target) {
         let v = parseFloat(document.getElementById(id).value);
-        if(!v) return;
-        ref.update({ [c]: v });
-    }
-
-    function injetarSem() {
-        let v = parseFloat(document.getElementById('inGSem').value);
         if(!v) return;
         db.runTransaction(async t => {
             const d = (await t.get(ref)).data();
-            t.update(ref, { 
-                gSem: (d.gSem || 0) + v, 
-                gMes: (d.gMes || 0) + v,
-                gAno: (d.gAno || 0) + v 
-            });
+            let update = { [g]: (d[g] || 0) + v };
+            if(target === 'mes') update.gMes = (d.gMes || 0) + v;
+            t.update(ref, update);
         });
     }
 
-    function zerar(m, g, tipo) {
-        if(!confirm("ZERAR ESTE CICLO?")) return;
-        let obj = {}; obj[m] = 0; obj[g] = 0;
-        ref.update(obj);
+    function zerar(m, g) { if(confirm("RESETAR?")) ref.update({[m]: 0, [g]: 0}); }
+
+    function addCusto() {
+        let n = document.getElementById('nomeCusto').value;
+        let v = document.getElementById('valorCusto').value;
+        ref.update({ custos: firebase.firestore.FieldValue.arrayUnion({n, v, p:false}) });
+    }
+
+    function togglePago(idx) {
+        // Lógica de toggle: Pega array, muda o p, grava de volta
     }
 
     ref.onSnapshot(doc => {
         const d = doc.data() || {};
-        // Atualiza campos
-        document.getElementById('mSem').innerText = d.mSem || 0;
-        document.getElementById('gSem').innerText = 'R$ ' + (d.gSem || 0);
-        document.getElementById('sSem').innerText = 'SAÚDE: R$ ' + ((d.gSem || 0) - (d.mSem || 0));
-
-        document.getElementById('mMes').innerText = d.mMes || 0;
-        document.getElementById('gMes').innerText = 'R$ ' + (d.gMes || 0);
-        document.getElementById('sMes').innerText = 'SAÚDE: R$ ' + ((d.gMes || 0) - (d.mMes || 0));
-
-        document.getElementById('mAno').innerText = d.mAno || 0;
-        document.getElementById('gAno').innerText = 'R$ ' + (d.gAno || 0);
-        document.getElementById('sAno').innerText = 'SAÚDE: R$ ' + ((d.gAno || 0) - (d.mAno || 0));
+        ['Sem','Mes','Ano'].forEach(p => {
+            let ganho = d['g'+p] || 0;
+            let meta = d['m'+p] || 0;
+            let saude = ganho - meta;
+            document.getElementById('g'+p).innerText = 'R$ ' + ganho;
+            let elS = document.getElementById('s'+p);
+            if(elS) {
+                elS.innerText = 'SAÚDE: R$ ' + saude;
+                elS.className = 'status ' + (saude >= 0 ? 'pos' : 'neg');
+            }
+        });
     });
 </script>
 </body>
