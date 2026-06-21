@@ -118,11 +118,11 @@
             dF = document.getElementById('dFim').value, 
             m = parseFloat(document.getElementById('mSprint').value);
             
-        if(n && dI && dF && m) { 
+        if(n && dI.length === 10 && dF.length === 10 && m) { 
             ref.set({ sprints: firebase.firestore.FieldValue.arrayUnion({n, dI, dF, m, ganhoAtual: 0, id: Date.now()}) }, {merge: true})
             .then(() => alert("SUCESSO: Objetivo criado!"));
         } else {
-            alert("ERRO: Preencha todos os campos corretamente (Data no formato AAAA-MM-DD)");
+            alert("ERRO: Verifique se as datas estão no formato DD/MM/AAAA");
         }
     }
 
