@@ -169,6 +169,7 @@
             document.getElementById('listaCustos').appendChild(div);
         });
 
+       document.getElementById('listaSprints').innerHTML = '';
         (d.sprints || []).forEach(s => {
             let perc = Math.min(((s.ganhoAtual || 0) / s.m) * 100, 100);
             document.getElementById('listaSprints').innerHTML += `
@@ -176,12 +177,13 @@
                     <div style="display:flex; justify-content:space-between; width:100%;">
                         <span><strong>${s.n}</strong> | Até ${s.d}</span>
                         <div class="controls">
+                            <button onclick="adicionarGanhoSprint(${s.id})">💰</button>
                             <button onclick="editarSprint(${s.id})">✏️</button>
                             <button onclick="removeSprint(${s.id})">🗑️</button>
                         </div>
                     </div>
                     <div style="width:100%;">Meta: R$${s.m} | Atual: R$${s.ganhoAtual || 0}</div>
-                   <div class="progress-bar"><div class="progress-fill" style="width:${perc}%"></div></div>
+                    <div class="progress-bar"><div class="progress-fill" style="width:${perc}%"></div></div>
                 </div>`;
         });
     });
