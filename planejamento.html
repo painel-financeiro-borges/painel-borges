@@ -21,9 +21,11 @@
         .btn-green { background: var(--neon); color: #000; }
         .btn-red { background: var(--alert); color: #fff; margin-top: 15px; }
         .item, .sprint-card { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #111; margin-bottom: 8px; border-radius: 8px; border-left: 5px solid var(--gold); }
+        .item.pago { border-left-color: var(--neon); } 
+        .item.pendente { border-left-color: var(--alert); }
         .controls { display: flex; gap: 5px; }
         .progress-bar { height: 10px; background: #333; border-radius: 5px; margin-top: 10px; overflow: hidden; width: 100%; }
-        .progress-fill { height: 100%; background: var(--gold); width: 0%; }
+        .progress-fill { height: 100%; background: var(--gold); }
     </style>
 </head>
 <body>
@@ -105,10 +107,12 @@
         });
     }
 
-    function removeCusto(id) {
+    function editarSprint(id) {
         ref.get().then(doc => {
-            let l = doc.data().lista.filter(x => x.id !== id);
-            ref.update({ lista: l });
+            let s = doc.data().sprints;
+            let i = s.find(x => x.id === id);
+            let n = prompt("Novo Nome:", i.n), d = prompt("Nova Data:", i.d), m = prompt("Nova Meta:", i.m);
+            if(n && d && m) { i.n = n; i.d = d; i.m = m; ref.update({ sprints: s }); }
         });
     }
 
@@ -117,7 +121,7 @@
         if(!v) return;
         db.runTransaction(async t => {
             const d = (await t.get(ref)).data() || {};
-            t.set(ref, { gSem: (d.gSem||0)+v, gMes: (d.gMes||0)+v }, {merge: true});
+            t.set(ref, { gSem: (d.gSem||0)+v, gMes: (d.gMes||0)+v, gAno: (d.gAno||0)+v }, {merge: true});
         });
     }
 
@@ -148,6 +152,12 @@
 
     ref.onSnapshot(doc => {
         const d = doc.data() || { lista: [], sprints: [] };
+        ['Sem','Mes','Ano'].forEach(p => {
+            let g = d['g'+p]||0, m = d['m'+p]||0, s = g-m;
+            let elG = document.getElementById('g'+p), elS = document.getElementById('s'+p);
+            if(elG) elG.innerText = 'R$ '+g;
+            if(elS) { elS.innerText = 'SAÚDE: R$ '+s; elS.className = 'saude ' + (s >= 0 ? 'pos' : 'neg'); }
+        });
         
         document.getElementById('listaCustos').innerHTML = '';
         (d.lista || []).forEach(i => {
@@ -166,7 +176,10 @@
                     <strong>${s.n}</strong> | Até ${s.d}<br>
                     Meta: R$${s.m} | Atual: R$${s.ganhoAtual || 0}
                     <div class="progress-bar"><div class="progress-fill" style="width:${perc}%"></div></div>
-                    <div class="controls" style="margin-top:10px;"><button onclick="removeSprint(${s.id})">EXCLUIR</button></div>
+                    <div class="controls" style="margin-top:10px;">
+                        <button onclick="editarSprint(${s.id})">✏️</button>
+                        <button onclick="removeSprint(${s.id})">🗑️</button>
+                    </div>
                 </div>`;
         });
     });
