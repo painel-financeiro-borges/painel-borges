@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<title>Borges — Radar Financeiro</title>
+<style>
+    :root { --bg: #050505; --card: #101015; --verde: #39ff14; --rosa: #ff007f; --azul: #00f5ff; }
+    body { background: var(--bg); color: #fff; font-family: sans-serif; padding: 20px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+    .card { background: var(--card); border: 1px solid #222; border-radius: 20px; padding: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+    .valor { font-size: 28px; font-weight: 800; color: var(--verde); margin: 10px 0; }
+    input { width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 8px; margin-bottom: 10px; }
+    button { background: var(--azul); border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<h1 style="text-align:center; margin-bottom:30px;">🚀 Radar de Recuperação</h1>
+
+<div class="grid">
+    <!-- SEMANAL -->
+    <div class="card">
+        <h3>🗓️ Meta Semanal</h3>
+        <div id="metaSemana" class="valor">R$ 0,00</div>
+        <input type="number" id="inputSemana" placeholder="Novo Ganho da Semana">
+        <button onclick="atualizarFinanceiro('semana')">Atualizar</button>
+    </div>
+
+    <!-- MENSAL -->
+    <div class="card">
+        <h3>📊 Meta Mensal</h3>
+        <div id="metaMes" class="valor">R$ 0,00</div>
+        <input type="number" id="inputMes" placeholder="Novo Ganho do Mês">
+        <button onclick="atualizarFinanceiro('mes')">Atualizar</button>
+    </div>
+
+    <!-- SAÚDE FINANCEIRA -->
+    <div class="card" style="border: 1px solid var(--rosa);">
+        <h3>❤️ Saúde (Ganhos vs Custos)</h3>
+        <div id="saude" class="valor" style="color: var(--rosa);">R$ 0,00</div>
+        <p style="color:var(--muted); font-size:12px;">Meta: Limpar Nome & Apto</p>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
+        authDomain: "painel-financeiro-borges.firebaseapp.com",
+        projectId: "painel-financeiro-borges",
+        storageBucket: "painel-financeiro-borges.firebasestorage.app",
+        messagingSenderId: "354997627208",
+        appId: "1:354997627208:web:90604d0a7dcd45b6e4eb7d"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    // A nova coleção que criamos agora:
+    const docRef = db.collection("planejamento_financeiro").doc("status_atual");
+
+    function atualizarFinanceiro(periodo) {
+        const valor = parseFloat(document.getElementById('input' + periodo.charAt(0).toUpperCase() + periodo.slice(1)).value);
+        if (isNaN(valor)) return;
+        
+        db.runTransaction(async (transaction) => {
+            const doc = await transaction.get(docRef);
+            let data = doc.exists ? doc.data() : { semana: 0, mes: 0 };
+            data[periodo] = (data[periodo] || 0) + valor;
+            transaction.set(docRef, data);
+        }).then(() => alert("Atualizado! Foco no objetivo, Borges!"));
+    }
+
+    docRef.onSnapshot(doc => {
+        if (doc.exists) {
+            const data = doc.data();
+            document.getElementById('metaSemana').innerText = `R$ ${data.semana.toFixed(2)}`;
+            document.getElementById('metaMes').innerText = `R$ ${data.mes.toFixed(2)}`;
+            document.getElementById('saude').innerText = `R$ ${(data.mes - 1500).toFixed(2)}`; // Exemplo de cálculo fixo
+        }
+    });
+</script>
+</body>
+</html>
