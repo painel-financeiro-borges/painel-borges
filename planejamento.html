@@ -102,10 +102,12 @@
     }
 
     function removeSprint(id) {
-        ref.get().then(doc => {
-            let s = doc.data().sprints.filter(x => x.id !== id);
-            ref.update({ sprints: s });
-        });
+        if(confirm("Tem certeza que deseja excluir este objetivo? Esta ação não pode ser desfeita.")) {
+            ref.get().then(doc => {
+                let s = doc.data().sprints.filter(x => x.id !== id);
+                ref.update({ sprints: s });
+            });
+        }
     }
 
     function editarSprint(id) {
