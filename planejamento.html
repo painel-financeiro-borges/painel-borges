@@ -115,8 +115,8 @@
         ref.get().then(doc => {
             let s = doc.data().sprints;
             let i = s.find(x => x.id === id);
-            let n = prompt("Novo Nome:", i.n), d = prompt("Nova Data:", i.d), m = prompt("Nova Meta:", i.m);
-            if(n && d && m) { i.n = n; i.d = d; i.m = m; ref.update({ sprints: s }); }
+            let n = prompt("Nome:", i.n), dI = prompt("Data Início:", i.dI), dF = prompt("Data Término:", i.dF), m = prompt("Meta:", i.m);
+            if(n && dI && dF && m) { i.n = n; i.dI = dI; i.dF = dF; i.m = m; ref.update({ sprints: s }); }
         });
     }
 
