@@ -2,58 +2,46 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BORGES | RADAR DE ATAQUE</title>
+<title>BORGES | CONTROLE DE CICLOS</title>
 <style>
-    :root { --preto: #000; --verde: #39ff14; --vermelho: #ff003c; --branco: #fff; }
-    body { background: var(--preto); color: var(--branco); font-family: 'Courier New', monospace; padding: 20px; }
-    .painel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-    .bloco { border: 2px solid #333; padding: 20px; border-radius: 10px; background: #0a0a0a; }
-    h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 2px; color: #888; margin-bottom: 20px; }
-    .valor { font-size: 35px; font-weight: 900; color: var(--verde); font-family: sans-serif; }
-    .input-group { margin-top: 15px; }
-    input { width: 100%; padding: 10px; background: #111; border: 1px solid #444; color: #fff; margin: 5px 0; border-radius: 5px; box-sizing: border-box; }
-    button { width: 100%; padding: 12px; background: var(--verde); border: none; font-weight: bold; cursor: pointer; border-radius: 5px; margin-top: 5px; }
-    .badge { font-size: 12px; padding: 4px 8px; border-radius: 4px; background: #222; }
+    :root { --preto: #050505; --verde: #39ff14; --vermelho: #ff003c; --cinza: #222; }
+    body { background: var(--preto); color: #fff; font-family: 'Courier New', monospace; padding: 20px; }
+    .painel { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+    .bloco { border: 1px solid var(--cinza); padding: 20px; border-radius: 12px; background: #0a0a0a; }
+    .display { font-size: 24px; font-weight: 900; color: var(--verde); margin: 10px 0; }
+    input { width: 100%; padding: 10px; background: #000; border: 1px solid var(--cinza); color: #fff; margin-top: 5px; border-radius: 4px; box-sizing: border-box; }
+    button { width: 100%; padding: 10px; margin-top: 10px; font-weight: bold; cursor: pointer; border: none; border-radius: 4px; }
+    .btn-injetar { background: var(--verde); }
+    .btn-zerar { background: var(--vermelho); color: #fff; margin-top: 20px; }
 </style>
 </head>
 <body>
 
-<h1 style="text-align: center; font-size: 20px; margin-bottom: 40px; border-bottom: 1px solid #333; padding-bottom: 20px;">
-    💰 RADAR DE RECUPERAÇÃO FINANCEIRA
-</h1>
+<h1 style="text-align:center; font-size: 18px; margin-bottom: 30px;">CENTRAL DE PLANEJAMENTO</h1>
 
-<div class="painel-grid">
-    <!-- SEMANA -->
+<div class="painel">
+    <!-- SEMANAL -->
     <div class="bloco">
-        <h2>🗓️ CICLO SEMANAL</h2>
-        <div class="badge">META: <span id="metaSem">0</span></div>
-        <div class="valor" id="ganhoSem">R$ 0</div>
-        <div class="input-group">
-            <input type="number" id="inputSem" placeholder="Injetar valor (R$)">
-            <button onclick="injetar('semana')">INJETAR GANHO</button>
-        </div>
+        <h2>🗓️ SEMANA</h2>
+        <div>Meta: <span id="metaSem">0</span></div>
+        <div class="display" id="ganhoSem">R$ 0</div>
+        <input type="number" id="inMetaSem" placeholder="Definir nova meta semanal">
+        <button class="btn-injetar" onclick="atualizar('metaSem', 'inMetaSem')">DEFINIR META</button>
+        <input type="number" id="inGanhoSem" placeholder="Injetar ganho semanal">
+        <button class="btn-injetar" onclick="atualizar('ganhoSem', 'inGanhoSem')">INJETAR GANHO</button>
+        <button class="btn-zerar" onclick="zerar('metaSem', 'ganhoSem')">ZERAR SEMANA</button>
     </div>
 
-    <!-- MÊS -->
+    <!-- MENSAL -->
     <div class="bloco">
-        <h2>📊 CICLO MENSAL</h2>
-        <div class="badge">META: <span id="metaMes">0</span></div>
-        <div class="valor" id="ganhoMes">R$ 0</div>
-        <div class="input-group">
-            <input type="number" id="inputMes" placeholder="Injetar valor (R$)">
-            <button onclick="injetar('mes')">INJETAR GANHO</button>
-        </div>
-    </div>
-
-    <!-- CUSTOS E RESERVA -->
-    <div class="bloco" style="border-color: var(--vermelho);">
-        <h2 style="color: var(--vermelho);">⚠️ DÉBITO & CUSTOS</h2>
-        <div class="valor" id="custos" style="color: var(--vermelho);">R$ 0</div>
-        <div class="input-group">
-            <input type="number" id="inputCustos" placeholder="Registrar custo">
-            <button style="background: var(--vermelho);" onclick="injetar('custos')">REGISTRAR SAÍDA</button>
-        </div>
+        <h2>📊 MÊS</h2>
+        <div>Meta: <span id="metaMes">0</span></div>
+        <div class="display" id="ganhoMes">R$ 0</div>
+        <input type="number" id="inMetaMes" placeholder="Definir nova meta mensal">
+        <button class="btn-injetar" onclick="atualizar('metaMes', 'inMetaMes')">DEFINIR META</button>
+        <input type="number" id="inGanhoMes" placeholder="Injetar ganho mensal">
+        <button class="btn-injetar" onclick="atualizar('ganhoMes', 'inGanhoMes')">INJETAR GANHO</button>
+        <button class="btn-zerar" onclick="zerar('metaMes', 'ganhoMes')">ZERAR MÊS</button>
     </div>
 </div>
 
@@ -65,23 +53,30 @@
     const db = firebase.firestore();
     const docRef = db.collection("planejamento_financeiro").doc("status_atual");
 
-    function injetar(tipo) {
-        const val = parseFloat(document.getElementById('input' + tipo.charAt(0).toUpperCase() + tipo.slice(1)).value);
-        if(!val) return;
+    function atualizar(campo, inputId) {
+        const val = parseFloat(document.getElementById(inputId).value);
+        if(isNaN(val)) return;
         db.runTransaction(async t => {
             const doc = await t.get(docRef);
-            let d = doc.exists ? doc.data() : { semana: 0, mes: 0, custos: 0 };
-            d[tipo] = (d[tipo] || 0) + val;
+            let d = doc.exists ? doc.data() : { metaSem:0, ganhoSem:0, metaMes:0, ganhoMes:0 };
+            d[campo] = (d[campo] || 0) + val;
             t.set(docRef, d);
         });
+    }
+
+    function zerar(metaCampo, ganhoCampo) {
+        if(!confirm("Zerar este ciclo?")) return;
+        let update = {}; update[metaCampo] = 0; update[ganhoCampo] = 0;
+        docRef.update(update);
     }
 
     docRef.onSnapshot(doc => {
         if(doc.exists) {
             const d = doc.data();
-            document.getElementById('ganhoSem').innerText = 'R$ ' + (d.semana || 0);
-            document.getElementById('ganhoMes').innerText = 'R$ ' + (d.mes || 0);
-            document.getElementById('custos').innerText = 'R$ ' + (d.custos || 0);
+            document.getElementById('metaSem').innerText = d.metaSem || 0;
+            document.getElementById('ganhoSem').innerText = 'R$ ' + (d.ganhoSem || 0);
+            document.getElementById('metaMes').innerText = d.metaMes || 0;
+            document.getElementById('ganhoMes').innerText = 'R$ ' + (d.ganhoMes || 0);
         }
     });
 </script>
