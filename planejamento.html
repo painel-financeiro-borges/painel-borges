@@ -105,8 +105,9 @@
     function att(c, id) { 
         let v = parseFloat(document.getElementById(id).value); 
         if(!isNaN(v)) {
+            const mensagem = (c.startsWith('g')) ? "SUCESSO: Ganho injetado com êxito!" : "SUCESSO: Meta definida com êxito!";
             ref.set({[c]: v}, {merge: true}).then(() => {
-                alert("SUCESSO: Meta definida com êxito!");
+                alert(mensagem);
             });
         }
     }
