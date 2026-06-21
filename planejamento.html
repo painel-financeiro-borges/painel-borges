@@ -203,6 +203,53 @@
         });
     }
 
+    function abrirCalendarioVisual(sprints) {
+        const overlay = document.createElement('div');
+        overlay.id = 'timelineVisual';
+        overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.98); z-index:9999; padding:40px; box-sizing:border-box; color:white; font-family:Courier New; overflow-y:auto;';
+        
+        const gerarCalendario = (obj) => {
+            const meses = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
+            return meses.map((mes, idx) => {
+                const mesNum = idx + 1;
+                const estaNoPeriodo = mesNum >= obj.inicio && mesNum <= obj.fim;
+                return `
+                    <div style="border:1px solid ${estaNoPeriodo ? '#ffd700' : '#333'}; padding:10px; text-align:center; border-radius:8px; background:${estaNoPeriodo ? '#1a1a1a' : '#050505'};">
+                        <div style="font-weight:bold; color:${estaNoPeriodo ? '#ffd700' : '#555'};">${mes}</div>
+                        <div style="font-size:0.7rem; margin-top:5px; color:${estaNoPeriodo ? '#39ff14' : '#555'}">
+                            ${estaNoPeriodo ? 'ATIVO' : '---'}
+                        </div>
+                    </div>`;
+            }).join('');
+        };
+
+        let timelineHTML = sprints.map(obj => {
+            const progresso = Math.min(((obj.ganhoAtual || 0) / obj.m) * 100, 100);
+            return `
+                <div style="margin-bottom:40px; border:1px solid #444; padding:20px; border-radius:10px; background:#0a0a0a;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                        <span style="color:#ffd700; font-weight:bold;">${obj.n}</span>
+                        <span>META: R$${obj.m} | ATUAL: R$${obj.ganhoAtual || 0}</span>
+                    </div>
+                    <div style="height:15px; background:#222; border-radius:10px; overflow:hidden; margin-bottom:15px;">
+                        <div style="height:100%; width:${progresso}%; background:var(--gold);"></div>
+                    </div>
+                    <div style="display:grid; grid-template-columns:repeat(12, 1fr); gap:5px; margin-bottom:15px;">
+                        ${gerarCalendario({inicio: new Date(obj.dI).getMonth()+1, fim: new Date(obj.dF).getMonth()+1})}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        overlay.innerHTML = `
+            <div style="max-width:1000px; margin:0 auto; background:#050505; padding:30px; border-radius:20px; border:2px solid #ffd700;">
+                <h2 style="color:#ffd700; text-align:center; margin-bottom:30px;">LINHA DO TEMPO FINANCEIRA</h2>
+                ${timelineHTML}
+                <button onclick="document.getElementById('timelineVisual').remove()" style="width:100%; padding:15px; background:#ff003c; border:none; color:white; cursor:pointer; font-weight:bold; border-radius:8px;">FECHAR VISUALIZAÇÃO</button>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+    }
     
 </script>
 </body>
