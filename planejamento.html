@@ -173,12 +173,12 @@
         });
 
        document.getElementById('listaSprints').innerHTML = '';
-        (d.sprints || []).forEach(s => {
+       (d.sprints || []).forEach(s => {
             let perc = Math.min(((s.ganhoAtual || 0) / s.m) * 100, 100);
             document.getElementById('listaSprints').innerHTML += `
                 <div class="sprint-card">
                     <div style="display:flex; justify-content:space-between; width:100%;">
-                        <span><strong>${s.n}</strong> | Até ${s.d}</span>
+                        <span><strong>${s.n}</strong> | ${s.dI} a ${s.dF}</span>
                         <div class="controls">
                             <button onclick="adicionarGanhoSprint(${s.id})">💰</button>
                             <button onclick="editarSprint(${s.id})">✏️</button>
