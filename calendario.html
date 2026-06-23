@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Painel Borges - Calendário</title>
     <style>
-        /* Ajustado para permitir zoom out */
         body, html { margin: 0; padding: 0; min-height: 100%; font-family: sans-serif; background: #f4f4f4; overflow-x: auto; }
-        .controles { height: 50px; background: #ddd; display: flex; align-items: center; padding: 0 15px; gap: 15px; }
+        .controles { height: 50px; background: #ddd; display: flex; align-items: center; padding: 0 15px; gap: 10px; position: sticky; top: 0; z-index: 999; }
         
-        /* Layout Grid Otimizado: min-width garante que o navegador possa renderizar em escala menor */
+        /* Container com suporte a escala */
+        .calendario-wrapper { transform-origin: top left; transition: transform 0.2s; }
+        
         .calendario-container { 
             display: grid; 
             grid-template-columns: repeat(4, 1fr); 
@@ -35,20 +36,22 @@
 
     <div class="controles">
         <select id="selectAno" onchange="renderizarAno()">
-            <option value="2026">2026</option>
-            <option value="2027">2027</option>
-            <option value="2028">2028</option>
-            <option value="2029">2029</option>
-            <option value="2030">2030</option>
+            <script>
+                for(let y=2026; y<=2050; y++) document.write(`<option value="${y}">${y}</option>`);
+            </script>
         </select>
-        <button onclick="window.print()">Imprimir Calendário</button>
+        <button onclick="window.print()">Imprimir</button>
+        <button onclick="ajustarZoom(-0.1)">- Zoom</button>
+        <button onclick="ajustarZoom(0.1)">+ Zoom</button>
     </div>
 
-    <div id="app" class="calendario-container"></div>
+    <div id="wrapper" class="calendario-wrapper">
+        <div id="app" class="calendario-container"></div>
+    </div>
 
     <div id="modalAnotacao">
         <h2 id="modalData">Data</h2>
-        <textarea id="textoAnotacao" placeholder="Anotação abreviada (ex: evento)..." style="width:100%; height:80px;"></textarea>
+        <textarea id="textoAnotacao" placeholder="Anotação..." style="width:100%; height:80px;"></textarea>
         <div style="margin: 10px 0;">
             <label>Cor: </label>
             <input type="color" id="corAnotacao" value="#3498db">
@@ -73,8 +76,15 @@
 
         const db = getFirestore(initializeApp(firebaseConfig));
         const app = document.getElementById('app');
+        const wrapper = document.getElementById('wrapper');
         const modal = document.getElementById('modalAnotacao');
         let dataSelecionada = null;
+        let zoomLevel = 1;
+
+        window.ajustarZoom = (delta) => {
+            zoomLevel = Math.min(Math.max(zoomLevel + delta, 0.5), 1.5);
+            wrapper.style.transform = `scale(${zoomLevel})`;
+        };
 
         window.renderizarAno = () => {
             const ano = document.getElementById('selectAno').value;
@@ -112,7 +122,7 @@
             const cor = document.getElementById('corAnotacao').value;
             try {
                 await addDoc(collection(db, "calendario_anotacoes"), { data: dataSelecionada, texto, cor, timestamp: new Date() });
-                alert("Salvo com sucesso!");
+                alert("Salvo!");
                 fecharModal();
             } catch (e) { alert("Erro: " + e.message); }
         };
