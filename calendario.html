@@ -7,26 +7,14 @@
     <style>
         body, html { margin: 0; padding: 0; min-height: 100%; font-family: sans-serif; background: #f4f4f4; overflow-x: auto; }
         .controles { height: 50px; background: #ddd; display: flex; align-items: center; padding: 0 15px; gap: 10px; position: sticky; top: 0; z-index: 999; }
-        
         .calendario-wrapper { transform-origin: top left; transition: transform 0.2s; }
-        
-        .calendario-container { 
-            display: grid; 
-            grid-template-columns: repeat(4, 1fr); 
-            gap: 10px; 
-            padding: 10px;
-            min-width: 800px; 
-        }
-        @media (max-width: 768px) {
-            .calendario-container { grid-template-columns: repeat(2, 1fr); }
-        }
-
+        .calendario-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 10px; min-width: 800px; }
+        @media (max-width: 768px) { .calendario-container { grid-template-columns: repeat(2, 1fr); } }
         .mes-bloco { background: #fff; border: 1px solid #ccc; padding: 8px; border-radius: 4px; }
         .mes-titulo { font-weight: bold; text-align: center; margin-bottom: 5px; border-bottom: 2px solid #333; }
         .grid-dias { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
         .dia { border: 1px solid #eee; height: 35px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.9em; position: relative; }
         .dia:hover { background: #eef; }
-        
         #modalAnotacao { display:none; position:fixed; top:10%; left:5%; width:90%; max-width: 500px; background:white; padding:20px; border-radius:10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); z-index: 1000; }
         @media print { .controles, #modalAnotacao { display: none !important; } }
     </style>
@@ -129,6 +117,12 @@
         window.abrirModal = (d, m, a) => {
             dataSelecionada = `${d}/${m}/${a}`;
             document.getElementById('modalData').innerText = `Data: ${dataSelecionada}`;
+            
+            // Carrega dados se já existirem
+            const info = anotacoes[dataSelecionada];
+            document.getElementById('textoAnotacao').value = info ? info.texto : '';
+            document.getElementById('corAnotacao').value = info ? info.cor : '#3498db';
+            
             modal.style.display = 'block';
         };
 
