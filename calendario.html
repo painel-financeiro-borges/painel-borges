@@ -5,28 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Borges - Calendário</title>
     <style>
-        :root { --celula-tamanho: 100px; }
         body { font-family: sans-serif; padding: 10px; background: #f4f4f4; }
-        .btn-imprimir { margin-bottom: 20px; padding: 10px 20px; cursor: pointer; }
-        .calendario-container { display: flex; flex-direction: column; gap: 20px; }
-        .mes-bloco { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .grid-dias { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
-        .dia { min-height: var(--celula-tamanho); border: 1px solid #ddd; padding: 5px; cursor: pointer; }
+        .controles { margin-bottom: 20px; background: white; padding: 15px; border-radius: 8px; }
+        .calendario-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }
+        .mes-bloco { background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .grid-dias { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+        .dia { min-height: 50px; border: 1px solid #eee; padding: 2px; cursor: pointer; font-size: 0.8em; }
         .dia:hover { background: #eef; }
-        .numero-dia { font-weight: bold; border-bottom: 2px solid #333; margin-bottom: 5px; }
+        .numero-dia { font-weight: bold; border-bottom: 1px solid #999; margin-bottom: 2px; }
         #modalAnotacao { display:none; position:fixed; top:10%; left:5%; width:90%; max-width: 500px; background:white; padding:20px; border-radius:10px; box-shadow: 0 0 20px rgba(0,0,0,0.3); z-index: 1000; }
-        @media print { .btn-imprimir, #modalAnotacao { display: none !important; } }
     </style>
 </head>
 <body>
 
-    <h1>Calendário de Planejamento</h1>
-    <button class="btn-imprimir" onclick="window.print()">Imprimir Calendário</button>
+    <div class="controles">
+        <label>Escolha o Ano: </label>
+        <select id="selectAno" onchange="renderizarAno()">
+            <option value="2026">2026</option>
+            <option value="2027">2027</option>
+        </select>
+        <button onclick="window.print()">Imprimir Ano Atual</button>
+    </div>
+
     <div id="app" class="calendario-container"></div>
 
     <div id="modalAnotacao">
         <h2 id="modalData">Data</h2>
-        <textarea id="textoAnotacao" placeholder="Ex: Evento..." style="width:100%; height:80px;"></textarea>
+        <textarea id="textoAnotacao" placeholder="Anotação..." style="width:100%; height:80px;"></textarea>
         <input type="color" id="corAnotacao" value="#3498db">
         <button id="btnSalvar">Salvar no Firebase</button>
         <button onclick="fecharModal()">Fechar</button>
@@ -35,7 +40,6 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
         import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
@@ -49,35 +53,34 @@
 
         const appFirebase = initializeApp(firebaseConfig);
         const db = getFirestore(appFirebase);
-        window.db = db;
 
         const app = document.getElementById('app');
         const modal = document.getElementById('modalAnotacao');
         let dataSelecionada = null;
 
-        function gerarCalendario() {
-            let dataAtual = new Date(2026, 5, 1);
-            const fim = new Date(2027, 11, 31);
-            while (dataAtual <= fim) {
+        window.renderizarAno = () => {
+            const ano = document.getElementById('selectAno').value;
+            app.innerHTML = '';
+            for (let mes = 0; mes < 12; mes++) {
                 const mesDiv = document.createElement('div');
                 mesDiv.className = 'mes-bloco';
-                mesDiv.innerHTML = `<h3>${dataAtual.toLocaleString('pt-BR', { month: 'long', year: 'numeric' })}</h3>`;
+                const dataTemp = new Date(ano, mes, 1);
+                mesDiv.innerHTML = `<h3>${dataTemp.toLocaleString('pt-BR', { month: 'long' })}</h3>`;
                 const grid = document.createElement('div');
                 grid.className = 'grid-dias';
-                const diasNoMes = new Date(dataAtual.getFullYear(), dataAtual.getMonth() + 1, 0).getDate();
+                
+                const diasNoMes = new Date(ano, mes + 1, 0).getDate();
                 for (let i = 1; i <= diasNoMes; i++) {
                     const diaDiv = document.createElement('div');
                     diaDiv.className = 'dia';
                     diaDiv.innerHTML = `<div class="numero-dia">${i < 10 ? '0'+i : i}</div>`;
-                    const d = i, m = dataAtual.getMonth() + 1, a = dataAtual.getFullYear();
-                    diaDiv.onclick = () => abrirModal(d, m, a);
+                    diaDiv.onclick = () => abrirModal(i, mes + 1, ano);
                     grid.appendChild(diaDiv);
                 }
                 mesDiv.appendChild(grid);
                 app.appendChild(mesDiv);
-                dataAtual.setMonth(dataAtual.getMonth() + 1);
             }
-        }
+        };
 
         window.abrirModal = (d, m, a) => {
             dataSelecionada = `${d}/${m}/${a}`;
@@ -90,21 +93,12 @@
         document.getElementById('btnSalvar').onclick = async () => {
             const texto = document.getElementById('textoAnotacao').value;
             const cor = document.getElementById('corAnotacao').value;
-            try {
-                await addDoc(collection(db, "calendario_anotacoes"), {
-                    data: dataSelecionada,
-                    texto: texto,
-                    cor: cor,
-                    timestamp: new Date()
-                });
-                alert("Salvo com sucesso!");
-                fecharModal();
-            } catch (e) {
-                alert("Erro ao salvar: " + e.message);
-            }
+            await addDoc(collection(db, "calendario_anotacoes"), { data: dataSelecionada, texto, cor, timestamp: new Date() });
+            alert("Salvo!");
+            fecharModal();
         };
 
-        gerarCalendario();
+        renderizarAno();
     </script>
 </body>
 </html>
