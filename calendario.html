@@ -24,7 +24,8 @@
         .dia { border: 1px solid #eee; height: 4vw; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.8vw; position: relative; }
         .dia:hover { background: #eef; }
         
-        #modalAnotacao { display:none; position:fixed; top:10%; left:5%; width:90%; max-width: 500px; background:white; padding:20px; border-radius:10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); z-index: 1000; }
+        #modalAnotacao { display:none; position:fixed; top:5%; left:5%; width:90%; max-width: 500px; background:white; padding:20px; border-radius:10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); z-index: 1000; max-height: 80vh; overflow-y: auto; }
+        .item-anotacao { padding: 5px; margin: 5px 0; border-left: 5px solid; font-size: 0.9em; }
         @media print { .controles, #modalAnotacao { display: none !important; } }
     </style>
 </head>
@@ -43,12 +44,14 @@
 
     <div id="modalAnotacao">
         <h2 id="modalData">Data</h2>
-        <textarea id="textoAnotacao" placeholder="Anotação..." style="width:100%; height:80px;"></textarea>
+        <div id="listaAnotacoes" style="margin-bottom: 15px;"></div>
+        <hr>
+        <textarea id="textoAnotacao" placeholder="Nova anotação..." style="width:100%; height:60px;"></textarea>
         <div style="margin: 10px 0;">
             <label>Cor: </label>
             <input type="color" id="corAnotacao" value="#3498db">
         </div>
-        <button id="btnSalvar">Salvar no Firebase</button>
+        <button id="btnSalvar">Adicionar ao dia</button>
         <button onclick="fecharModal()">Fechar</button>
     </div>
 
@@ -73,7 +76,7 @@
         
         let dataSelecionada = null;
         let zoomLevel = 1;
-        let anotacoes = {};
+        let anotacoes = {}; // Estrutura: { 'data': [ {texto, cor}, {texto, cor} ] }
         let anoAtual = new Date().getFullYear();
 
         document.getElementById('inputAno').value = anoAtual;
@@ -96,8 +99,9 @@
             anotacoes = {};
             const querySnapshot = await getDocs(collection(db, "calendario_anotacoes"));
             querySnapshot.forEach((doc) => {
-                const data = doc.data();
-                anotacoes[data.data] = { texto: data.texto, cor: data.cor };
+                const d = doc.data();
+                if (!anotacoes[d.data]) anotacoes[d.data] = [];
+                anotacoes[d.data].push({ texto: d.texto, cor: d.cor });
             });
         }
 
@@ -123,9 +127,9 @@
                     diaDiv.className = 'dia';
                     diaDiv.innerHTML = `<span>${i}</span>`;
                     
-                    if (anotacoes[dataChave]) {
-                        diaDiv.style.backgroundColor = anotacoes[dataChave].cor;
-                        diaDiv.title = anotacoes[dataChave].texto;
+                    if (anotacoes[dataChave] && anotacoes[dataChave].length > 0) {
+                        // Usa a cor da última anotação adicionada
+                        diaDiv.style.backgroundColor = anotacoes[dataChave][anotacoes[dataChave].length - 1].cor;
                     }
                     
                     diaDiv.onclick = () => abrirModal(i, mes + 1, ano);
@@ -139,9 +143,19 @@
         window.abrirModal = (d, m, a) => {
             dataSelecionada = `${d}/${m}/${a}`;
             document.getElementById('modalData').innerText = `Data: ${dataSelecionada}`;
-            const info = anotacoes[dataSelecionada];
-            document.getElementById('textoAnotacao').value = info ? info.texto : '';
-            document.getElementById('corAnotacao').value = info ? info.cor : '#3498db';
+            
+            const lista = document.getElementById('listaAnotacoes');
+            lista.innerHTML = '';
+            const itens = anotacoes[dataSelecionada] || [];
+            
+            itens.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'item-anotacao';
+                div.style.borderColor = item.cor;
+                div.innerText = item.texto;
+                lista.appendChild(div);
+            });
+
             modal.style.display = 'block';
         };
 
@@ -150,11 +164,13 @@
         document.getElementById('btnSalvar').onclick = async () => {
             const texto = document.getElementById('textoAnotacao').value;
             const cor = document.getElementById('corAnotacao').value;
+            if (!texto) return;
             try {
                 await addDoc(collection(db, "calendario_anotacoes"), { data: dataSelecionada, texto, cor, timestamp: new Date() });
-                alert("Salvo com sucesso!");
+                alert("Salvo!");
+                document.getElementById('textoAnotacao').value = '';
                 iniciarRenderizacao();
-                fecharModal();
+                abrirModal(dataSelecionada.split('/')[0], dataSelecionada.split('/')[1], dataSelecionada.split('/')[2]);
             } catch (e) { alert("Erro: " + e.message); }
         };
 
