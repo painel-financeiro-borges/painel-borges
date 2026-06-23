@@ -75,12 +75,12 @@
         const wrapper = document.getElementById('wrapper');
         const modal = document.getElementById('modalAnotacao');
         
-        // Define o ano atual automaticamente ao carregar
-        document.getElementById('inputAno').value = new Date().getFullYear();
-
         let dataSelecionada = null;
         let zoomLevel = 1;
         let anotacoes = {};
+
+        // Configuração inicial garantida
+        document.getElementById('inputAno').value = new Date().getFullYear();
 
         window.ajustarZoom = (delta) => {
             zoomLevel = Math.min(Math.max(zoomLevel + delta, 0.5), 1.5);
@@ -153,6 +153,7 @@
             } catch (e) { alert("Erro: " + e.message); }
         };
 
+        // Renderização inicial
         iniciarRenderizacao();
     </script>
 </body>
