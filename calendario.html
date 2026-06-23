@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Borges - Calendário</title>
+    <style>
+        :root { --celula-tamanho: 100px; }
+        body { font-family: sans-serif; padding: 10px; background: #f4f4f4; }
+        
+        .calendario-container { display: flex; flex-direction: column; gap: 20px; }
+        .mes-bloco { background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .grid-dias { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+        
+        .dia { 
+            min-height: var(--celula-tamanho); 
+            border: 1px solid #ddd; 
+            padding: 5px; 
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+        }
+        .dia:hover { background: #f0f0f0; }
+        .numero-dia { font-weight: bold; border-bottom: 2px solid #333; margin-bottom: 5px; }
+        
+        /* Ajuste para celular */
+        @media (max-width: 600px) {
+            :root { --celula-tamanho: 80px; }
+            .grid-dias { grid-template-columns: repeat(4, 1fr); } /* Em telas pequenas, podemos ajustar a grade */
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app" class="calendario-container">
+        <!-- O JS preencherá aqui -->
+    </div>
+
+    <script>
+        const app = document.getElementById('app');
+        const hoje = new Date();
+        const fim = new Date(2027, 11, 31); // Dezembro 2027
+
+        function gerarCalendario() {
+            let dataAtual = new Date(2026, 5, 1); // Junho 2026
+
+            while (dataAtual <= fim) {
+                const mesDiv = document.createElement('div');
+                mesDiv.className = 'mes-bloco';
+                mesDiv.innerHTML = `<h3>${dataAtual.toLocaleString('pt-BR', { month: 'long', year: 'numeric' })}</h3>`;
+                
+                const grid = document.createElement('div');
+                grid.className = 'grid-dias';
+
+                const diasNoMes = new Date(dataAtual.getFullYear(), dataAtual.getMonth() + 1, 0).getDate();
+
+                for (let i = 1; i <= diasNoMes; i++) {
+                    const diaDiv = document.createElement('div');
+                    diaDiv.className = 'dia';
+                    diaDiv.innerHTML = `<div class="numero-dia">${i}</div>`;
+                    grid.appendChild(diaDiv);
+                }
+
+                mesDiv.appendChild(grid);
+                app.appendChild(mesDiv);
+                
+                dataAtual.setMonth(dataAtual.getMonth() + 1);
+            }
+        }
+
+        gerarCalendario();
+    </script>
+</body>
+</html>
