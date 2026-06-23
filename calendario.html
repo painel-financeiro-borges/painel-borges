@@ -9,7 +9,7 @@
         body { font-family: sans-serif; padding: 10px; background: #f4f4f4; }
         
         .calendario-container { display: flex; flex-direction: column; gap: 20px; }
-        .mes-bloco { background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .mes-bloco { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .grid-dias { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
         
         .dia { 
@@ -19,30 +19,48 @@
             cursor: pointer;
             display: flex;
             flex-direction: column;
+            transition: background 0.2s;
         }
-        .dia:hover { background: #f0f0f0; }
+        .dia:hover { background: #eef; }
         .numero-dia { font-weight: bold; border-bottom: 2px solid #333; margin-bottom: 5px; }
         
-        /* Ajuste para celular */
+        /* Estilo do Modal */
+        #modalAnotacao { display:none; position:fixed; top:10%; left:5%; width:90%; max-width: 500px; background:white; padding:20px; border-radius:10px; box-shadow: 0 0 20px rgba(0,0,0,0.3); z-index: 1000; }
+        
         @media (max-width: 600px) {
-            :root { --celula-tamanho: 80px; }
-            .grid-dias { grid-template-columns: repeat(4, 1fr); } /* Em telas pequenas, podemos ajustar a grade */
+            :root { --celula-tamanho: 70px; }
+            .grid-dias { grid-template-columns: repeat(7, 1fr); }
         }
     </style>
 </head>
 <body>
 
-    <div id="app" class="calendario-container">
-        <!-- O JS preencherá aqui -->
+    <h1>Calendário de Planejamento</h1>
+    <div id="app" class="calendario-container"></div>
+
+    <!-- Modal -->
+    <div id="modalAnotacao">
+        <h2 id="modalData">Data</h2>
+        <textarea id="textoAnotacao" placeholder="Anotação abreviada (ex: evento)..." style="width:100%; height:80px; margin-bottom:10px;"></textarea>
+        
+        <div style="margin-bottom:15px;">
+            <label>Cor da anotação: </label>
+            <input type="color" id="corAnotacao" value="#3498db">
+        </div>
+        
+        <button onclick="salvarAnotacao()">Salvar</button>
+        <button onclick="fecharModal()">Fechar</button>
     </div>
 
     <script>
         const app = document.getElementById('app');
-        const hoje = new Date();
-        const fim = new Date(2027, 11, 31); // Dezembro 2027
+        const modal = document.getElementById('modalAnotacao');
+        let dataSelecionada = null;
 
         function gerarCalendario() {
+            const hoje = new Date();
             let dataAtual = new Date(2026, 5, 1); // Junho 2026
+            const fim = new Date(2027, 11, 31); // Dezembro 2027
 
             while (dataAtual <= fim) {
                 const mesDiv = document.createElement('div');
@@ -57,15 +75,36 @@
                 for (let i = 1; i <= diasNoMes; i++) {
                     const diaDiv = document.createElement('div');
                     diaDiv.className = 'dia';
-                    diaDiv.innerHTML = `<div class="numero-dia">${i}</div>`;
+                    diaDiv.innerHTML = `<div class="numero-dia">${i < 10 ? '0'+i : i}</div>`;
+                    
+                    const mes = dataAtual.getMonth() + 1;
+                    const ano = dataAtual.getFullYear();
+                    diaDiv.onclick = () => abrirModal(i, mes, ano);
+                    
                     grid.appendChild(diaDiv);
                 }
 
                 mesDiv.appendChild(grid);
                 app.appendChild(mesDiv);
-                
                 dataAtual.setMonth(dataAtual.getMonth() + 1);
             }
+        }
+
+        function abrirModal(dia, mes, ano) {
+            dataSelecionada = `${dia}/${mes}/${ano}`;
+            document.getElementById('modalData').innerText = `Data: ${dataSelecionada}`;
+            modal.style.display = 'block';
+        }
+
+        function fecharModal() {
+            modal.style.display = 'none';
+        }
+
+        function salvarAnotacao() {
+            const texto = document.getElementById('textoAnotacao').value;
+            const cor = document.getElementById('corAnotacao').value;
+            alert(`Salvando: "${texto}" na cor ${cor} para o dia ${dataSelecionada}`);
+            fecharModal();
         }
 
         gerarCalendario();
