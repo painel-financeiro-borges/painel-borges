@@ -35,7 +35,7 @@
 <body>
 
     <div class="controles">
-        <input type="number" id="inputAno" value="2026" min="2000" max="2100" style="width: 70px;" onchange="iniciarRenderizacao()">
+        <input type="number" id="inputAno" min="2000" max="2100" style="width: 70px;" onchange="iniciarRenderizacao()">
         <button onclick="window.print()">Imprimir</button>
         <button onclick="ajustarZoom(-0.1)">- Zoom</button>
         <button onclick="ajustarZoom(0.1)">+ Zoom</button>
@@ -74,6 +74,10 @@
         const app = document.getElementById('app');
         const wrapper = document.getElementById('wrapper');
         const modal = document.getElementById('modalAnotacao');
+        
+        // Define o ano atual automaticamente ao carregar
+        document.getElementById('inputAno').value = new Date().getFullYear();
+
         let dataSelecionada = null;
         let zoomLevel = 1;
         let anotacoes = {};
