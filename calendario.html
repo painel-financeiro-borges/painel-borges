@@ -35,7 +35,7 @@
 <body>
 
     <div class="controles">
-        <input type="number" id="inputAno" min="2000" max="2100" style="width: 70px;" onchange="iniciarRenderizacao()">
+        <input type="number" id="inputAno" min="2000" max="2100" style="width: 70px;" onchange="confirmarMudancaAno(this.value)">
         <button onclick="window.print()">Imprimir</button>
         <button onclick="ajustarZoom(-0.1)">- Zoom</button>
         <button onclick="ajustarZoom(0.1)">+ Zoom</button>
@@ -78,9 +78,19 @@
         let dataSelecionada = null;
         let zoomLevel = 1;
         let anotacoes = {};
+        let anoAtual = new Date().getFullYear();
 
-        // Configuração inicial garantida
-        document.getElementById('inputAno').value = new Date().getFullYear();
+        document.getElementById('inputAno').value = anoAtual;
+
+        // Função de Confirmação
+        window.confirmarMudancaAno = (novoAno) => {
+            if (confirm(`Alterar o ano para ${novoAno}?`)) {
+                anoAtual = novoAno;
+                iniciarRenderizacao();
+            } else {
+                document.getElementById('inputAno').value = anoAtual; // Reverte o valor se cancelar
+            }
+        };
 
         window.ajustarZoom = (delta) => {
             zoomLevel = Math.min(Math.max(zoomLevel + delta, 0.5), 1.5);
@@ -153,7 +163,6 @@
             } catch (e) { alert("Erro: " + e.message); }
         };
 
-        // Renderização inicial
         iniciarRenderizacao();
     </script>
 </body>
