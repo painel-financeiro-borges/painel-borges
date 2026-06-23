@@ -8,7 +8,6 @@
         body, html { margin: 0; padding: 0; min-height: 100%; font-family: sans-serif; background: #f4f4f4; overflow-x: hidden; }
         .controles { height: 60px; background: #ddd; display: flex; align-items: center; padding: 0 10px; gap: 8px; position: sticky; top: 0; z-index: 999; }
         
-        /* Aumentei o input para facilitar clique no mobile */
         #inputAno { width: 80px !important; height: 40px; font-size: 1.2em; border: 1px solid #999; border-radius: 4px; }
         button { height: 40px; padding: 0 10px; cursor: pointer; }
 
@@ -18,11 +17,11 @@
         .mes-bloco { background: #fff; border: 1px solid #ccc; padding: 2px; border-radius: 2px; }
         .mes-titulo { font-weight: bold; text-align: center; font-size: 2vw; margin-bottom: 2px; border-bottom: 1px solid #333; }
         .grid-dias { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
-        .dia { border: 1px solid #eee; height: 5vw; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.8vw; position: relative; }
-        .dia:hover { background: #eef; }
         
-        /* Indicador de quantidade de anotações */
-        .badge { position: absolute; top: 1px; right: 1px; background: red; color: white; border-radius: 50%; font-size: 1vw; width: 1.5vw; height: 1.5vw; display: flex; align-items: center; justify-content: center; }
+        /* Ajuste do quadrado do dia */
+        .dia { border: 1px solid #eee; min-height: 8vw; display: flex; flex-direction: column; cursor: pointer; position: relative; font-size: 0.7vw; overflow: hidden; }
+        .dia-topo { font-weight: bold; border-bottom: 1px solid #333; text-align: center; background: #f0f0f0; }
+        .evento-tag { color: white; padding: 1px 2px; margin: 1px 0; font-size: 0.6vw; border-radius: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         #modalAnotacao { display:none; position:fixed; top:5%; left:5%; width:90%; max-width: 500px; background:white; padding:20px; border-radius:10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); z-index: 1000; max-height: 80vh; overflow-y: auto; }
         .item-anotacao { padding: 5px; margin: 5px 0; border-left: 5px solid; font-size: 0.9em; background: #f9f9f9; }
@@ -125,15 +124,17 @@
                     const dataChave = `${i}/${mes + 1}/${ano}`;
                     const diaDiv = document.createElement('div');
                     diaDiv.className = 'dia';
-                    diaDiv.innerHTML = `<span>${i}</span>`;
+                    diaDiv.innerHTML = `<div class="dia-topo">${i}</div>`;
                     
-                    if (anotacoes[dataChave] && anotacoes[dataChave].length > 0) {
-                        diaDiv.style.backgroundColor = anotacoes[dataChave][anotacoes[dataChave].length - 1].cor;
-                        // Badge de visualização rápida
-                        const badge = document.createElement('div');
-                        badge.className = 'badge';
-                        badge.innerText = anotacoes[dataChave].length;
-                        diaDiv.appendChild(badge);
+                    // Renderiza eventos no quadrado do dia
+                    if (anotacoes[dataChave]) {
+                        anotacoes[dataChave].forEach(item => {
+                            const eventDiv = document.createElement('div');
+                            eventDiv.className = 'evento-tag';
+                            eventDiv.style.backgroundColor = item.cor;
+                            eventDiv.innerText = item.texto.substring(0, 10);
+                            diaDiv.appendChild(eventDiv);
+                        });
                     }
                     
                     diaDiv.onclick = () => abrirModal(i, mes + 1, ano);
