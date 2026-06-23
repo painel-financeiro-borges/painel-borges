@@ -8,19 +8,27 @@
         body, html { margin: 0; padding: 0; min-height: 100%; font-family: sans-serif; background: #f4f4f4; }
         .controles { height: 50px; background: #ddd; display: flex; align-items: center; padding: 0 15px; gap: 10px; position: sticky; top: 0; z-index: 999; }
         
-        .calendario-wrapper { transform-origin: top left; transition: transform 0.2s; }
+        .calendario-wrapper { 
+            transform-origin: top center; /* Ajustado para centralizar o zoom */
+            transition: transform 0.2s; 
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
         
         .calendario-container { 
             display: grid; 
             grid-template-columns: repeat(4, 1fr); 
             gap: 10px; 
             padding: 10px;
+            width: 100%;
+            max-width: 1200px; /* Limite para não estourar em telas gigantes */
         }
         
         /* Ajustes de Responsividade Automática */
         @media (max-width: 1024px) { .calendario-container { grid-template-columns: repeat(3, 1fr); } }
         @media (max-width: 768px) { .calendario-container { grid-template-columns: repeat(2, 1fr); gap: 5px; padding: 5px; } }
-        @media (max-width: 480px) { .calendario-container { grid-template-columns: repeat(1, 1fr); } }
+        @media (max-width: 480px) { .calendario-container { grid-template-columns: repeat(2, 1fr); } } /* Mantido 2 colunas para melhor visualização */
 
         .mes-bloco { background: #fff; border: 1px solid #ccc; padding: 8px; border-radius: 4px; }
         .mes-titulo { font-weight: bold; text-align: center; margin-bottom: 5px; border-bottom: 2px solid #333; font-size: 0.9em; }
@@ -82,13 +90,12 @@
 
         document.getElementById('inputAno').value = anoAtual;
 
-        // Função de Confirmação
         window.confirmarMudancaAno = (novoAno) => {
             if (confirm(`Alterar o ano para ${novoAno}?`)) {
                 anoAtual = novoAno;
                 iniciarRenderizacao();
             } else {
-                document.getElementById('inputAno').value = anoAtual; // Reverte o valor se cancelar
+                document.getElementById('inputAno').value = anoAtual;
             }
         };
 
