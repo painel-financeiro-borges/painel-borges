@@ -6,36 +6,36 @@
     <title>Painel Borges - Calendário</title>
     <style>
         body, html { margin: 0; padding: 0; min-height: 100%; font-family: sans-serif; background: #f4f4f4; overflow-x: hidden; }
-        .controles { height: 50px; background: #ddd; display: flex; align-items: center; padding: 0 15px; gap: 10px; position: sticky; top: 0; z-index: 999; }
+        .controles { height: 60px; background: #ddd; display: flex; align-items: center; padding: 0 10px; gap: 8px; position: sticky; top: 0; z-index: 999; }
         
-        .calendario-wrapper { transition: transform 0.2s; width: 100%; }
-        
-        .calendario-container { 
-            display: grid; 
-            grid-template-columns: repeat(4, 1fr); 
-            gap: 2px; 
-            padding: 5px;
-            width: 100vw;
-        }
+        /* Aumentei o input para facilitar clique no mobile */
+        #inputAno { width: 80px !important; height: 40px; font-size: 1.2em; border: 1px solid #999; border-radius: 4px; }
+        button { height: 40px; padding: 0 10px; cursor: pointer; }
+
+        .calendario-wrapper { transition: transform 0.2s; width: 100%; transform-origin: top left; }
+        .calendario-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; padding: 5px; width: 100vw; }
         
         .mes-bloco { background: #fff; border: 1px solid #ccc; padding: 2px; border-radius: 2px; }
         .mes-titulo { font-weight: bold; text-align: center; font-size: 2vw; margin-bottom: 2px; border-bottom: 1px solid #333; }
         .grid-dias { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
-        .dia { border: 1px solid #eee; height: 4vw; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.8vw; position: relative; }
+        .dia { border: 1px solid #eee; height: 5vw; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.8vw; position: relative; }
         .dia:hover { background: #eef; }
         
+        /* Indicador de quantidade de anotações */
+        .badge { position: absolute; top: 1px; right: 1px; background: red; color: white; border-radius: 50%; font-size: 1vw; width: 1.5vw; height: 1.5vw; display: flex; align-items: center; justify-content: center; }
+
         #modalAnotacao { display:none; position:fixed; top:5%; left:5%; width:90%; max-width: 500px; background:white; padding:20px; border-radius:10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); z-index: 1000; max-height: 80vh; overflow-y: auto; }
-        .item-anotacao { padding: 5px; margin: 5px 0; border-left: 5px solid; font-size: 0.9em; }
+        .item-anotacao { padding: 5px; margin: 5px 0; border-left: 5px solid; font-size: 0.9em; background: #f9f9f9; }
         @media print { .controles, #modalAnotacao { display: none !important; } }
     </style>
 </head>
 <body>
 
     <div class="controles">
-        <input type="number" id="inputAno" min="2000" max="2100" style="width: 70px;" onchange="confirmarMudancaAno(this.value)">
+        <input type="number" id="inputAno" min="2000" max="2100" onchange="confirmarMudancaAno(this.value)">
         <button onclick="window.print()">Imprimir</button>
-        <button onclick="ajustarZoom(-0.1)">- Zoom</button>
-        <button onclick="ajustarZoom(0.1)">+ Zoom</button>
+        <button onclick="ajustarZoom(-0.1)">-</button>
+        <button onclick="ajustarZoom(0.1)">+</button>
     </div>
 
     <div id="wrapper" class="calendario-wrapper">
@@ -76,7 +76,7 @@
         
         let dataSelecionada = null;
         let zoomLevel = 1;
-        let anotacoes = {}; // Estrutura: { 'data': [ {texto, cor}, {texto, cor} ] }
+        let anotacoes = {};
         let anoAtual = new Date().getFullYear();
 
         document.getElementById('inputAno').value = anoAtual;
@@ -128,8 +128,12 @@
                     diaDiv.innerHTML = `<span>${i}</span>`;
                     
                     if (anotacoes[dataChave] && anotacoes[dataChave].length > 0) {
-                        // Usa a cor da última anotação adicionada
                         diaDiv.style.backgroundColor = anotacoes[dataChave][anotacoes[dataChave].length - 1].cor;
+                        // Badge de visualização rápida
+                        const badge = document.createElement('div');
+                        badge.className = 'badge';
+                        badge.innerText = anotacoes[dataChave].length;
+                        diaDiv.appendChild(badge);
                     }
                     
                     diaDiv.onclick = () => abrirModal(i, mes + 1, ano);
@@ -143,19 +147,16 @@
         window.abrirModal = (d, m, a) => {
             dataSelecionada = `${d}/${m}/${a}`;
             document.getElementById('modalData').innerText = `Data: ${dataSelecionada}`;
-            
             const lista = document.getElementById('listaAnotacoes');
             lista.innerHTML = '';
             const itens = anotacoes[dataSelecionada] || [];
-            
             itens.forEach(item => {
                 const div = document.createElement('div');
                 div.className = 'item-anotacao';
-                div.style.borderColor = item.cor;
+                div.style.borderLeftColor = item.cor;
                 div.innerText = item.texto;
                 lista.appendChild(div);
             });
-
             modal.style.display = 'block';
         };
 
@@ -167,7 +168,6 @@
             if (!texto) return;
             try {
                 await addDoc(collection(db, "calendario_anotacoes"), { data: dataSelecionada, texto, cor, timestamp: new Date() });
-                alert("Salvo!");
                 document.getElementById('textoAnotacao').value = '';
                 iniciarRenderizacao();
                 abrirModal(dataSelecionada.split('/')[0], dataSelecionada.split('/')[1], dataSelecionada.split('/')[2]);
