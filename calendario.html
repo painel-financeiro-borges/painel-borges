@@ -6,21 +6,23 @@
     <title>Painel Borges - Calendário</title>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js";
 
         const firebaseConfig = {
-            // SUBSTITUA COM SEUS DADOS DO FIREBASE
-            apiKey: "SUA_API_KEY",
+            apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
             authDomain: "painel-financeiro-borges.firebaseapp.com",
             projectId: "painel-financeiro-borges",
-            storageBucket: "painel-financeiro-borges.appspot.com",
+            storageBucket: "painel-financeiro-borges.firebasestorage.app",
             messagingSenderId: "354997627208",
-            appId: "1:354997627208:web:..."
+            appId: "1:354997627208:web:90604d0a7dcd45b6e4eb7d",
+            measurementId: "G-KH9BDWN2WH"
         };
 
         const appFirebase = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(appFirebase);
         const db = getFirestore(appFirebase);
-        window.db = db; // Exporta para uso global
+        window.db = db;
     </script>
     <style>
         :root { --celula-tamanho: 100px; }
@@ -82,7 +84,6 @@
             const texto = document.getElementById('textoAnotacao').value;
             const cor = document.getElementById('corAnotacao').value;
             try {
-                // Aqui criamos a coleção 'calendario_anotacoes'
                 await addDoc(collection(window.db, "calendario_anotacoes"), {
                     data: dataSelecionada,
                     texto: texto,
