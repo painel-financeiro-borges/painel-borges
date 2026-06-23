@@ -4,26 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Borges - Calendário</title>
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
-            authDomain: "painel-financeiro-borges.firebaseapp.com",
-            projectId: "painel-financeiro-borges",
-            storageBucket: "painel-financeiro-borges.firebasestorage.app",
-            messagingSenderId: "354997627208",
-            appId: "1:354997627208:web:90604d0a7dcd45b6e4eb7d",
-            measurementId: "G-KH9BDWN2WH"
-        };
-
-        const appFirebase = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(appFirebase);
-        const db = getFirestore(appFirebase);
-        window.db = db;
-    </script>
     <style>
         :root { --celula-tamanho: 100px; }
         body { font-family: sans-serif; padding: 10px; background: #f4f4f4; }
@@ -48,11 +28,29 @@
         <h2 id="modalData">Data</h2>
         <textarea id="textoAnotacao" placeholder="Ex: Evento..." style="width:100%; height:80px;"></textarea>
         <input type="color" id="corAnotacao" value="#3498db">
-        <button onclick="salvarNoBanco()">Salvar no Firebase</button>
+        <button id="btnSalvar">Salvar no Firebase</button>
         <button onclick="fecharModal()">Fechar</button>
     </div>
 
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
+            authDomain: "painel-financeiro-borges.firebaseapp.com",
+            projectId: "painel-financeiro-borges",
+            storageBucket: "painel-financeiro-borges.firebasestorage.app",
+            messagingSenderId: "354997627208",
+            appId: "1:354997627208:web:90604d0a7dcd45b6e4eb7d",
+            measurementId: "G-KH9BDWN2WH"
+        };
+
+        const appFirebase = initializeApp(firebaseConfig);
+        const db = getFirestore(appFirebase);
+        window.db = db;
+
         const app = document.getElementById('app');
         const modal = document.getElementById('modalAnotacao');
         let dataSelecionada = null;
@@ -71,7 +69,8 @@
                     const diaDiv = document.createElement('div');
                     diaDiv.className = 'dia';
                     diaDiv.innerHTML = `<div class="numero-dia">${i < 10 ? '0'+i : i}</div>`;
-                    diaDiv.onclick = () => abrirModal(i, dataAtual.getMonth() + 1, dataAtual.getFullYear());
+                    const d = i, m = dataAtual.getMonth() + 1, a = dataAtual.getFullYear();
+                    diaDiv.onclick = () => abrirModal(d, m, a);
                     grid.appendChild(diaDiv);
                 }
                 mesDiv.appendChild(grid);
@@ -80,11 +79,19 @@
             }
         }
 
-        async function salvarNoBanco() {
+        window.abrirModal = (d, m, a) => {
+            dataSelecionada = `${d}/${m}/${a}`;
+            document.getElementById('modalData').innerText = `Data: ${dataSelecionada}`;
+            modal.style.display = 'block';
+        };
+
+        window.fecharModal = () => { modal.style.display = 'none'; };
+
+        document.getElementById('btnSalvar').onclick = async () => {
             const texto = document.getElementById('textoAnotacao').value;
             const cor = document.getElementById('corAnotacao').value;
             try {
-                await addDoc(collection(window.db, "calendario_anotacoes"), {
+                await addDoc(collection(db, "calendario_anotacoes"), {
                     data: dataSelecionada,
                     texto: texto,
                     cor: cor,
@@ -95,15 +102,8 @@
             } catch (e) {
                 alert("Erro ao salvar: " + e.message);
             }
-        }
+        };
 
-        function abrirModal(d, m, a) {
-            dataSelecionada = `${d}/${m}/${a}`;
-            document.getElementById('modalData').innerText = `Data: ${dataSelecionada}`;
-            modal.style.display = 'block';
-        }
-
-        function fecharModal() { modal.style.display = 'none'; }
         gerarCalendario();
     </script>
 </body>
