@@ -20,7 +20,7 @@
         
         .dia { border: 1px solid #eee; min-height: 8vw; display: flex; flex-direction: column; cursor: pointer; position: relative; font-size: 0.7vw; overflow: hidden; }
         .dia-topo { font-weight: bold; border-bottom: 1px solid #333; text-align: center; background: #f0f0f0; padding: 2px; }
-        .evento-tag { color: white; padding: 2px; margin: 1px 0; font-size: 0.6vw; border-radius: 2px; }
+        .evento-tag { color: white; padding: 2px; margin: 1px 0; font-size: 0.6vw; border-radius: 2px; white-space: nowrap; }
 
         #modalAnotacao { display:none; position:fixed; top:5%; left:5%; width:90%; max-width: 500px; background:white; padding:20px; border-radius:10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); z-index: 1000; max-height: 80vh; overflow-y: auto; }
         .item-anotacao { padding: 5px; margin: 5px 0; border-left: 5px solid; font-size: 0.9em; background: #f9f9f9; display: flex; justify-content: space-between; align-items: center; }
@@ -45,10 +45,12 @@
         <div id="listaAnotacoes" style="margin-bottom: 15px;"></div>
         <hr>
         <input type="hidden" id="idEditando">
-        <textarea id="textoAnotacao" placeholder="Nova anotação..." style="width:100%; height:60px;"></textarea>
+        <input type="text" id="inputTitulo" placeholder="Título (máx 7 char)" maxlength="7" style="width:100%; margin-bottom:5px;">
+        <textarea id="textoAnotacao" placeholder="Dados do evento..." style="width:100%; height:60px;"></textarea>
         <div style="margin: 10px 0;">
             <label>Cor: </label>
-            <input type="color" id="corAnotacao" value="#3498db">
+            <input type="color" id="corAnotacao" value="#3498db" oninput="document.getElementById('codCor').value = this.value">
+            <input type="text" id="codCor" value="#3498db" style="width: 70px;" oninput="document.getElementById('corAnotacao').value = this.value">
         </div>
         <button id="btnSalvar">Salvar Evento</button>
         <button onclick="fecharModal()">Fechar</button>
@@ -100,7 +102,7 @@
             querySnapshot.forEach((doc) => {
                 const d = doc.data();
                 if (!anotacoes[d.data]) anotacoes[d.data] = [];
-                anotacoes[d.data].push({ id: doc.id, texto: d.texto, cor: d.cor });
+                anotacoes[d.data].push({ id: doc.id, titulo: d.titulo || d.texto.substring(0,7), texto: d.texto, cor: d.cor });
             });
         }
 
@@ -131,7 +133,7 @@
                             const eventDiv = document.createElement('div');
                             eventDiv.className = 'evento-tag';
                             eventDiv.style.backgroundColor = item.cor;
-                            eventDiv.innerText = item.texto;
+                            eventDiv.innerText = item.titulo;
                             diaDiv.appendChild(eventDiv);
                         });
                     }
@@ -152,10 +154,13 @@
             
             if (itemEdit) {
                 document.getElementById('idEditando').value = itemEdit.id;
+                document.getElementById('inputTitulo').value = itemEdit.titulo;
                 document.getElementById('textoAnotacao').value = itemEdit.texto;
                 document.getElementById('corAnotacao').value = itemEdit.cor;
+                document.getElementById('codCor').value = itemEdit.cor;
             } else {
                 document.getElementById('idEditando').value = '';
+                document.getElementById('inputTitulo').value = '';
                 document.getElementById('textoAnotacao').value = '';
             }
 
@@ -164,9 +169,9 @@
                 const div = document.createElement('div');
                 div.className = 'item-anotacao';
                 div.style.borderLeftColor = item.cor;
-                div.innerHTML = `<span>${item.texto}</span>
+                div.innerHTML = `<span><strong>${item.titulo}:</strong> ${item.texto}</span>
                     <div>
-                        <button onclick="abrirModal(${d}, ${m}, ${a}, {id: '${item.id}', texto: '${item.texto}', cor: '${item.cor}'})">Edit</button>
+                        <button onclick="abrirModal(${d}, ${m}, ${a}, {id: '${item.id}', titulo: '${item.titulo}', texto: '${item.texto}', cor: '${item.cor}'})">Edit</button>
                         <button onclick="excluirEvento('${item.id}')">Del</button>
                     </div>`;
                 lista.appendChild(div);
@@ -186,13 +191,16 @@
 
         document.getElementById('btnSalvar').onclick = async () => {
             const id = document.getElementById('idEditando').value;
+            const titulo = document.getElementById('inputTitulo').value;
             const texto = document.getElementById('textoAnotacao').value;
             const cor = document.getElementById('corAnotacao').value;
             
+            if (!titulo || !texto) return;
+
             if (id) {
-                await updateDoc(doc(db, "calendario_anotacoes", id), { texto, cor });
+                await updateDoc(doc(db, "calendario_anotacoes", id), { titulo, texto, cor });
             } else {
-                await addDoc(collection(db, "calendario_anotacoes"), { data: dataSelecionada, texto, cor, timestamp: new Date() });
+                await addDoc(collection(db, "calendario_anotacoes"), { data: dataSelecionada, titulo, texto, cor, timestamp: new Date() });
             }
             iniciarRenderizacao();
             fecharModal();
