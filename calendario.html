@@ -3,27 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Painel Borges - Calendário</title>
+    <title>Painel Borges - Calendário 3D Pro</title>
     <style>
-        body, html { margin: 0; padding: 0; min-height: 100%; font-family: sans-serif; background: #f4f4f4; overflow-x: hidden; }
-        .controles { height: 60px; background: #ddd; display: flex; align-items: center; padding: 0 10px; gap: 8px; position: sticky; top: 0; z-index: 999; }
+        body, html { margin: 0; padding: 0; min-height: 100%; font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: #333; overflow-x: hidden; }
+        .controles { height: 60px; background: #34495e; display: flex; align-items: center; padding: 0 15px; gap: 10px; position: sticky; top: 0; z-index: 999; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
         
-        #inputAno { width: 80px !important; height: 40px; font-size: 1.2em; border: 1px solid #999; border-radius: 4px; }
-        button { height: 40px; padding: 0 10px; cursor: pointer; }
+        #inputAno { width: 80px !important; height: 35px; font-size: 1.2em; border-radius: 5px; border: none; padding: 0 5px; }
+        button { height: 35px; padding: 0 15px; cursor: pointer; border-radius: 5px; border: none; background: #1abc9c; color: white; font-weight: bold; transition: 0.3s; }
+        button:hover { background: #16a085; }
 
-        .calendario-wrapper { transition: transform 0.2s; width: 100%; transform-origin: top left; }
-        .calendario-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; padding: 5px; width: 100vw; }
+        .calendario-wrapper { transition: transform 0.2s; width: 100%; transform-origin: top left; padding: 10px; }
+        .calendario-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100vw; }
         
-        .mes-bloco { background: #fff; border: 1px solid #ccc; padding: 2px; border-radius: 2px; }
-        .mes-titulo { font-weight: bold; text-align: center; font-size: 2vw; margin-bottom: 2px; border-bottom: 1px solid #333; }
-        .grid-dias { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
+        .mes-bloco { background: #ecf0f1; border-radius: 10px; padding: 8px; box-shadow: 5px 5px 15px rgba(0,0,0,0.2); }
+        .mes-titulo { font-weight: bold; text-align: center; font-size: 1.5vw; margin-bottom: 5px; color: #2c3e50; text-transform: uppercase; }
+        .grid-dias { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
         
-        .dia { border: 1px solid #eee; min-height: 8vw; display: flex; flex-direction: column; cursor: pointer; position: relative; font-size: 0.7vw; overflow: hidden; }
-        .dia-topo { font-weight: bold; border-bottom: 1px solid #333; text-align: center; background: #f0f0f0; padding: 2px; }
-        .evento-tag { color: white; padding: 2px; margin: 1px 0; font-size: 0.6vw; border-radius: 2px; white-space: nowrap; }
+        .dia { background: #fff; border-radius: 4px; min-height: 7vw; display: flex; flex-direction: column; cursor: pointer; position: relative; font-size: 0.7vw; transition: 0.2s; border: 1px solid #ddd; }
+        .dia:hover { transform: scale(1.05); z-index: 10; box-shadow: 0 5px 10px rgba(0,0,0,0.2); }
+        .dia-topo { font-weight: bold; padding: 2px; text-align: center; background: #bdc3c7; color: #fff; border-radius: 3px 3px 0 0; }
+        
+        /* Tags 3D */
+        .evento-tag { color: white; padding: 2px 4px; margin: 2px; font-size: 0.6vw; border-radius: 3px; font-weight: 600; text-shadow: 0 1px 1px rgba(0,0,0,0.2); box-shadow: inset 0 -2px 3px rgba(0,0,0,0.2); }
 
-        #modalAnotacao { display:none; position:fixed; top:5%; left:5%; width:90%; max-width: 500px; background:white; padding:20px; border-radius:10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); z-index: 1000; max-height: 80vh; overflow-y: auto; }
-        .item-anotacao { padding: 5px; margin: 5px 0; border-left: 5px solid; font-size: 0.9em; background: #f9f9f9; display: flex; justify-content: space-between; align-items: center; }
+        #modalAnotacao { display:none; position:fixed; top:5%; left:5%; width:90%; max-width: 500px; background:white; padding:20px; border-radius:15px; box-shadow: 0 0 30px rgba(0,0,0,0.8); z-index: 1000; }
+        .item-anotacao { padding: 8px; margin: 5px 0; border-left: 8px solid; font-size: 1em; background: #eee; display: flex; justify-content: space-between; align-items: center; border-radius: 4px; }
         @media print { .controles, #modalAnotacao { display: none !important; } }
     </style>
 </head>
@@ -45,12 +49,12 @@
         <div id="listaAnotacoes" style="margin-bottom: 15px;"></div>
         <hr>
         <input type="hidden" id="idEditando">
-        <input type="text" id="inputTitulo" placeholder="Título (máx 7 char)" maxlength="7" style="width:100%; margin-bottom:5px;">
-        <textarea id="textoAnotacao" placeholder="Dados do evento..." style="width:100%; height:60px;"></textarea>
+        <input type="text" id="inputTitulo" placeholder="Título (máx 7 char)" maxlength="7" style="width:100%; margin-bottom:5px; padding: 5px;">
+        <textarea id="textoAnotacao" placeholder="Dados do evento..." style="width:100%; height:60px; padding: 5px;"></textarea>
         <div style="margin: 10px 0;">
             <label>Cor: </label>
-            <input type="color" id="corAnotacao" value="#3498db" oninput="document.getElementById('codCor').value = this.value">
-            <input type="text" id="codCor" value="#3498db" style="width: 70px;" oninput="document.getElementById('corAnotacao').value = this.value">
+            <input type="color" id="corAnotacao" oninput="document.getElementById('codCor').value = this.value">
+            <input type="text" id="codCor" style="width: 70px;" oninput="document.getElementById('corAnotacao').value = this.value">
         </div>
         <button id="btnSalvar">Salvar Evento</button>
         <button onclick="fecharModal()">Fechar</button>
@@ -82,6 +86,15 @@
 
         document.getElementById('inputAno').value = anoAtual;
 
+        // Função para calcular cor de texto (Preto ou Branco) baseada no fundo
+        window.obterCorContraste = (hex) => {
+            const r = parseInt(hex.slice(1, 3), 16);
+            const g = parseInt(hex.slice(3, 5), 16);
+            const b = parseInt(hex.slice(5, 7), 16);
+            const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+            return (yiq >= 128) ? 'black' : 'white';
+        };
+
         window.confirmarMudancaAno = (novoAno) => {
             if (confirm(`Alterar o ano para ${novoAno}?`)) {
                 anoAtual = novoAno;
@@ -102,7 +115,7 @@
             querySnapshot.forEach((doc) => {
                 const d = doc.data();
                 if (!anotacoes[d.data]) anotacoes[d.data] = [];
-                anotacoes[d.data].push({ id: doc.id, titulo: d.titulo || d.texto.substring(0,7), texto: d.texto, cor: d.cor });
+                anotacoes[d.data].push({ id: doc.id, titulo: d.titulo, texto: d.texto, cor: d.cor });
             });
         }
 
@@ -133,6 +146,7 @@
                             const eventDiv = document.createElement('div');
                             eventDiv.className = 'evento-tag';
                             eventDiv.style.backgroundColor = item.cor;
+                            eventDiv.style.color = obterCorContraste(item.cor); // Ajuste automático de cor
                             eventDiv.innerText = item.titulo;
                             diaDiv.appendChild(eventDiv);
                         });
