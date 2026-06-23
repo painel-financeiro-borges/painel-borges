@@ -8,8 +8,9 @@
         body, html { margin: 0; padding: 0; min-height: 100%; font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: #000; overflow-x: hidden; }
         .controles { height: 65px; background: #34495e; display: flex; align-items: center; padding: 0 15px; gap: 10px; position: sticky; top: 0; z-index: 999; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         
-        /* Seletor Nativo Mobile (Select) */
-        #inputAno { width: 100px; height: 45px; font-size: 1.2em; border-radius: 5px; border: 3px solid #000; font-weight: bold; background: white; cursor: pointer; }
+        /* Seletor de Ano Editável Livre */
+        .ano-container { display: flex; align-items: center; background: white; padding: 2px; border-radius: 5px; border: 3px solid #000; }
+        #inputAno { width: 80px !important; height: 35px; font-size: 1.2em; border: none; font-weight: bold; text-align: center; }
         
         button { height: 40px; padding: 0 15px; cursor: pointer; border-radius: 5px; border: 2px solid #000; background: #1abc9c; color: white; font-weight: bold; font-size: 1em; }
         button:hover { background: #16a085; }
@@ -35,14 +36,9 @@
 <body>
 
     <div class="controles">
-        <select id="inputAno" onchange="confirmarMudancaAno(this.value)">
-            <option value="2025">2025</option>
-            <option value="2026">2026</option>
-            <option value="2027">2027</option>
-            <option value="2028">2028</option>
-            <option value="2029">2029</option>
-            <option value="2030">2030</option>
-        </select>
+        <div class="ano-container">
+            <input type="number" id="inputAno" min="2000" max="2100" onchange="iniciarRenderizacao()">
+        </div>
         <button onclick="window.print()">Imprimir</button>
         <button onclick="ajustarZoom(-0.1)">-</button>
         <button onclick="ajustarZoom(0.1)">+</button>
@@ -90,9 +86,8 @@
         let dataSelecionada = null;
         let zoomLevel = 1;
         let anotacoes = {};
-        let anoAtual = new Date().getFullYear().toString();
 
-        document.getElementById('inputAno').value = anoAtual;
+        document.getElementById('inputAno').value = new Date().getFullYear();
 
         window.obterCorContraste = (hex) => {
             const r = parseInt(hex.slice(1, 3), 16);
@@ -100,15 +95,6 @@
             const b = parseInt(hex.slice(5, 7), 16);
             const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
             return (yiq >= 128) ? 'black' : 'white';
-        };
-
-        window.confirmarMudancaAno = (novoAno) => {
-            if (confirm(`Alterar o ano para ${novoAno}?`)) {
-                anoAtual = novoAno;
-                iniciarRenderizacao();
-            } else {
-                document.getElementById('inputAno').value = anoAtual;
-            }
         };
 
         window.ajustarZoom = (delta) => {
