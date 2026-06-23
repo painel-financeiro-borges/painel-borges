@@ -8,7 +8,6 @@
         body, html { margin: 0; padding: 0; min-height: 100%; font-family: sans-serif; background: #f4f4f4; overflow-x: auto; }
         .controles { height: 50px; background: #ddd; display: flex; align-items: center; padding: 0 15px; gap: 10px; position: sticky; top: 0; z-index: 999; }
         
-        /* Container com suporte a escala */
         .calendario-wrapper { transform-origin: top left; transition: transform 0.2s; }
         
         .calendario-container { 
@@ -25,7 +24,7 @@
         .mes-bloco { background: #fff; border: 1px solid #ccc; padding: 8px; border-radius: 4px; }
         .mes-titulo { font-weight: bold; text-align: center; margin-bottom: 5px; border-bottom: 2px solid #333; }
         .grid-dias { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
-        .dia { border: 1px solid #eee; height: 35px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.9em; }
+        .dia { border: 1px solid #eee; height: 35px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.9em; position: relative; }
         .dia:hover { background: #eef; }
         
         #modalAnotacao { display:none; position:fixed; top:10%; left:5%; width:90%; max-width: 500px; background:white; padding:20px; border-radius:10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); z-index: 1000; }
@@ -35,11 +34,7 @@
 <body>
 
     <div class="controles">
-        <select id="selectAno" onchange="renderizarAno()">
-            <script>
-                for(let y=2026; y<=2050; y++) document.write(`<option value="${y}">${y}</option>`);
-            </script>
-        </select>
+        <input type="number" id="inputAno" value="2026" min="2000" max="2100" style="width: 70px;" onchange="iniciarRenderizacao()">
         <button onclick="window.print()">Imprimir</button>
         <button onclick="ajustarZoom(-0.1)">- Zoom</button>
         <button onclick="ajustarZoom(0.1)">+ Zoom</button>
@@ -62,7 +57,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
@@ -80,14 +75,29 @@
         const modal = document.getElementById('modalAnotacao');
         let dataSelecionada = null;
         let zoomLevel = 1;
+        let anotacoes = {};
 
         window.ajustarZoom = (delta) => {
             zoomLevel = Math.min(Math.max(zoomLevel + delta, 0.5), 1.5);
             wrapper.style.transform = `scale(${zoomLevel})`;
         };
 
+        async function carregarAnotacoes() {
+            anotacoes = {};
+            const querySnapshot = await getDocs(collection(db, "calendario_anotacoes"));
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                anotacoes[data.data] = { texto: data.texto, cor: data.cor };
+            });
+        }
+
+        window.iniciarRenderizacao = async () => {
+            await carregarAnotacoes();
+            renderizarAno();
+        };
+
         window.renderizarAno = () => {
-            const ano = document.getElementById('selectAno').value;
+            const ano = document.getElementById('inputAno').value;
             app.innerHTML = '';
             for (let mes = 0; mes < 12; mes++) {
                 const mesDiv = document.createElement('div');
@@ -98,9 +108,16 @@
                 
                 const diasNoMes = new Date(ano, mes + 1, 0).getDate();
                 for (let i = 1; i <= diasNoMes; i++) {
+                    const dataChave = `${i}/${mes + 1}/${ano}`;
                     const diaDiv = document.createElement('div');
                     diaDiv.className = 'dia';
                     diaDiv.innerHTML = `<span>${i}</span>`;
+                    
+                    if (anotacoes[dataChave]) {
+                        diaDiv.style.backgroundColor = anotacoes[dataChave].cor;
+                        diaDiv.title = anotacoes[dataChave].texto;
+                    }
+                    
                     diaDiv.onclick = () => abrirModal(i, mes + 1, ano);
                     grid.appendChild(diaDiv);
                 }
@@ -122,12 +139,13 @@
             const cor = document.getElementById('corAnotacao').value;
             try {
                 await addDoc(collection(db, "calendario_anotacoes"), { data: dataSelecionada, texto, cor, timestamp: new Date() });
-                alert("Salvo!");
+                alert("Salvo com sucesso!");
+                iniciarRenderizacao();
                 fecharModal();
             } catch (e) { alert("Erro: " + e.message); }
         };
 
-        renderizarAno();
+        iniciarRenderizacao();
     </script>
 </body>
 </html>
