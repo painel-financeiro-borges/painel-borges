@@ -9,31 +9,25 @@
         .controles { height: 50px; background: #ddd; display: flex; align-items: center; padding: 0 15px; gap: 10px; position: sticky; top: 0; z-index: 999; }
         
         .calendario-wrapper { 
-            transform-origin: top center; /* Ajustado para centralizar o zoom */
             transition: transform 0.2s; 
             width: 100%;
-            display: flex;
-            justify-content: center;
         }
         
         .calendario-container { 
             display: grid; 
+            /* Força 4 colunas sempre, conforme solicitado */
             grid-template-columns: repeat(4, 1fr); 
-            gap: 10px; 
-            padding: 10px;
+            gap: 5px; 
+            padding: 5px;
             width: 100%;
-            max-width: 1200px; /* Limite para não estourar em telas gigantes */
         }
         
-        /* Ajustes de Responsividade Automática */
-        @media (max-width: 1024px) { .calendario-container { grid-template-columns: repeat(3, 1fr); } }
-        @media (max-width: 768px) { .calendario-container { grid-template-columns: repeat(2, 1fr); gap: 5px; padding: 5px; } }
-        @media (max-width: 480px) { .calendario-container { grid-template-columns: repeat(2, 1fr); } } /* Mantido 2 colunas para melhor visualização */
+        /* Removi as media queries que forçavam menos colunas */
 
-        .mes-bloco { background: #fff; border: 1px solid #ccc; padding: 8px; border-radius: 4px; }
-        .mes-titulo { font-weight: bold; text-align: center; margin-bottom: 5px; border-bottom: 2px solid #333; font-size: 0.9em; }
+        .mes-bloco { background: #fff; border: 1px solid #ccc; padding: 4px; border-radius: 4px; }
+        .mes-titulo { font-weight: bold; text-align: center; margin-bottom: 2px; border-bottom: 1px solid #333; font-size: 0.7em; }
         .grid-dias { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
-        .dia { border: 1px solid #eee; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.8em; position: relative; }
+        .dia { border: 1px solid #eee; height: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.6em; }
         .dia:hover { background: #eef; }
         
         #modalAnotacao { display:none; position:fixed; top:10%; left:5%; width:90%; max-width: 500px; background:white; padding:20px; border-radius:10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); z-index: 1000; }
@@ -100,7 +94,7 @@
         };
 
         window.ajustarZoom = (delta) => {
-            zoomLevel = Math.min(Math.max(zoomLevel + delta, 0.5), 1.5);
+            zoomLevel = Math.min(Math.max(zoomLevel + delta, 0.5), 2.0);
             wrapper.style.transform = `scale(${zoomLevel})`;
         };
 
