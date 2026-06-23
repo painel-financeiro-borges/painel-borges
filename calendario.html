@@ -2,29 +2,36 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>Painel Borges - Calendário</title>
     <style>
-        body { font-family: sans-serif; padding: 10px; background: #f4f4f4; }
-        .controles { margin-bottom: 20px; background: white; padding: 15px; border-radius: 8px; }
-        .calendario-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }
-        .mes-bloco { background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .grid-dias { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
-        .dia { min-height: 50px; border: 1px solid #eee; padding: 2px; cursor: pointer; font-size: 0.8em; }
-        .dia:hover { background: #eef; }
-        .numero-dia { font-weight: bold; border-bottom: 1px solid #999; margin-bottom: 2px; }
-        #modalAnotacao { display:none; position:fixed; top:10%; left:5%; width:90%; max-width: 500px; background:white; padding:20px; border-radius:10px; box-shadow: 0 0 20px rgba(0,0,0,0.3); z-index: 1000; }
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: sans-serif; }
+        .controles { height: 50px; background: #ddd; display: flex; align-items: center; padding: 0 10px; }
+        /* O container força o grid a caber na tela sem rolar */
+        .calendario-container { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            grid-template-rows: repeat(3, 1fr); 
+            height: calc(100vh - 50px); 
+            gap: 2px;
+            padding: 5px;
+        }
+        .mes-bloco { border: 1px solid #ccc; display: flex; flex-direction: column; font-size: 0.7em; }
+        .grid-dias { display: grid; grid-template-columns: repeat(7, 1fr); flex-grow: 1; }
+        .dia { border: 0.5px solid #eee; display: flex; flex-direction: column; cursor: pointer; align-items: center; }
+        .numero-dia { font-weight: bold; }
+        
+        #modalAnotacao { display:none; position:fixed; top:10%; left:5%; width:90%; max-width: 500px; background:white; padding:20px; border-radius:10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); z-index: 1000; }
     </style>
 </head>
 <body>
 
     <div class="controles">
-        <label>Escolha o Ano: </label>
         <select id="selectAno" onchange="renderizarAno()">
             <option value="2026">2026</option>
             <option value="2027">2027</option>
         </select>
-        <button onclick="window.print()">Imprimir Ano Atual</button>
+        <button onclick="window.print()">Imprimir</button>
     </div>
 
     <div id="app" class="calendario-container"></div>
@@ -51,9 +58,7 @@
             measurementId: "G-KH9BDWN2WH"
         };
 
-        const appFirebase = initializeApp(firebaseConfig);
-        const db = getFirestore(appFirebase);
-
+        const db = getFirestore(initializeApp(firebaseConfig));
         const app = document.getElementById('app');
         const modal = document.getElementById('modalAnotacao');
         let dataSelecionada = null;
@@ -64,8 +69,7 @@
             for (let mes = 0; mes < 12; mes++) {
                 const mesDiv = document.createElement('div');
                 mesDiv.className = 'mes-bloco';
-                const dataTemp = new Date(ano, mes, 1);
-                mesDiv.innerHTML = `<h3>${dataTemp.toLocaleString('pt-BR', { month: 'long' })}</h3>`;
+                mesDiv.innerHTML = `<strong>${new Date(ano, mes).toLocaleString('pt-BR', { month: 'short' })}</strong>`;
                 const grid = document.createElement('div');
                 grid.className = 'grid-dias';
                 
@@ -73,7 +77,7 @@
                 for (let i = 1; i <= diasNoMes; i++) {
                     const diaDiv = document.createElement('div');
                     diaDiv.className = 'dia';
-                    diaDiv.innerHTML = `<div class="numero-dia">${i < 10 ? '0'+i : i}</div>`;
+                    diaDiv.innerHTML = `<span class="numero-dia">${i}</span>`;
                     diaDiv.onclick = () => abrirModal(i, mes + 1, ano);
                     grid.appendChild(diaDiv);
                 }
