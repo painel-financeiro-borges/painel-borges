@@ -5,16 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Painel Borges - Calendário</title>
     <style>
-        body, html { margin: 0; padding: 0; min-height: 100%; font-family: sans-serif; background: #f4f4f4; }
+        /* Ajustado para permitir zoom out */
+        body, html { margin: 0; padding: 0; min-height: 100%; font-family: sans-serif; background: #f4f4f4; overflow-x: auto; }
         .controles { height: 50px; background: #ddd; display: flex; align-items: center; padding: 0 15px; gap: 15px; }
         
-        /* Layout Grid Otimizado */
+        /* Layout Grid Otimizado: min-width garante que o navegador possa renderizar em escala menor */
         .calendario-container { 
             display: grid; 
             grid-template-columns: repeat(4, 1fr); 
             gap: 10px; 
             padding: 10px;
-            /* Removi o height fixo para permitir que o navegador calcule o tamanho real */
+            min-width: 800px; 
         }
         @media (max-width: 768px) {
             .calendario-container { grid-template-columns: repeat(2, 1fr); }
