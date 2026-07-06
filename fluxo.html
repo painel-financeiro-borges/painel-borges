@@ -1289,25 +1289,25 @@ window.loadLocalStorage = function() {
         renderGithubCalendar();
         updateMetricsUI();
       }
-    window.exportarBackupFisicoBorges = function() {
-    try {
-      const dataAtual = new Date().toISOString().split('T')[0];
-      const nomeArquivo = `backup_painel_borges_${dataAtual}.json`;
-      const dadosTexto = JSON.stringify(appState, null, 2);
-      const blob = new Blob([dadosTexto], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = nomeArquivo;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      alert("✅ Backup físico gerado com sucesso! Guarde este arquivo .json em um local seguro.");
-    } catch (e) {
-      alert("❌ Falha ao exportar backup: " + e.message);
-    }
-  };
+   window.exportarBackupFisicoBorges = function() {
+  try {
+    const dataAtual = new Date().toISOString().split('T')[0];
+    const nomeArquivo = `backup_painel_borges_` + dataAtual + `.json`;
+    const dadosTexto = JSON.stringify(appState, null, 2);
+    const blob = new Blob([dadosTexto], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = nomeArquivo;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    alert("✅ Backup físico gerado com sucesso! Guarde este arquivo .json em um local seguro.");
+  } catch (e) {
+    alert("❌ Falha ao exportar backup: " + e.message);
+  }
+};
 
   // 4. Dá o start no fluxo com as funções mapeadas
   init();
