@@ -407,8 +407,9 @@ body {
  <div class="editor-panel" style="margin-bottom: 25px;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
       <span style="font-size: 11px; text-transform: uppercase; color: var(--muted); font-weight: 700; letter-spacing: 0.5px;">Área de Trabalho</span>
-      <button id="btnAlternarModo" onclick="alternarModoChecklist()" style="border: 1px solid rgba(0, 245, 255, 0.3); color: #00f5ff; background: rgba(0, 245, 255, 0.08); padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; transition: all 0.2s; outline: none;">📝 Modo Checklist (Riscar)</button>
-<button id="btnBackupEmergencia" onclick="exportarBackupFisicoBorges()" style="background: rgba(255, 204, 0, 0.08); border: 1px solid rgba(255, 204, 0, 0.4); color: #ffcc00; padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; transition: all 0.2s; outline: none; margin-left: 8px;">💾 Exportar Backup Físico (.JSON)</button>
+      <button id="btnAlternarModo" onclick="alternarModoChecklist()" style="background: rgba(0, 245, 255, 0.08); border: 1px solid rgba(0, 245, 255, 0.3); color: #00f5ff; padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; transition: all 0.2s; outline: none;">
+        📝 Modo Checklist (Riscar)
+      </button>
     </div>
 
     <textarea 
@@ -1289,25 +1290,10 @@ window.loadLocalStorage = function() {
         renderGithubCalendar();
         updateMetricsUI();
       }
-   window.exportarBackupFisicoBorges = function() {
-  try {
-    const dataAtual = new Date().toISOString().split('T')[0];
-    const nomeArquivo = `backup_painel_borges_` + dataAtual + `.json`;
-    const dadosTexto = JSON.stringify(appState, null, 2);
-    const blob = new Blob([dadosTexto], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = nomeArquivo;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    alert("✅ Backup físico gerado com sucesso! Guarde este arquivo .json em um local seguro.");
-  } catch (e) {
-    alert("❌ Falha ao exportar backup: " + e.message);
-  }
-};
+    }, (error) => {
+      console.error("Erro na escuta do Firestore:", error);
+    });
+  };
 
   // 4. Dá o start no fluxo com as funções mapeadas
   init();
