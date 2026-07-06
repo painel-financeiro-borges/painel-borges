@@ -1250,7 +1250,7 @@ function assignHorizon(horizonName) {
     }
   };
 
-  window.loadLocalStorage = function() {
+window.loadLocalStorage = function() {
     // Escuta ativa em tempo real multidispositivos
     docRef.onSnapshot((docSnap) => {
       if (docSnap.exists) {
@@ -1278,14 +1278,17 @@ function assignHorizon(horizonName) {
           editor.setSelectionRange(start, end);
         }
       } else {
-        console.log("Nenhum dado na nuvem. Inicializando painel completamente zerado...");
+        console.warn("⚠️ Atenção: O documento não foi encontrado na nuvem ou está inacessível temporariamente. Gravação automática cancelada para proteger seus dados.");
         appState = {
           currentTabId: '',
           horizontes: { Hoje: 0, Semana: 0, Mês: 0, Semestre: 0, AlgumDia: 0 },
           abas: [],
           eventos: []
         };
-        window.saveLocalStorage();
+        
+        renderTabs();
+        renderGithubCalendar();
+        updateMetricsUI();
       }
     }, (error) => {
       console.error("Erro na escuta do Firestore:", error);
