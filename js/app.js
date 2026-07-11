@@ -278,7 +278,7 @@ window.updateTempText = (index, field, value) => { tempTexts[index][field] = val
 window.renderTempChecklist = () => {
     const container = document.getElementById('tempChecklistList'); container.innerHTML = '';
     tempChecklistItems.forEach((item, index) => {
-        const div = document.createElement('div'); div.className = `checklist-item`;
+        const div = document.createElement('div'); div.className = `checklist-item cl-${item.priority || 'low'} ${item.done ? 'done' : ''}`;
         const tagHtml = item.category ? `<span class="checklist-tag" style="background-color:${item.color}">${item.category}</span>` : '';
         div.innerHTML = `<i class="fas fa-grip-vertical checklist-handle"></i><input type="checkbox" ${item.done ? 'checked' : ''} onchange="window.toggleTempItem(${index})"><span>${item.text} ${tagHtml}</span><div class="d-flex gap-2 ms-auto"><i class="fas fa-pen text-secondary" style="cursor:pointer" onclick="window.editTempItem(${index})" title="Editar"></i><i class="fas fa-times text-danger" style="cursor:pointer" onclick="window.removeTempItem(${index})" title="Excluir"></i></div>`;
         container.appendChild(div);
