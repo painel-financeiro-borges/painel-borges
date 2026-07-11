@@ -278,8 +278,9 @@ window.updateTempText = (index, field, value) => { tempTexts[index][field] = val
 window.renderTempChecklist = () => {
     const container = document.getElementById('tempChecklistList'); container.innerHTML = '';
     tempChecklistItems.forEach((item, index) => {
-        const div = document.createElement('div'); div.className = `checklist-item cl-${item.priority || 'low'} ${item.done ? 'done' : ''}`;
-        div.innerHTML = `<i class="fas fa-grip-vertical checklist-handle"></i><input type="checkbox" ${item.done ? 'checked' : ''} onchange="window.toggleTempItem(${index})"><span>${item.text}</span><div class="d-flex gap-2 ms-auto"><i class="fas fa-pen text-secondary" style="cursor:pointer" onclick="window.editTempItem(${index})" title="Editar"></i><i class="fas fa-times text-danger" style="cursor:pointer" onclick="window.removeTempItem(${index})" title="Excluir"></i></div>`;
+        const div = document.createElement('div'); div.className = `checklist-item`;
+        const tagHtml = item.category ? `<span class="checklist-tag" style="background-color:${item.color}">${item.category}</span>` : '';
+        div.innerHTML = `<i class="fas fa-grip-vertical checklist-handle"></i><input type="checkbox" ${item.done ? 'checked' : ''} onchange="window.toggleTempItem(${index})"><span>${item.text} ${tagHtml}</span><div class="d-flex gap-2 ms-auto"><i class="fas fa-pen text-secondary" style="cursor:pointer" onclick="window.editTempItem(${index})" title="Editar"></i><i class="fas fa-times text-danger" style="cursor:pointer" onclick="window.removeTempItem(${index})" title="Excluir"></i></div>`;
         container.appendChild(div);
     });
 };
@@ -289,7 +290,16 @@ window.removeTempItem = async (index) => {
     tempChecklistItems.splice(index, 1); 
     window.renderTempChecklist(); 
 };
-window.addTempItem = () => { const input = document.getElementById('newCheckItem'); const priority = document.getElementById('newCheckPriority').value; if(!input.value.trim()) return; tempChecklistItems.push({ text: input.value, done: false, priority: priority }); input.value = ''; renderTempChecklist(); };
+//TARJA DE CLASSIFICAÇÃO
+window.addTempItem = () => { 
+    const input = document.getElementById('newCheckItem'); 
+    const category = document.getElementById('newCheckCategory').value;
+    const color = document.getElementById('newCheckColor').value;
+    if(!input.value.trim()) return; 
+    tempChecklistItems.push({ text: input.value, done: false, category: category, color: color }); 
+    input.value = ''; 
+    window.renderTempChecklist(); 
+};
 // UPGRADE BOTÃO VOLTAR E EDIÇÃO DE CHECKLIST
 window.editTempItem = (index) => {
     const item = tempChecklistItems[index];
