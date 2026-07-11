@@ -294,7 +294,7 @@ window.removeTempItem = async (index) => {
 window.addTempItem = () => { 
     const input = document.getElementById('newCheckItem'); 
     const category = document.getElementById('newCheckCategory').value;
-    const color = document.getElementById('newCheckColor').value;
+    const color = document.getElementById('newCheckColorText').value;
     if(!input.value.trim()) return; 
     tempChecklistItems.push({ text: input.value, done: false, category: category, color: color }); 
     input.value = ''; 
