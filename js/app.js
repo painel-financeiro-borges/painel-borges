@@ -305,6 +305,7 @@ window.editTempItem = (index) => {
     const item = tempChecklistItems[index];
     document.getElementById('newCheckItem').value = item.text;
     if(document.getElementById('newCheckCategory')) document.getElementById('newCheckCategory').value = item.category || '';
+    if(document.getElementById('newCheckColorText')) document.getElementById('newCheckColorText').value = item.color || '#3498db';
     if(document.getElementById('newCheckColor')) document.getElementById('newCheckColor').value = item.color || '#3498db';
     document.getElementById('newCheckItem').focus();
     tempChecklistItems.splice(index, 1);
