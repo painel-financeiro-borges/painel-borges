@@ -274,7 +274,7 @@ window.removeTempText = async (index) => {
 };
 window.updateTempText = (index, field, value) => { tempTexts[index][field] = value; };
 
-// COLE estas 7 linhas no lugar:
+// UPGRADE BOTÃO VOLTAR E EDIÇÃO DE CHECKLIST
 window.renderTempChecklist = () => {
     const container = document.getElementById('tempChecklistList'); container.innerHTML = '';
     tempChecklistItems.forEach((item, index) => {
@@ -284,7 +284,16 @@ window.renderTempChecklist = () => {
     });
 };
 window.addTempItem = () => { const input = document.getElementById('newCheckItem'); const priority = document.getElementById('newCheckPriority').value; if(!input.value.trim()) return; tempChecklistItems.push({ text: input.value, done: false, priority: priority }); input.value = ''; renderTempChecklist(); };
-window.removeTempItem = async (index) => { const removedItem = tempChecklistItems[index]; await moveToTrash(null, null, { title: removedItem.text, priority: removedItem.priority, originalCardId: document.getElementById('subCardId').value }, 'Item Lista'); tempChecklistItems.splice(index, 1); renderTempChecklist(); };
+// UPGRADE BOTÃO VOLTAR E EDIÇÃO DE CHECKLIST
+window.editTempItem = (index) => {
+    const item = tempChecklistItems[index];
+    document.getElementById('newCheckItem').value = item.text;
+    document.getElementById('newCheckPriority').value = item.priority || 'low';
+    document.getElementById('newCheckItem').focus();
+    // Remove o item da lista temporariamente para evitar duplicidade ao salvar
+    tempChecklistItems.splice(index, 1);
+    renderTempChecklist();
+};
 window.toggleTempItem = (index) => { tempChecklistItems[index].done = !tempChecklistItems[index].done; renderTempChecklist(); };
 
 window.openSubCardModal = () => { 
