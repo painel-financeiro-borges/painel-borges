@@ -304,9 +304,9 @@ window.addTempItem = () => {
 window.editTempItem = (index) => {
     const item = tempChecklistItems[index];
     document.getElementById('newCheckItem').value = item.text;
-    document.getElementById('newCheckPriority').value = item.priority || 'low';
+    if(document.getElementById('newCheckCategory')) document.getElementById('newCheckCategory').value = item.category || '';
+    if(document.getElementById('newCheckColor')) document.getElementById('newCheckColor').value = item.color || '#3498db';
     document.getElementById('newCheckItem').focus();
-    // Remove o item da lista temporariamente para evitar duplicidade ao salvar
     tempChecklistItems.splice(index, 1);
     window.renderTempChecklist();
 };
