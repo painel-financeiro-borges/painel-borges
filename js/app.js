@@ -296,8 +296,9 @@ window.addTempItem = () => {
     const input = document.getElementById('newCheckItem'); 
     const category = document.getElementById('newCheckCategory').value;
     const color = document.getElementById('newCheckColorText').value;
+    const priority = document.getElementById('newCheckPriority').value; // Novo
     if(!input.value.trim()) return; 
-    tempChecklistItems.push({ text: input.value, done: false, category: category, color: color }); 
+    tempChecklistItems.push({ text: input.value, done: false, category: category, color: color, priority: priority }); 
     input.value = ''; 
     window.renderTempChecklist(); 
 };
