@@ -130,11 +130,22 @@
                 const mesDiv = document.createElement('div');
                 mesDiv.className = 'mes-bloco';
                 mesDiv.innerHTML = `<div class="mes-titulo">${new Date(ano, mes).toLocaleString('pt-BR', { month: 'long' })}</div>`;
-                const grid = document.createElement('div');
-                grid.className = 'grid-dias';
+                // Colar estas linhas no lugar:
+const grid = document.createElement('div');
+grid.className = 'grid-dias';
+
+// Cabeçalho dos dias da semana
+const diasSemana = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+diasSemana.forEach(diaS => {
+    const cabecalho = document.createElement('div');
+    cabecalho.className = 'dia-topo';
+    cabecalho.style.fontSize = '0.6vw';
+    cabecalho.innerText = diaS;
+    grid.appendChild(cabecalho);
+});
                 
-                const diasNoMes = new Date(ano, mes + 1, 0).getDate();
-                for (let i = 1; i <= diasNoMes; i++) {
+const diasNoMes = new Date(ano, mes + 1, 0).getDate();
+for (let i = 1; i <= diasNoMes; i++) {
                     const dataChave = `${i}/${mes + 1}/${ano}`;
                     const diaDiv = document.createElement('div');
                     diaDiv.className = 'dia';
