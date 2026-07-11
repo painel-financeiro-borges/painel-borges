@@ -298,9 +298,13 @@ window.editTempItem = (index) => {
     document.getElementById('newCheckItem').focus();
     // Remove o item da lista temporariamente para evitar duplicidade ao salvar
     tempChecklistItems.splice(index, 1);
-    renderTempChecklist();
+    window.renderTempChecklist();
 };
-window.toggleTempItem = (index) => { tempChecklistItems[index].done = !tempChecklistItems[index].done; renderTempChecklist(); };
+
+window.toggleTempItem = (index) => { 
+    tempChecklistItems[index].done = !tempChecklistItems[index].done; 
+    window.renderTempChecklist(); 
+};
 
 window.openSubCardModal = () => { 
     document.getElementById('subCardId').value = ''; 
