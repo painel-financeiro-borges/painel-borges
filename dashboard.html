@@ -160,7 +160,11 @@
         <input type="text" id="newCheckCategory" class="form-control form-control-sm" placeholder="Categoria">
     </div>
     <div class="col-2">
-        <input type="color" id="newCheckColor" class="form-control form-control-sm p-1" value="#3498db">
+        <!-- AJUSTE NA BIBLIOTECA DE CORES -->
+<div class="d-flex align-items-center">
+    <input type="color" id="newCheckColor" class="form-control form-control-sm p-0 border-0" style="width:30px; height:25px;" value="#3498db" oninput="document.getElementById('newCheckColorText').value = this.value">
+    <input type="text" id="newCheckColorText" class="form-control form-control-sm ms-1" style="width:75px;" value="#3498db" oninput="document.getElementById('newCheckColor').value = this.value">
+</div>
     </div>
     <div class="col-6">
         <div class="input-group input-group-sm">
