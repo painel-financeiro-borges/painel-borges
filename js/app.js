@@ -279,9 +279,15 @@ window.renderTempChecklist = () => {
     const container = document.getElementById('tempChecklistList'); container.innerHTML = '';
     tempChecklistItems.forEach((item, index) => {
         const div = document.createElement('div'); div.className = `checklist-item cl-${item.priority || 'low'} ${item.done ? 'done' : ''}`;
-        div.innerHTML = `<i class="fas fa-grip-vertical checklist-handle"></i><input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleTempItem(${index})"><span>${item.text}</span><div class="d-flex gap-2 ms-auto"><i class="fas fa-pen text-secondary" style="cursor:pointer" onclick="editTempItem(${index})" title="Editar"></i><i class="fas fa-times text-danger" style="cursor:pointer" onclick="removeTempItem(${index})" title="Excluir"></i></div>`;
+        div.innerHTML = `<i class="fas fa-grip-vertical checklist-handle"></i><input type="checkbox" ${item.done ? 'checked' : ''} onchange="window.toggleTempItem(${index})"><span>${item.text}</span><div class="d-flex gap-2 ms-auto"><i class="fas fa-pen text-secondary" style="cursor:pointer" onclick="window.editTempItem(${index})" title="Editar"></i><i class="fas fa-times text-danger" style="cursor:pointer" onclick="window.removeTempItem(${index})" title="Excluir"></i></div>`;
         container.appendChild(div);
     });
+};
+window.removeTempItem = async (index) => { 
+    const removedItem = tempChecklistItems[index]; 
+    await moveToTrash(null, null, { title: removedItem.text, priority: removedItem.priority, originalCardId: document.getElementById('subCardId').value }, 'Item Lista'); 
+    tempChecklistItems.splice(index, 1); 
+    window.renderTempChecklist(); 
 };
 window.addTempItem = () => { const input = document.getElementById('newCheckItem'); const priority = document.getElementById('newCheckPriority').value; if(!input.value.trim()) return; tempChecklistItems.push({ text: input.value, done: false, priority: priority }); input.value = ''; renderTempChecklist(); };
 // UPGRADE BOTÃO VOLTAR E EDIÇÃO DE CHECKLIST
