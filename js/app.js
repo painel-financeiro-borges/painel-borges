@@ -274,11 +274,12 @@ window.removeTempText = async (index) => {
 };
 window.updateTempText = (index, field, value) => { tempTexts[index][field] = value; };
 
+// COLE estas 7 linhas no lugar:
 window.renderTempChecklist = () => {
     const container = document.getElementById('tempChecklistList'); container.innerHTML = '';
     tempChecklistItems.forEach((item, index) => {
         const div = document.createElement('div'); div.className = `checklist-item cl-${item.priority || 'low'} ${item.done ? 'done' : ''}`;
-        div.innerHTML = `<i class="fas fa-grip-vertical checklist-handle"></i><input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleTempItem(${index})"><span>${item.text}</span><i class="fas fa-times text-danger" style="cursor:pointer" onclick="removeTempItem(${index})"></i>`;
+        div.innerHTML = `<i class="fas fa-grip-vertical checklist-handle"></i><input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleTempItem(${index})"><span>${item.text}</span><div class="d-flex gap-2 ms-auto"><i class="fas fa-pen text-secondary" style="cursor:pointer" onclick="editTempItem(${index})" title="Editar"></i><i class="fas fa-times text-danger" style="cursor:pointer" onclick="removeTempItem(${index})" title="Excluir"></i></div>`;
         container.appendChild(div);
     });
 };
