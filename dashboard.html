@@ -154,16 +154,23 @@
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <label class="fw-bold text-muted small"><i class="fas fa-tasks me-1"></i> CHECKLIST</label>
                         </div>
-                        <div class="input-group mb-2">
-                            <select id="newCheckPriority" class="form-select fw-bold" style="max-width: 80px;">
-                                <option value="low">🟢</option>
-                                <option value="medium">🟡</option>
-                                <option value="urgent">🔴</option>
-                            </select>
-                            <input type="text" id="newCheckItem" class="form-control" placeholder="Novo item...">
-                           <!-- AJUSTE BOTÃO VOLTAR E EDIÇÃO DE CHECKLIST: -->
-                          <button class="btn btn-primary" onclick="addTempItem()"><i class="fas fa-plus"></i></button>
-                        </div>
+                        <!-- COLE ESTAS LINHAS: -->
+<div class="row g-2 mb-2">
+    <div class="col-4">
+        <input type="text" id="newCheckCategory" class="form-control form-control-sm" placeholder="Categoria">
+    </div>
+    <div class="col-2">
+        <input type="color" id="newCheckColor" class="form-control form-control-sm p-1" value="#3498db">
+    </div>
+    <div class="col-6">
+        <div class="input-group input-group-sm">
+            <input type="text" id="newCheckItem" class="form-control" placeholder="Item...">
+            <!-- AJUSTE BOTÃO VOLTAR E EDIÇÃO DE CHECKLIST: -->
+            <button class="btn btn-primary" onclick="addTempItem()"><i class="fas fa-plus"></i></button>
+        </div>
+    </div>
+</div>
+                                     
                         <div id="tempChecklistList" class="checklist-container"></div>
                     </div>
 
