@@ -144,12 +144,23 @@ diasSemana.forEach(diaS => {
     grid.appendChild(cabecalho);
 });
                 
+// COLAR ESTAS LINHAS NO LUGAR:
+const primeiroDiaMes = new Date(ano, mes, 1).getDay();
 const diasNoMes = new Date(ano, mes + 1, 0).getDate();
+
+// Adiciona células vazias para alinhar o dia 1 corretamente
+for (let j = 0; j < primeiroDiaMes; j++) {
+    const vazio = document.createElement('div');
+    vazio.className = 'dia';
+    vazio.style.backgroundColor = '#f4f4f4';
+    grid.appendChild(vazio);
+}
+
 for (let i = 1; i <= diasNoMes; i++) {
-                    const dataChave = `${i}/${mes + 1}/${ano}`;
-                    const diaDiv = document.createElement('div');
-                    diaDiv.className = 'dia';
-                    diaDiv.innerHTML = `<div class="dia-topo">${i}</div>`;
+    const dataChave = `${i}/${mes + 1}/${ano}`;
+    const diaDiv = document.createElement('div');
+    diaDiv.className = 'dia';
+    diaDiv.innerHTML = `<div class="dia-topo">${i}</div>`;
                     
                     if (anotacoes[dataChave]) {
                         anotacoes[dataChave].forEach(item => {
