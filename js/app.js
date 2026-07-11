@@ -286,7 +286,7 @@ window.renderTempChecklist = () => {
 };
 window.removeTempItem = async (index) => { 
     const removedItem = tempChecklistItems[index]; 
-    await moveToTrash(null, null, { title: removedItem.text, priority: removedItem.priority, originalCardId: document.getElementById('subCardId').value }, 'Item Lista'); 
+    await moveToTrash(null, null, { title: removedItem.text, priority: removedItem.priority || 'low', originalCardId: document.getElementById('subCardId').value }, 'Item Lista'); 
     tempChecklistItems.splice(index, 1); 
     window.renderTempChecklist(); 
 };
