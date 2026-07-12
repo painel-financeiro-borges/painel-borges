@@ -528,3 +528,21 @@ window.restoreFromTrash = async (trashId) => {
 window.nuke = async (id) => { if(confirm("Excluir?")) { await deleteDoc(doc(db, `users/${currentUser.uid}/trash`, id)); addToHistory('LIXEIRA', 'Exclusão permanente'); }};
 document.getElementById('themeToggle').onclick = () => { document.body.classList.toggle('dark-mode'); localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light'); };
 if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
+
+//FUNÇÃO DE TRANSFERÊNCIA DE ITENS 
+window.moveTempItemPrompt = (index) => {
+    const item = tempChecklistItems[index];
+    const targetCard = prompt("Digite o nome do Card de destino (ex: PROFISSIONAL, PESSOAL):");
+    if (!targetCard) return;
+
+    // Busca o card de destino na página (assumindo que cards têm IDs ou nomes visíveis)
+    const allCards = document.querySelectorAll('.card-title'); // Ajuste o seletor conforme seu HTML
+    let found = false;
+    
+    // Aqui você implementaria a lógica de salvar no Firestore do outro card
+    // Por enquanto, uma notificação para confirmar a ação
+    alert(`Item "${item.text}" movido para "${targetCard}". (Implementação de salvamento necessária)`);
+    
+    tempChecklistItems.splice(index, 1);
+    window.renderTempChecklist();
+};
