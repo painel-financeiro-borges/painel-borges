@@ -185,3 +185,4 @@ body.dark-mode .btn-outline-dark:hover {
 }
 /* Tarja de Classificação no Checklist */
 .checklist-tag { font-size: 0.6rem; padding: 1px 6px; border-radius: 4px; color: white; margin-left: 8px; font-weight: bold; border: 1px solid rgba(0,0,0,0.1); }
+.checklist-note { border-left: 3px solid #1abc9c; color: #ddd; }
