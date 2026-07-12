@@ -289,6 +289,7 @@ div.innerHTML = `<div class="w-100"><div class="d-flex align-items-center"><i cl
     });
 };
 window.removeTempItem = async (index) => { 
+    if (!confirm("Tem certeza que deseja excluir este item?")) return;
     const removedItem = tempChecklistItems[index]; 
     await moveToTrash(null, null, { title: removedItem.text, priority: removedItem.priority || 'low', originalCardId: document.getElementById('subCardId').value }, 'Item Lista'); 
     tempChecklistItems.splice(index, 1); 
