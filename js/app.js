@@ -564,7 +564,23 @@ window.openMoveModal = (index) => {
             btn.className = "p-3 border rounded cursor-pointer bg-secondary";
             btn.innerText = titulo;
             btn.onclick = () => {
-                alert(`Movendo "${item.text}" para o card ID: ${id}`);
+                // ATENÇÃO: Verifique se sua variável 'db' e a função 'addDoc/deleteDoc' estão acessíveis no escopo
+try {
+    // 1. Adiciona no novo destino (ajuste 'checklist' para o nome da sua coleção de itens)
+    await addDoc(collection(db, `users/${currentUser.uid}/checklist`), {
+        ...item,
+        parentId: id // Vincula ao novo projeto de destino
+    });
+    
+    // 2. Remove do local atual
+    tempChecklistItems.splice(index, 1);
+    window.renderTempChecklist();
+    
+    console.log("Movido com sucesso!");
+} catch (err) {
+    console.error("Erro ao mover:", err);
+    alert("Erro ao transferir item.");
+}
                 // Aqui você chamará sua função de salvar no Firestore
                 modal.hide();
             };
