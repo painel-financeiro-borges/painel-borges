@@ -299,10 +299,22 @@ window.addTempItem = () => {
     const input = document.getElementById('newCheckItem'); 
     const category = document.getElementById('newCheckCategory').value;
     const color = document.getElementById('newCheckColorText').value;
-    const priority = document.getElementById('newCheckPriority').value; // Novo
+    const priority = document.getElementById('newCheckPriority').value;
+    const note = document.getElementById('newCheckNote').value; // Novo
+    
     if(!input.value.trim()) return; 
-    tempChecklistItems.push({ text: input.value, done: false, category: category, color: color, priority: priority }); 
+    
+    tempChecklistItems.push({ 
+        text: input.value, 
+        done: false, 
+        category: category, 
+        color: color, 
+        priority: priority,
+        note: note // Novo
+    }); 
+    
     input.value = ''; 
+    document.getElementById('newCheckNote').value = ''; // Limpa a nota
     window.renderTempChecklist(); 
 };
 // UPGRADE BOTÃO VOLTAR E EDIÇÃO DE CHECKLIST
