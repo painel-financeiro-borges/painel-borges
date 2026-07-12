@@ -546,3 +546,30 @@ window.moveTempItemPrompt = (index) => {
     tempChecklistItems.splice(index, 1);
     window.renderTempChecklist();
 };
+
+window.openMoveModal = (index) => {
+    const item = tempChecklistItems[index];
+    const modal = new bootstrap.Modal(document.getElementById('moveItemModal'));
+    const grid = document.getElementById('destinationsGrid');
+    grid.innerHTML = ''; // Limpa anterior
+
+    // Reutilizamos a lógica do robô para listar
+    const selectors = ['#grid-Pessoal', '#grid-Profissional', '#grid-Ideia'];
+    selectors.forEach(sel => {
+        document.querySelectorAll(`${sel} .project-card`).forEach(card => {
+            const id = card.getAttribute('data-id');
+            const titulo = card.querySelector('h3, .card-title, h5')?.innerText || "Sem Título";
+            
+            const btn = document.createElement('div');
+            btn.className = "p-3 border rounded cursor-pointer bg-secondary";
+            btn.innerText = titulo;
+            btn.onclick = () => {
+                alert(`Movendo "${item.text}" para o card ID: ${id}`);
+                // Aqui você chamará sua função de salvar no Firestore
+                modal.hide();
+            };
+            grid.appendChild(btn);
+        });
+    });
+    modal.show();
+};
