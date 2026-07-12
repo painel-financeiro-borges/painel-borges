@@ -565,27 +565,40 @@ window.openMoveModal = (index) => {
             btn.innerText = titulo;
             btn.onclick = () => {
                 // ATENÇÃO: Verifique se sua variável 'db' e a função 'addDoc/deleteDoc' estão acessíveis no escopo
-try {
-    // 1. Adiciona no novo destino (ajuste 'checklist' para o nome da sua coleção de itens)
-    await addDoc(collection(db, `users/${currentUser.uid}/checklist`), {
-        ...item,
-        parentId: id // Vincula ao novo projeto de destino
-    });
-    
-    // 2. Remove do local atual
-    tempChecklistItems.splice(index, 1);
-    window.renderTempChecklist();
-    
-    console.log("Movido com sucesso!");
-} catch (err) {
-    console.error("Erro ao mover:", err);
-    alert("Erro ao transferir item.");
-}
-                // Aqui você chamará sua função de salvar no Firestore
-                modal.hide();
+btn.onclick = async () => {
+                try {
+                    // 1. Busca o card de destino para atualizar a lista de itens dele
+                    const targetCardRef = doc(db, `users/${currentUser.uid}/subcards`, id);
+                    const cardSnap = await getDoc(targetCardRef);
+
+                    if (cardSnap.exists()) {
+                        const currentData = cardSnap.data();
+                        const currentItems = currentData.items || [];
+                        
+                        // Adiciona o item movido à lista do card de destino
+                        currentItems.push({
+                            text: item.text,
+                            priority: item.priority || 'low',
+                            category: item.category || '',
+                            color: item.color || '',
+                            note: item.note || '',
+                            done: false
+                        });
+
+                        // 2. Atualiza o card de destino no Firestore
+                        await updateDoc(targetCardRef, { items: currentItems });
+
+                        // 3. Remove do local atual (memória)
+                        tempChecklistItems.splice(index, 1);
+                        window.renderTempChecklist();
+
+                        console.log("Movido com sucesso para o card:", id);
+                        modal.hide();
+                    } else {
+                        alert("Erro: O card de destino não foi encontrado.");
+                    }
+                } catch (err) {
+                    console.error("Erro ao mover:", err);
+                    alert("Erro ao transferir item: " + err.message);
+                }
             };
-            grid.appendChild(btn);
-        });
-    });
-    modal.show();
-};
