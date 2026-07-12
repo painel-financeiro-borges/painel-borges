@@ -558,7 +558,7 @@ window.openMoveModal = (index) => {
     selectors.forEach(sel => {
         document.querySelectorAll(`${sel} .project-card`).forEach(card => {
             const id = card.getAttribute('data-id');
-            const titulo = card.querySelector('h3, .card-title, h5')?.innerText || "Sem Título";
+            const titulo = card.innerText.split('\n')[0] || "Sem Título";
             
             const btn = document.createElement('div');
             btn.className = "p-3 border rounded cursor-pointer bg-secondary";
