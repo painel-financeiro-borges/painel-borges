@@ -284,7 +284,7 @@ const div = document.createElement('div'); div.className = `checklist-item cl-${
         // COLE estas linhas:
 const noteHtml = item.note ? `<div class="checklist-note p-2 mt-1 small bg-dark rounded" id="note-${index}" style="display:none;">${item.note}</div>` : '';
 const btnNote = item.note ? `<i class="fas fa-eye text-info" style="cursor:pointer" onclick="document.getElementById('note-${index}').style.display = document.getElementById('note-${index}').style.display === 'none' ? 'block' : 'none'" title="Ver Nota"></i>` : '';
-div.innerHTML = `<div class="w-100"><div class="d-flex align-items-center"><i class="fas fa-grip-vertical checklist-handle me-2"></i><input type="checkbox" ${item.done ? 'checked' : ''} onchange="window.toggleTempItem(${index})"><span class="ms-2">${item.text} ${tagHtml}</span> <div class="d-flex gap-2 ms-auto">${btnNote}<i class="fas fa-share text-primary" style="cursor:pointer" onclick="window.openMoveModal(${index})" title="Mover"></i><i class="fas fa-pen text-secondary" style="cursor:pointer" onclick="window.editTempItem(${index})" title="Editar"></i><i class="fas fa-times text-danger" style="cursor:pointer" onclick="window.removeTempItem(${index})" title="Excluir"></i></div></div>${noteHtml}</div>`;
+div.innerHTML = `<div class="w-100"><div class="d-flex align-items-center"><i class="fas fa-grip-vertical checklist-handle me-2"></i><input type="checkbox" ${item.done ? 'checked' : ''} onchange="window.toggleTempItem(${index})"><span class="ms-2">${item.text} ${tagHtml}</span><div class="d-flex gap-2 ms-auto">${btnNote}<i class="fas fa-pen text-secondary" style="cursor:pointer" onclick="window.editTempItem(${index})" title="Editar"></i><i class="fas fa-times text-danger" style="cursor:pointer" onclick="window.removeTempItem(${index})" title="Excluir"></i></div></div>${noteHtml}</div>`;
         container.appendChild(div);
     });
 };
@@ -528,77 +528,3 @@ window.restoreFromTrash = async (trashId) => {
 window.nuke = async (id) => { if(confirm("Excluir?")) { await deleteDoc(doc(db, `users/${currentUser.uid}/trash`, id)); addToHistory('LIXEIRA', 'Exclusão permanente'); }};
 document.getElementById('themeToggle').onclick = () => { document.body.classList.toggle('dark-mode'); localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light'); };
 if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
-
-//FUNÇÃO DE TRANSFERÊNCIA DE ITENS 
-window.moveTempItemPrompt = (index) => {
-    const item = tempChecklistItems[index];
-    const targetCard = prompt("Digite o nome do Card de destino (ex: PROFISSIONAL, PESSOAL):");
-    if (!targetCard) return;
-
-    // Busca o card de destino na página (assumindo que cards têm IDs ou nomes visíveis)
-    const allCards = document.querySelectorAll('.card-title'); // Ajuste o seletor conforme seu HTML
-    let found = false;
-    
-    // Aqui você implementaria a lógica de salvar no Firestore do outro card
-    // Por enquanto, uma notificação para confirmar a ação
-    alert(`Item "${item.text}" movido para "${targetCard}". (Implementação de salvamento necessária)`);
-    
-    tempChecklistItems.splice(index, 1);
-    window.renderTempChecklist();
-};
-
-window.openMoveModal = (index) => {
-    const item = tempChecklistItems[index];
-    const modal = new bootstrap.Modal(document.getElementById('moveItemModal'));
-    const grid = document.getElementById('destinationsGrid');
-    grid.innerHTML = ''; // Limpa anterior
-
-    // Reutilizamos a lógica do robô para listar
-    const selectors = ['#grid-Pessoal', '#grid-Profissional', '#grid-Ideia'];
-    selectors.forEach(sel => {
-        document.querySelectorAll(`${sel} .project-card`).forEach(card => {
-            const id = card.getAttribute('data-id');
-            const titulo = card.innerText.split('\n')[0] || "Sem Título";
-            
-            const btn = document.createElement('div');
-            btn.className = "p-3 border rounded cursor-pointer bg-secondary";
-            btn.innerText = titulo;
-            btn.onclick = () => {
-                // ATENÇÃO: Verifique se sua variável 'db' e a função 'addDoc/deleteDoc' estão acessíveis no escopo
-btn.onclick = async () => {
-                try {
-                    // 1. Busca o card de destino para atualizar a lista de itens dele
-                    const targetCardRef = doc(db, `users/${currentUser.uid}/subcards`, id);
-                    const cardSnap = await getDoc(targetCardRef);
-
-                    if (cardSnap.exists()) {
-                        const currentData = cardSnap.data();
-                        const currentItems = currentData.items || [];
-                        
-                        // Adiciona o item movido à lista do card de destino
-                        currentItems.push({
-                            text: item.text,
-                            priority: item.priority || 'low',
-                            category: item.category || '',
-                            color: item.color || '',
-                            note: item.note || '',
-                            done: false
-                        });
-
-                        // 2. Atualiza o card de destino no Firestore
-                        await updateDoc(targetCardRef, { items: currentItems });
-
-                        // 3. Remove do local atual (memória)
-                        tempChecklistItems.splice(index, 1);
-                        window.renderTempChecklist();
-
-                        console.log("Movido com sucesso para o card:", id);
-                        modal.hide();
-                    } else {
-                        alert("Erro: O card de destino não foi encontrado.");
-                    }
-                } catch (err) {
-                    console.error("Erro ao mover:", err);
-                    alert("Erro ao transferir item: " + err.message);
-                }
-            };
