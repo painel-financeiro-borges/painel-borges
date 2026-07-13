@@ -325,7 +325,10 @@ window.editTempItem = (index) => {
     const item = tempChecklistItems[index];
     document.getElementById('newCheckItem').value = item.text;
     if(document.getElementById('newCheckCategory')) document.getElementById('newCheckCategory').value = item.category || '';
-    if(document.getElementById('newCheckColorText')) document.getElementById('newCheckColorText').value = item.color || '#3498db';
+    if(document.getElementById('newCheckColorText')) { 
+    document.getElementById('newCheckColorText').value = item.color || '#3498db';
+    document.querySelector('.color-preview-box').style.backgroundColor = item.color || '#3498db'; 
+}
     if(document.getElementById('newCheckNote')) document.getElementById('newCheckNote').value = item.note || ''; // Novo
     document.getElementById('newCheckItem').focus();
     tempChecklistItems.splice(index, 1);
