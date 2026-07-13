@@ -536,17 +536,24 @@ if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-m
 // Adiciona o ouvinte de evento para o campo de Anotação (id="newCheckNote")
 const noteField = document.getElementById('newCheckNote');
 if (noteField) {
+    // 1. Monitora a digitação do atalho "- "
     noteField.addEventListener('input', function(e) {
-        // Se o usuário digitar "- " no início ou após um espaço
-        if (this.value === '- ' || this.value.endsWith(' - ')) {
+        if (this.value === '- ' || this.value.endsWith('\n- ')) {
             this.value = this.value.replace(/- $/, '• ');
         }
     });
 
+    // 2. Monitora o ENTER para criar a nova linha já com o marcador
     noteField.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') {
-            // Permite a quebra de linha natural do textarea
-            // Não precisa de lógica extra aqui, o textarea já faz isso sozinho
+            // Se a linha anterior terminou com um ponto, a próxima também deve começar com um
+            const lines = this.value.split('\n');
+            const lastLine = lines[lines.length - 1];
+            
+            if (lastLine.trim().startsWith('•')) {
+                e.preventDefault(); // Impede o comportamento padrão de apenas pular linha
+                this.value += '\n• '; // Pula linha e já insere o marcador
+            }
         }
     });
 }
