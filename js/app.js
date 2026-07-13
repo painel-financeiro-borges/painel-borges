@@ -536,14 +536,17 @@ if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-m
 // Adiciona o ouvinte de evento para o campo de Anotação (id="newCheckNote")
 const noteField = document.getElementById('newCheckNote');
 if (noteField) {
+    noteField.addEventListener('input', function(e) {
+        // Se o usuário digitar "- " no início ou após um espaço
+        if (this.value === '- ' || this.value.endsWith(' - ')) {
+            this.value = this.value.replace(/- $/, '• ');
+        }
+    });
+
     noteField.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') {
-            // Se o campo for input, ele não quebra linha. 
-            // Se for textarea, ele quebra.
-            if (this.value.endsWith('- ')) {
-                e.preventDefault();
-                this.value += '• ';
-            }
+            // Permite a quebra de linha natural do textarea
+            // Não precisa de lógica extra aqui, o textarea já faz isso sozinho
         }
     });
 }
