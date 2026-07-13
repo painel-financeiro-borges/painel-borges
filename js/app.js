@@ -531,3 +531,19 @@ window.restoreFromTrash = async (trashId) => {
 window.nuke = async (id) => { if(confirm("Excluir?")) { await deleteDoc(doc(db, `users/${currentUser.uid}/trash`, id)); addToHistory('LIXEIRA', 'Exclusão permanente'); }};
 document.getElementById('themeToggle').onclick = () => { document.body.classList.toggle('dark-mode'); localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light'); };
 if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
+
+//FUNÇÃO QUE GERA PONTO COM O HIFEN + ESPAÇO 
+// Adiciona o ouvinte de evento para o campo de Anotação (id="newCheckNote")
+const noteField = document.getElementById('newCheckNote');
+if (noteField) {
+    noteField.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            // Se o campo for input, ele não quebra linha. 
+            // Se for textarea, ele quebra.
+            if (this.value.endsWith('- ')) {
+                e.preventDefault();
+                this.value += '• ';
+            }
+        }
+    });
+}
