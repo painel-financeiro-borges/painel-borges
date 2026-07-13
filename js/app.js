@@ -261,7 +261,7 @@ window.renderTempTexts = () => {
             <div class="resource-item">
                 <i class="fas fa-times resource-delete" onclick="removeTempText(${index})"></i>
                 <input type="text" class="form-control fw-bold mb-1 border-0 bg-transparent px-0" placeholder="Título da Nota" value="${text.title}" onchange="updateTempText(${index}, 'title', this.value)">
-                <textarea class="form-control border-0 bg-transparent px-0 text-muted" rows="2" placeholder="Conteúdo..." onchange="updateTempText(${index}, 'content', this.value)">${text.content}</textarea>
+                <textarea class="form-control border-0 bg-transparent px-0 text-muted" rows="2" placeholder="Conteúdo..." onkeydown="if(event.key === 'Enter' && event.target.value.endsWith('- ')) { event.preventDefault(); event.target.value += '• '; }" onchange="updateTempText(${index}, 'content', this.value)">${text.content}</textarea>
             </div>`;
     });
 };
