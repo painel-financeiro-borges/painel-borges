@@ -282,7 +282,9 @@ window.renderTempChecklist = () => {
 const div = document.createElement('div'); div.className = `checklist-item cl-${item.priority || 'low'} ${item.done ? 'done' : ''}`;
         const tagHtml = item.category ? `<span class="checklist-tag" style="background-color:${item.color}">${item.category}</span>` : '';
         // COLE estas linhas:
-const noteHtml = item.note ? `<div class="checklist-note p-2 mt-1 small bg-dark rounded" id="note-${index}" style="display:none;">${item.note}</div>` : '';
+const noteHtml = item.note ? `<div class="checklist-note p-2 mt-1 small bg-dark rounded" id="note-${index}" style="display:none;">
+<textarea class="form-control bg-transparent text-white border-0" onkeydown="if(event.key === 'Enter' && event.target.value.endsWith('- ')) { event.preventDefault(); event.target.value += '• '; }" onchange="tempChecklistItems[${index}].note = this.value">${item.note}</textarea>
+</div>` : '';
 const btnNote = item.note ? `<i class="fas fa-eye text-info" style="cursor:pointer" onclick="document.getElementById('note-${index}').style.display = document.getElementById('note-${index}').style.display === 'none' ? 'block' : 'none'" title="Ver Nota"></i>` : '';
 div.innerHTML = `<div class="w-100"><div class="d-flex align-items-center"><i class="fas fa-grip-vertical checklist-handle me-2"></i><input type="checkbox" ${item.done ? 'checked' : ''} onchange="window.toggleTempItem(${index})"><span class="ms-2">${item.text} ${tagHtml}</span><div class="d-flex gap-2 ms-auto">${btnNote}<i class="fas fa-pen text-secondary" style="cursor:pointer" onclick="window.editTempItem(${index})" title="Editar"></i><i class="fas fa-times text-danger" style="cursor:pointer" onclick="window.removeTempItem(${index})" title="Excluir"></i></div></div>${noteHtml}</div>`;
         container.appendChild(div);
