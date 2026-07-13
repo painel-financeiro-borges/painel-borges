@@ -167,8 +167,8 @@
     <div class="col-2">
         <!-- AJUSTE NA BIBLIOTECA DE CORES -->
 <div class="d-flex align-items-center">
-    <input type="color" id="newCheckColor" class="form-control form-control-sm p-0 border-0" style="width:30px; height:25px;" value="#3498db" oninput="document.getElementById('newCheckColorText').value = this.value">
-    <input type="text" id="newCheckColorText" class="form-control form-control-sm ms-1" style="width:75px;" value="#3498db" oninput="document.getElementById('newCheckColor').value = this.value">
+    <div class="color-preview-box" style="width:30px; height:25px; background-color:#3498db; border:1px solid #ccc;"></div>
+<input type="text" id="newCheckColorText" class="form-control form-control-sm ms-1" style="width:85px;" value="#3498db" oninput="document.querySelector('.color-preview-box').style.backgroundColor = this.value">
 </div>
     </div>
     <div class="col-6">
