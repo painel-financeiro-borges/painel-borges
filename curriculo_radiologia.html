@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currículo Profissional - Gilvan Xavier Borges</title>
+    
+    <!-- Tailwind CSS para um design moderno e responsivo -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Biblioteca HTML2PDF para gerar o PDF perfeitamente no navegador -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <!-- Firebase App (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+
+    <style>
+        /* Estilos adicionais para garantir que a impressão em A4 saia perfeita */
+        @media print {
+            body {
+                background: white;
+                color: black;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .page-container {
+                box-shadow: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+            }
+        }
+        .page-container {
+            max-width: 800px;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen py-8 px-4 flex flex-col items-center">
+
+    <!-- Barra de Ações (Fica oculta na impressão/PDF) -->
+    <div class="no-print w-full max-w-[800px] flex justify-between items-center mb-6 bg-white p-4 rounded-lg shadow-sm">
+        <span class="text-sm font-medium text-slate-500">Hospedado via GitHub Pages</span>
+        <button id="btn-download" class="bg-sky-700 hover:bg-sky-800 text-white font-semibold py-2.5 px-5 rounded-lg inline-flex items-center gap-2 shadow-md transition duration-200">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Baixar Currículo em PDF
+        </button>
+    </div>
+
+    <!-- Corpo do Currículo (O que será impresso/gerado no PDF) -->
+    <div id="curriculo-conteudo" class="page-container w-full bg-white p-8 sm:p-12 rounded-lg shadow-md border-t-8 border-sky-700">
+        
+        <!-- Cabeçalho Principal -->
+        <header class="border-b-2 border-slate-200 pb-6 mb-8">
+            <h1 class="text-3xl sm:text-4xl font-bold text-sky-950 uppercase tracking-wide">Gilvan Xavier Borges</h1>
+            <p class="text-lg font-semibold text-slate-600 mt-1 uppercase tracking-wider">Técnico em Radiologia / Estagiário em Radiologia</p>
+            
+            <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-slate-500">
+                <div class="flex items-center gap-2">
+                    <span class="font-bold text-slate-700">Telefones:</span> (75) 99201-1008 / (75) 99864-9927
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="font-bold text-slate-700">E-mail:</span> contatogilborges@gmail.com
+                </div>
+                <div class="flex items-center gap-2 sm:col-span-2">
+                    <span class="font-bold text-slate-700">Endereço:</span> Condomínio Vicenza, Bloco 07, Unidade 02, Bairro SIM, Feira de Santana - BA
+                </div>
+            </div>
+        </header>
+
+        <!-- Resumo Profissional -->
+        <section class="mb-8">
+            <h2 class="text-base font-bold text-sky-800 uppercase tracking-wider border-b border-slate-200 pb-1 mb-3">Resumo Profissional</h2>
+            <p class="text-slate-700 text-justify leading-relaxed">
+                Profissional da área de Radiologia comprometido com a excelência no atendimento ao paciente, precisão na aquisição de imagens e rigorosa aplicação das normas de radioproteção (Portaria 453/ANVISA). Habilidade no manuseio de equipamentos digitais e convencionais, com facilidade para trabalhar em equipes multidisciplinares e adaptar-se a rotinas de alta demanda, como clínicas de diagnóstico por imagem e prontos-socorros em Feira de Santana.
+            </p>
+        </section>
+
+        <!-- Formação Acadêmica -->
+        <section class="mb-8">
+            <h2 class="text-base font-bold text-sky-800 uppercase tracking-wider border-b border-slate-200 pb-1 mb-3">Formação Acadêmica</h2>
+            <div class="space-y-4">
+                <div>
+                    <h3 class="font-bold text-slate-800 text-md">Curso Técnico em Radiologia</h3>
+                    <p class="text-sm text-slate-500 italic">Instituição ESATER — Conclusão em 2017</p>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-800 text-md">Ensino Médio Completo</h3>
+                    <p class="text-sm text-slate-500 italic">Conclusão em 2009</p>
+                </div>
+                <div class="bg-slate-50 p-3 rounded border-l-4 border-sky-700">
+                    <p class="text-sm text-slate-700 font-semibold">Registro Profissional (CRTR-BA): <span class="text-slate-500 font-normal">Em processo de emissão</span></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Vivência Prática e Estágios -->
+        <section class="mb-8">
+            <h2 class="text-base font-bold text-sky-800 uppercase tracking-wider border-b border-slate-200 pb-1 mb-3">Vivência Prática e Estágios Supervisionados</h2>
+            <p class="text-slate-700 mb-4">
+                Atuação em estágios curriculares práticos e integrados em instituições de saúde de referência em Feira de Santana, totalizando carga horária dedicada à excelência técnica:
+            </p>
+            
+            <div class="bg-slate-50 p-4 rounded-lg mb-4">
+                <h3 class="font-bold text-slate-800 text-sm mb-2 uppercase tracking-wide">Hospital Geral Clériston Andrade | Centro Médico da Conselheiro | HTO</h3>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3 text-sm">
+                    <div class="bg-white p-2 rounded shadow-sm border border-slate-100">
+                        <span class="font-semibold text-sky-800">Raios-X:</span> 200 horas práticas
+                    </div>
+                    <div class="bg-white p-2 rounded shadow-sm border border-slate-100">
+                        <span class="font-semibold text-sky-800">Tomografia:</span> 40 horas práticas
+                    </div>
+                    <div class="bg-white p-2 rounded shadow-sm border border-slate-100">
+                        <span class="font-semibold text-sky-800">Mamografia:</span> 20 horas práticas
+                    </div>
+                </div>
+
+                <p class="text-xs font-bold text-slate-600 mb-2 uppercase tracking-wider">Principais Atividades Desenvolvidas:</p>
+                <ul class="list-disc pl-5 text-sm text-slate-700 space-y-1">
+                    <li>Realização e acompanhamento de exames de imagem convencionais e avançados sob supervisão direta.</li>
+                    <li>Acolhimento e atendimento humanizado ao paciente durante todo o fluxo do exame.</li>
+                    <li>Cadastro de pessoas no sistema de radiologia, digitação de dados e organização de prontuários.</li>
+                    <li>Busca ativa de arquivos de imagem e resolução de pendências de dados cadastrais.</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Principais Competências -->
+        <section class="mb-8">
+            <h2 class="text-base font-bold text-sky-800 uppercase tracking-wider border-b border-slate-200 pb-1 mb-3">Principais Competências</h2>
+            <ul class="list-disc pl-5 text-slate-700 space-y-1">
+                <li>Radiologia Convencional e Digital (CR/DR)</li>
+                <li>Acolhimento e atendimento humanizado ao paciente</li>
+                <li>Aplicação rígida de normas de Radioproteção e Biossegurança</li>
+                <li>Organização de prontuários e operação de sistemas de arquivo de imagem (PACS/RIS)</li>
+            </ul>
+        </section>
+
+        <!-- Qualificações Complementares -->
+        <section>
+            <h2 class="text-base font-bold text-sky-800 uppercase tracking-wider border-b border-slate-200 pb-1 mb-3">Qualificações Complementares</h2>
+            <ul class="list-disc pl-5 text-slate-700 space-y-1">
+                <li>Informática Básica (Info Net)</li>
+                <li>Curso de Programação (Prepara Cursos)</li>
+                <li>Treinamento "Meu Sucesso Profissional" (Prepara Cursos)</li>
+                <li>Carteira Nacional de Habilitação (CNH) — Categorias A e B</li>
+            </ul>
+        </section>
+
+    </div>
+
+    <!-- Script de Inicialização do Firebase & Lógica do PDF -->
+    <script>
+        // 1. Configuração e Ativação do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
+            authDomain: "painel-financeiro-borges.firebaseapp.com",
+            projectId: "painel-financeiro-borges",
+            storageBucket: "painel-financeiro-borges.firebasestorage.app",
+            messagingSenderId: "354997627208",
+            appId: "1:354997627208:web:90604d0a7dcd45b6e4eb7d"
+        };
+
+        // Inicializa o Firebase apenas para manter a conexão segura ativa no seu app
+        firebase.initializeApp(firebaseConfig);
+
+        // 2. Lógica para gerar e baixar o PDF em alta definição
+        document.getElementById('btn-download').addEventListener('click', () => {
+            const element = document.getElementById('curriculo-conteudo');
+            
+            // Configurações refinadas para o arquivo PDF gerado
+            const opt = {
+                margin:       12,
+                filename:     'Curriculo_Gilvan_Xavier_Borges.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            // Executa a conversão e o download
+            html2pdf().set(opt).from(element).save();
+        });
+    </script>
+</body>
+</html>
