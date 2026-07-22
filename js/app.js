@@ -743,14 +743,12 @@ window.importDataBackup = async function() {
 
 //FUNÇÃO LIMPEZA TOTAL - RESET 
 window.resetUserDataAccount = async function() {
-    if (!currentUser) return;
-
-    if (!confirm("⚠️ ATENÇÃO EXTREMA: Deseja apagar permanentemente TUDO (projetos, tarefas, recursos, lixeira e histórico) da sua conta? Esta ação não pode ser desfeita.")) {
-        return;
-    }
-
-    if (ui && ui.loading) ui.loading.style.display = 'flex';
-
+    if (!currentUser) { alert("Usuário não logado."); return; }
+    if (!confirm("⚠️ ATENÇÃO: Deseja apagar permanentemente TUDO da sua conta?")) return;
+    
+    const loadingEl = document.getElementById('loadingOverlay');
+    if (loadingEl) loadingEl.style.display = 'flex';
+    
     try {
         const collectionsToClean = ['projects', 'tasks', 'subcards', 'trash', 'history'];
         
@@ -762,14 +760,14 @@ window.resetUserDataAccount = async function() {
                 await batch.commit();
             }
         }
-
+        
         alert("✅ Conta limpa com sucesso! O painel será recarregado.");
         location.reload();
-
+        
     } catch (e) {
-        console.error("Erro ao limpar dados:", e);
-        alert("Erro ao limpar dados: " + e.message);
+        console.error("Erro ao limpar:", e);
+        alert("Erro: " + e.message);
     } finally {
-        if (ui && ui.loading) ui.loading.style.display = 'none';
+        if (loadingEl) loadingEl.style.display = 'none';
     }
 };
