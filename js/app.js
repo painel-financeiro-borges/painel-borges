@@ -356,13 +356,15 @@ window.editTempItem = (index) => {
     document.getElementById('newCheckItem').value = item.text;
     if(document.getElementById('newCheckCategory')) document.getElementById('newCheckCategory').value = item.category || '';
     if(document.getElementById('newCheckColorText')) { 
-    document.getElementById('newCheckColorText').value = item.color || '#3498db';
-    document.querySelector('.color-preview-box').style.backgroundColor = item.color || '#3498db'; 
-}
-    if(document.getElementById('newCheckNote')) document.getElementById('newCheckNote').value = item.note || ''; // Novo
+        document.getElementById('newCheckColorText').value = item.color || '#3498db';
+        document.querySelector('.color-preview-box').style.backgroundColor = item.color || '#3498db'; 
+    }
+    if(document.getElementById('newCheckNote')) document.getElementById('newCheckNote').value = item.note || '';
+    
+    // Salva temporariamente qual índice está sendo editado para substituir no mesmo lugar ao salvar
+    window.editingChecklistIndex = index;
+    
     document.getElementById('newCheckItem').focus();
-    tempChecklistItems.splice(index, 1);
-    window.renderTempChecklist();
 };
 
 window.toggleTempItem = (index) => { 
