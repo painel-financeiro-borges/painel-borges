@@ -75,8 +75,12 @@ import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/
             measurementId: "G-KH9BDWN2WH"
         };
 
-        const db = getFirestore(initializeApp(firebaseConfig));
-        const app = document.getElementById('app');
+        const appFirebase = initializeApp(firebaseConfig);
+const db = getFirestore(appFirebase);
+const auth = getAuth(appFirebase);
+
+const app = document.getElementById('app');
+let currentUserEmail = null;
         const wrapper = document.getElementById('wrapper');
         const modal = document.getElementById('modalAnotacao');
         
