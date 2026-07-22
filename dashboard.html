@@ -155,14 +155,20 @@
                             <label class="fw-bold text-muted small"><i class="fas fa-tasks me-1"></i> CHECKLIST</label>
                         </div>
                         <!-- COLE ESTAS LINHAS: -->
-<div class="col-4">
-    <select id="newCheckPriority" class="form-select form-select-sm">
-        <option value="low">Baixa</option>
-        <option value="medium">Média</option>
-        <option value="urgent">Alta</option>
-    </select>
-    <input type="text" id="newCheckCategory" class="form-control form-control-sm mt-1" placeholder="Categoria">
-    <textarea id="newCheckNote" class="form-control mt-2" style="min-height: 90px; resize: vertical;" placeholder="Anotação detalhada (opcional)..."></textarea>
+<div class="row g-2 mb-2">
+    <div class="col-6">
+        <select id="newCheckPriority" class="form-select form-select-sm">
+            <option value="low">Baixa</option>
+            <option value="medium">Média</option>
+            <option value="urgent">Alta</option>
+        </select>
+    </div>
+    <div class="col-6">
+        <input type="text" id="newCheckCategory" class="form-control form-control-sm" placeholder="Categoria">
+    </div>
+    <div class="col-12">
+        <textarea id="newCheckNote" class="form-control mt-1" style="width: 100%; min-height: 90px; resize: vertical;" placeholder="Anotação detalhada (opcional)..."></textarea>
+    </div>
 </div>
     <div class="col-2">
         <!-- AJUSTE NA BIBLIOTECA DE CORES -->
