@@ -156,33 +156,46 @@
                         </div>
                         <!-- COLE ESTAS LINHAS: -->
 <div class="row g-2 mb-2">
-    <div class="col-6">
+    <div class="col-4">
         <select id="newCheckPriority" class="form-select form-select-sm">
             <option value="low">Baixa</option>
             <option value="medium">Média</option>
             <option value="urgent">Alta</option>
         </select>
     </div>
-    <div class="col-6">
+    <div class="col-4">
         <input type="text" id="newCheckCategory" class="form-control form-control-sm" placeholder="Categoria">
     </div>
-    <div class="col-12">
-        <textarea id="newCheckNote" class="form-control mt-1" style="width: 100%; min-height: 90px; resize: vertical;" placeholder="Anotação detalhada (opcional)..."></textarea>
+    <div class="col-4">
+        <div class="d-flex align-items-center">
+           <input type="color" id="newCheckColor" style="display:none;" oninput="document.getElementById('newCheckColorText').value = this.value; document.querySelector('.color-preview-box').style.backgroundColor = this.value">
+           <div class="color-preview-box" onclick="document.getElementById('newCheckColor').click()" style="min-width:30px; width:30px; height:28px; background-color:#3498db; border:1px solid #ccc; cursor:pointer; flex-shrink: 0;"></div>
+           <input type="text" id="newCheckColorText" class="form-control form-control-sm ms-1" style="width:100px;" value="#3498db" oninput="document.querySelector('.color-preview-box').style.backgroundColor = this.value">
+        </div>
     </div>
-</div>
-    <div class="col-2">
-        <!-- AJUSTE NA BIBLIOTECA DE CORES -->
-<div class="d-flex align-items-center">
-   <input type="color" id="newCheckColor" style="display:none;" oninput="document.getElementById('newCheckColorText').value = this.value; document.querySelector('.color-preview-box').style.backgroundColor = this.value">
-<div class="color-preview-box" onclick="document.getElementById('newCheckColor').click()" style="min-width:30px; width:30px; height:25px; background-color:#3498db; border:1px solid #ccc; cursor:pointer; flex-shrink: 0;"></div>
-<input type="text" id="newCheckColorText" class="form-control form-control-sm ms-1" style="width:85px;" value="#3498db" oninput="document.querySelector('.color-preview-box').style.backgroundColor = this.value">
-</div>
+    
+    <!-- NOVOS CAMPOS DE VALOR MENSAL E ANUAL -->
+    <div class="col-6">
+        <div class="input-group input-group-sm">
+            <span class="input-group-text bg-success text-white">R$</span>
+            <input type="number" step="0.01" id="newCheckMonthly" class="form-control" placeholder="Valor Mensal">
+        </div>
     </div>
     <div class="col-6">
         <div class="input-group input-group-sm">
-            <input type="text" id="newCheckItem" class="form-control" placeholder="Item...">
-            <!-- AJUSTE BOTÃO VOLTAR E EDIÇÃO DE CHECKLIST: -->
-            <button class="btn btn-primary" onclick="window.addTempItem()"><i class="fas fa-plus"></i></button>
+            <span class="input-group-text bg-primary text-white">R$</span>
+            <input type="number" step="0.01" id="newCheckYearly" class="form-control" placeholder="Valor Anual">
+        </div>
+    </div>
+
+    <div class="col-12">
+        <textarea id="newCheckNote" class="form-control mt-1" style="width: 100%; min-height: 90px; resize: vertical;" placeholder="Anotação detalhada (opcional)..."></textarea>
+    </div>
+    
+    <div class="col-12">
+        <div class="input-group input-group-sm">
+            <input type="text" id="newCheckItem" class="form-control" placeholder="Nome do item do checklist...">
+            <button class="btn btn-primary px-4" onclick="window.addTempItem()"><i class="fas fa-plus"></i> Adicionar Item</button>
         </div>
     </div>
 </div>
