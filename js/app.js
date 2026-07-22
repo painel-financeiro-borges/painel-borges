@@ -613,13 +613,10 @@ window.importDataBackup = async function() {
     if (ui && ui.loading) ui.loading.style.display = 'flex';
 
     try {
-        // Prioriza o arquivo se ele foi anexado
         if (fileInput.files && fileInput.files[0]) {
             const fileText = await fileInput.files[0].text();
             rawData = JSON.parse(fileText);
-        } 
-        // Só olha o campo de texto se nenhum arquivo foi enviado
-        else if (jsonTextArea && jsonTextArea.value.trim()) {
+        } else if (jsonTextArea && jsonTextArea.value.trim()) {
             rawData = JSON.parse(jsonTextArea.value.trim());
         } else {
             alert("Selecione um arquivo JSON válido ou cole o código no campo de texto.");
@@ -631,7 +628,7 @@ window.importDataBackup = async function() {
             throw new Error("O arquivo JSON não tem a estrutura válida de backup do Painel Borges.");
         }
 
-        if (!confirm("⚠️ ATENÇÃO: Importar dados vai adicionar/mesclar os itens do backup com os seus registros atuais. Deseja continuar?")) {
+        if (!confirm("⚠️ ATENÇÃO: Importar dados vai mesclar o backup com os seus registros atuais. Deseja continuar?")) {
             if (ui && ui.loading) ui.loading.style.display = 'none';
             return;
         }
@@ -643,27 +640,45 @@ window.importDataBackup = async function() {
 
         const parseDateSafe = (val) => {
             if (!val) return new Date();
+            if (typeof val === 'object' && val.seconds !== undefined) {
+                return new Date(val.seconds * 1000);
+            }
             const d = new Date(val);
             return isNaN(d.getTime()) ? new Date() : d;
         };
 
+        // Mapeia os IDs antigos dos projetos para os novos IDs gerados no Firestore
+        const projectIdMap = {};
+
+        // 1. Importa Projetos e mapeia os IDs
         if (rawData.projects && Array.isArray(rawData.projects)) {
             rawData.projects.forEach(proj => {
+                const oldId = proj.id;
                 const { id, ...data } = proj;
                 data.createdAt = parseDateSafe(data.createdAt);
                 if (data.updatedAt) data.updatedAt = parseDateSafe(data.updatedAt);
                 
                 const newRef = doc(collection(db, `users/${currentUser.uid}/projects`));
                 batch.set(newRef, data);
+                
+                if (oldId) {
+                    projectIdMap[oldId] = newRef.id; // Salva a relação ID antigo -> ID novo
+                }
                 countProjects++;
             });
         }
 
+        // 2. Importa Tarefas (atualizando o projectId com o novo ID correspondente)
         if (rawData.tasks && Array.isArray(rawData.tasks)) {
             rawData.tasks.forEach(task => {
                 const { id, ...data } = task;
                 data.createdAt = parseDateSafe(data.createdAt);
                 if (data.updatedAt) data.updatedAt = parseDateSafe(data.updatedAt);
+                
+                // Reconecta ao novo ID do projeto se existir mapeamento
+                if (data.projectId && projectIdMap[data.projectId]) {
+                    data.projectId = projectIdMap[data.projectId];
+                }
                 
                 const newRef = doc(collection(db, `users/${currentUser.uid}/tasks`));
                 batch.set(newRef, data);
@@ -671,11 +686,17 @@ window.importDataBackup = async function() {
             });
         }
 
+        // 3. Importa Subcards / Recursos (atualizando o projectId com o novo ID correspondente)
         if (rawData.subcards && Array.isArray(rawData.subcards)) {
             rawData.subcards.forEach(card => {
                 const { id, ...data } = card;
                 data.createdAt = parseDateSafe(data.createdAt);
                 if (data.updatedAt) data.updatedAt = parseDateSafe(data.updatedAt);
+                
+                // Reconecta ao novo ID do projeto se existir mapeamento
+                if (data.projectId && projectIdMap[data.projectId]) {
+                    data.projectId = projectIdMap[data.projectId];
+                }
                 
                 const newRef = doc(collection(db, `users/${currentUser.uid}/subcards`));
                 batch.set(newRef, data);
@@ -684,8 +705,8 @@ window.importDataBackup = async function() {
         }
 
         await batch.commit();
-        addToHistory('IMPORTAÇÃO', `Backup restaurado: ${countProjects} projetos, ${countTasks} tarefas, ${countSubcards} recursos.`);
-        alert(`✅ Sucesso! Dados importados:\n- Projetos: ${countProjects}\n- Tarefas: ${countTasks}\n- Recursos: ${countSubcards}`);
+        addToHistory('IMPORTAÇÃO', `Backup restaurado com sucesso: ${countProjects} projetos, ${countTasks} tarefas, ${countSubcards} recursos.`);
+        alert(`✅ Sucesso absoluto! Dados importados:\n- Projetos: ${countProjects}\n- Tarefas: ${countTasks}\n- Recursos/Cards: ${countSubcards}`);
         
         const modalEl = document.getElementById('exportModal');
         if (modalEl) {
