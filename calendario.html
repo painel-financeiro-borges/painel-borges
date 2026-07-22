@@ -113,13 +113,17 @@ let currentUserEmail = null;
             wrapper.style.transform = `scale(${zoomLevel})`;
         };
 
-        async function carregarAnotacoes() {
+       async function carregarAnotacoes() {
             anotacoes = {};
+            // Busca todos os documentos
             const querySnapshot = await getDocs(collection(db, "calendario_anotacoes"));
             querySnapshot.forEach((doc) => {
                 const d = doc.data();
-                if (!anotacoes[d.data]) anotacoes[d.data] = [];
-                anotacoes[d.data].push({ id: doc.id, titulo: d.titulo, texto: d.texto, cor: d.cor });
+                // Filtra por e-mail do usuário logado OU se o documento for antigo (sem email) para não sumir antes da migração
+                if (!d.email || d.email === currentUserEmail) {
+                    if (!anotacoes[d.data]) anotacoes[d.data] = [];
+                    anotacoes[d.data].push({ id: doc.id, titulo: d.titulo, texto: d.texto, cor: d.cor, email: d.email });
+                }
             });
         }
 
