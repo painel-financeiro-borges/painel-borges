@@ -298,8 +298,11 @@
                                     <label class="form-label small fw-bold">Ou cole o código JSON aqui:</label>
                                     <textarea id="importJsonText" class="form-control form-control-sm" rows="3" placeholder="Cole o conteúdo do backup..."></textarea>
                                 </div>
-                                <button class="btn btn-success w-100 btn-sm fw-bold shadow-sm" onclick="window.importDataBackup()">
+                               <button class="btn btn-success w-100 btn-sm fw-bold shadow-sm mb-2" onclick="window.importDataBackup()">
                                     <i class="fas fa-upload me-2"></i> Importar e Restaurar Dados
+                                </button>
+                                <button class="btn btn-outline-danger w-100 btn-sm fw-bold shadow-sm" onclick="window.resetUserDataAccount()">
+                                    <i class="fas fa-trash-alt me-2"></i> Limpar Todos os Dados (Reset Zero)
                                 </button>
                             </div>
                         </div>
