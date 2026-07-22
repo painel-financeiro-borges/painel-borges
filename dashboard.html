@@ -250,35 +250,59 @@
     </div>
 
     <div class="modal fade" id="exportModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <div class="modal-header border-0">
-                    <h5 class="modal-title fw-bold"><i class="fas fa-database me-2 text-primary"></i>Dados & Exportação</h5>
+                    <h5 class="modal-title fw-bold"><i class="fas fa-database me-2 text-primary"></i>Dados & Exportação / Importação</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="d-grid gap-3">
-                        <button class="btn btn-outline-dark p-3 text-start d-flex align-items-center" onclick="exportData('json')">
-                            <i class="fas fa-file-code fa-2x me-3 text-warning"></i>
-                            <div>
-                                <div class="fw-bold">Baixar JSON (Backup Completo)</div>
-                                <small class="text-muted">Formato legível por máquina para backup.</small>
+                    <div class="row g-4">
+                        <!-- Coluna de Exportação -->
+                        <div class="col-md-6">
+                            <h6 class="fw-bold text-muted small text-uppercase mb-3">Exportar Dados</h6>
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-outline-dark p-3 text-start d-flex align-items-center" onclick="exportData('json')">
+                                    <i class="fas fa-file-code fa-2x me-3 text-warning"></i>
+                                    <div>
+                                        <div class="fw-bold">Baixar JSON (Backup)</div>
+                                        <small class="text-muted">Backup completo dos dados.</small>
+                                    </div>
+                                </button>
+                                <button class="btn btn-outline-dark p-3 text-start d-flex align-items-center" onclick="exportData('pdf')">
+                                    <i class="fas fa-file-pdf fa-2x me-3 text-danger"></i>
+                                    <div>
+                                        <div class="fw-bold">Baixar PDF (Relatório)</div>
+                                        <small class="text-muted">Lista organizada.</small>
+                                    </div>
+                                </button>
+                                <button class="btn btn-outline-dark p-3 text-start d-flex align-items-center" onclick="exportData('copy')">
+                                    <i class="fas fa-copy fa-2x me-3 text-primary"></i>
+                                    <div>
+                                        <div class="fw-bold">Copiar JSON</div>
+                                        <small class="text-muted">Copia para área de transferência.</small>
+                                    </div>
+                                </button>
                             </div>
-                        </button>
-                        <button class="btn btn-outline-dark p-3 text-start d-flex align-items-center" onclick="exportData('pdf')">
-                            <i class="fas fa-file-pdf fa-2x me-3 text-danger"></i>
-                            <div>
-                                <div class="fw-bold">Baixar PDF (Relatório)</div>
-                                <small class="text-muted">Lista organizada para impressão/leitura.</small>
+                        </div>
+
+                        <!-- Coluna de Importação (Subir Backup) -->
+                        <div class="col-md-6 border-start-md">
+                            <h6 class="fw-bold text-muted small text-uppercase mb-3">Importar Dados (Restaurar)</h6>
+                            <div class="p-3 bg-light rounded border border-secondary border-opacity-25">
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Subir arquivo JSON de Backup</label>
+                                    <input type="file" id="importFile" class="form-control form-control-sm" accept=".json">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Ou cole o código JSON aqui:</label>
+                                    <textarea id="importJsonText" class="form-control form-control-sm" rows="3" placeholder="Cole o conteúdo do backup..."></textarea>
+                                </div>
+                                <button class="btn btn-success w-100 btn-sm fw-bold shadow-sm" onclick="window.importDataBackup()">
+                                    <i class="fas fa-upload me-2"></i> Importar e Restaurar Dados
+                                </button>
                             </div>
-                        </button>
-                        <button class="btn btn-outline-dark p-3 text-start d-flex align-items-center" onclick="exportData('copy')">
-                            <i class="fas fa-copy fa-2x me-3 text-primary"></i>
-                            <div>
-                                <div class="fw-bold">Copiar para Área de Transferência</div>
-                                <small class="text-muted">Copia todo o JSON para colar em outro lugar.</small>
-                            </div>
-                        </button>
+                        </div>
                     </div>
                 </div>
             </div>
