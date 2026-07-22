@@ -613,13 +613,16 @@ window.importDataBackup = async function() {
     if (ui && ui.loading) ui.loading.style.display = 'flex';
 
     try {
+        // Prioriza o arquivo se ele foi anexado
         if (fileInput.files && fileInput.files[0]) {
             const fileText = await fileInput.files[0].text();
             rawData = JSON.parse(fileText);
-        } else if (jsonTextArea && jsonTextArea.value.trim()) {
+        } 
+        // Só olha o campo de texto se nenhum arquivo foi enviado
+        else if (jsonTextArea && jsonTextArea.value.trim()) {
             rawData = JSON.parse(jsonTextArea.value.trim());
         } else {
-            alert("Selecione um arquivo JSON ou cole o código no campo de texto.");
+            alert("Selecione um arquivo JSON válido ou cole o código no campo de texto.");
             if (ui && ui.loading) ui.loading.style.display = 'none';
             return;
         }
@@ -638,7 +641,6 @@ window.importDataBackup = async function() {
         let countTasks = 0;
         let countSubcards = 0;
 
-        // Função auxiliar segura para tratar datas
         const parseDateSafe = (val) => {
             if (!val) return new Date();
             const d = new Date(val);
