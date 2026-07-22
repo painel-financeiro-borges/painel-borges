@@ -402,9 +402,12 @@ window.editTempItem = (index) => {
     }
     if(document.getElementById('newCheckNote')) document.getElementById('newCheckNote').value = item.note || '';
     
-    // Salva temporariamente qual índice está sendo editado para substituir no mesmo lugar ao salvar
-    window.editingChecklistIndex = index;
+    const monthlyInput = document.getElementById('newCheckMonthly');
+    const yearlyInput = document.getElementById('newCheckYearly');
+    if(monthlyInput) monthlyInput.value = item.monthlyValue || '';
+    if(yearlyInput) yearlyInput.value = item.yearlyValue || '';
     
+    window.editingChecklistIndex = index;
     document.getElementById('newCheckItem').focus();
 };
 
