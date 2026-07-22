@@ -325,18 +325,57 @@ window.updateTempText = (index, field, value) => { tempTexts[index][field] = val
 // UPGRADE BOTÃO VOLTAR E EDIÇÃO DE CHECKLIST
 window.renderTempChecklist = () => {
     const container = document.getElementById('tempChecklistList'); container.innerHTML = '';
+    
+    let totalMensal = 0;
+    let totalAnual = 0;
+    let totalConcluidoMensal = 0;
+    let totalConcluidoAnual = 0;
+
     tempChecklistItems.forEach((item, index) => {
-       // Substitua o div.className por:
-const div = document.createElement('div'); div.className = `checklist-item cl-${item.priority || 'low'} ${item.done ? 'done' : ''}`;
+        const mVal = parseFloat(item.monthlyValue) || 0;
+        const yVal = parseFloat(item.yearlyValue) || 0;
+
+        totalMensal += mVal;
+        totalAnual += yVal;
+
+        if (item.done) {
+            totalConcluidoMensal += mVal;
+            totalConcluidoAnual += yVal;
+        }
+
+        const div = document.createElement('div'); div.className = `checklist-item cl-${item.priority || 'low'} ${item.done ? 'done' : ''}`;
         const tagHtml = item.category ? `<span class="checklist-tag" style="background-color:${item.color}">${item.category}</span>` : '';
-        // COLE estas linhas:
-const noteHtml = item.note ? `<div class="checklist-note p-2 mt-2 bg-dark rounded border border-secondary border-opacity-50" id="note-${index}" style="display:none;">
+        
+        let valueBadge = '';
+        if (mVal > 0) valueBadge = `<span class="badge bg-success bg-opacity-75 ms-2">R$ ${mVal.toFixed(2)} /mês</span>`;
+        if (yVal > 0) valueBadge = `<span class="badge bg-primary bg-opacity-75 ms-2">R$ ${yVal.toFixed(2)} /ano</span>`;
+
+        const noteHtml = item.note ? `<div class="checklist-note p-2 mt-2 bg-dark rounded border border-secondary border-opacity-50" id="note-${index}" style="display:none;">
 <textarea class="form-control bg-transparent text-white border-0" style="min-height: 80px; resize: vertical;" onkeydown="if(event.key === 'Enter' && event.target.value.endsWith('- ')) { event.preventDefault(); event.target.value += '• '; }" onchange="tempChecklistItems[${index}].note = this.value">${item.note}</textarea>
 </div>` : '';
 const btnNote = item.note ? `<i class="fas fa-eye text-info" style="cursor:pointer" onclick="document.getElementById('note-${index}').style.display = document.getElementById('note-${index}').style.display === 'none' ? 'block' : 'none'" title="Ver Nota"></i>` : '';
-div.innerHTML = `<div class="w-100"><div class="d-flex align-items-center"><i class="fas fa-grip-vertical checklist-handle me-2"></i><input type="checkbox" ${item.done ? 'checked' : ''} onchange="window.toggleTempItem(${index})"><span class="ms-2">${item.text} ${tagHtml}</span><div class="d-flex gap-2 ms-auto">${btnNote}<i class="fas fa-pen text-secondary" style="cursor:pointer" onclick="window.editTempItem(${index})" title="Editar"></i><i class="fas fa-times text-danger" style="cursor:pointer" onclick="window.removeTempItem(${index})" title="Excluir"></i></div></div>${noteHtml}</div>`;
+
+        div.innerHTML = `<div class="w-100"><div class="d-flex align-items-center"><i class="fas fa-grip-vertical checklist-handle me-2"></i><input type="checkbox" ${item.done ? 'checked' : ''} onchange="window.toggleTempItem(${index})"><span class="ms-2">${item.text} ${tagHtml} ${valueBadge}</span><div class="d-flex gap-2 ms-auto">${btnNote}<i class="fas fa-pen text-secondary" style="cursor:pointer" onclick="window.editTempItem(${index})" title="Editar"></i><i class="fas fa-times text-danger" style="cursor:pointer" onclick="window.removeTempItem(${index})" title="Excluir"></i></div></div>${noteHtml}</div>`;
         container.appendChild(div);
     });
+
+    // Calcula o Total Restante (Total Geral - Concluídos)
+    const restanteMensal = totalMensal - totalConcluidoMensal;
+    const restanteAnual = totalAnual - totalConcluidoAnual;
+    const totalGeralRestante = restanteMensal + (restanteAnual / 12); // Projeção combinada ou exibição separada conforme preferir
+
+    // Renderiza a tarja de rodapé financeiro se houver valores
+    if (totalMensal > 0 || totalAnual > 0) {
+        const footerDiv = document.createElement('div');
+        footerDiv.className = 'p-3 mt-3 bg-dark rounded border border-secondary text-white small';
+        footerDiv.innerHTML = `
+            <div class="d-flex justify-content-between mb-1"><span>Total Mensal:</span><strong>R$ ${totalMensal.toFixed(2)}</strong></div>
+            <div class="d-flex justify-content-between mb-1"><span>Total Anual:</span><strong>R$ ${totalAnual.toFixed(2)}</strong></div>
+            <hr class="my-1 border-secondary">
+            <div class="d-flex justify-content-between text-warning fw-bold"><span>Total Restante (Pendente):</span><span>R$ ${(restanteMensal + restanteAnual).toFixed(2)}</span></div>
+        `;
+        container.appendChild(footerDiv);
+    }
 };
 window.removeTempItem = async (index) => { 
     if (!confirm("Tem certeza que deseja excluir este item?")) return;
