@@ -601,3 +601,93 @@ if (noteField) {
         }
     });
 }
+//FUNÇÃO DE IMPORTAÇÃO
+window.importDataBackup = async () => {
+    if (!currentUser) return;
+    
+    const fileInput = document.getElementById('importFile');
+    const jsonTextArea = document.getElementById('importJsonText');
+    let rawData = null;
+
+    ui.loading.style.display = 'flex';
+
+    try {
+        if (fileInput.files && fileInput.files[0]) {
+            const fileText = await fileInput.files[0].text();
+            rawData = JSON.parse(fileText);
+        } else if (jsonTextArea.value.trim()) {
+            rawData = JSON.parse(jsonTextArea.value.trim());
+        } else {
+            alert("Selecione um arquivo JSON ou cole o código no campo de texto.");
+            ui.loading.style.display = 'none';
+            return;
+        }
+
+        if (!rawData || (!rawData.projects && !rawData.tasks && !rawData.subcards)) {
+            throw new Error("O arquivo JSON não tem a estrutura válida de backup do Painel Borges.");
+        }
+
+        if (!confirm("⚠️ ATENÇÃO: Importar dados vai adicionar/mesclar os itens do backup com os seus registros atuais. Deseja continuar?")) {
+            ui.loading.style.display = 'none';
+            return;
+        }
+
+        const batch = writeBatch(db);
+        let countProjects = 0;
+        let countTasks = 0;
+        let countSubcards = 0;
+
+        // Importa Projetos
+        if (rawData.projects && Array.isArray(rawData.projects)) {
+            rawData.projects.forEach(proj => {
+                const { id, ...data } = proj;
+                // Converte datas se existirem
+                if(data.createdAt) data.createdAt = new Date(data.createdAt);
+                if(data.updatedAt) data.updatedAt = new Date(data.updatedAt);
+                
+                const newRef = doc(collection(db, `users/${currentUser.uid}/projects`));
+                batch.set(newRef, data);
+                countProjects++;
+            });
+        }
+
+        // Importa Tarefas
+        if (rawData.tasks && Array.isArray(rawData.tasks)) {
+            rawData.tasks.forEach(task => {
+                const { id, ...data } = task;
+                if(data.createdAt) data.createdAt = new Date(data.createdAt);
+                if(data.updatedAt) data.updatedAt = new Date(data.updatedAt);
+                
+                const newRef = doc(collection(db, `users/${currentUser.uid}/tasks`));
+                batch.set(newRef, data);
+                countTasks++;
+            });
+        }
+
+        // Importa Subcards (Recursos)
+        if (rawData.subcards && Array.isArray(rawData.subcards)) {
+            rawData.subcards.forEach(card => {
+                const { id, ...data } = card;
+                if(data.createdAt) data.createdAt = new Date(data.createdAt);
+                if(data.updatedAt) data.updatedAt = new Date(data.updatedAt);
+                
+                const newRef = doc(collection(db, `users/${currentUser.uid}/subcards`));
+                batch.set(newRef, data);
+                countSubcards++;
+            });
+        }
+
+        await batch.commit();
+        addToHistory('IMPORTAÇÃO', `Backup restaurado: ${countProjects} projetos, ${countTasks} tarefas, ${countSubcards} recursos.`);
+        alert(`✅ Sucesso! Dados importados:\n- Projetos: ${countProjects}\n- Tarefas: ${countTasks}\n- Recursos: ${countSubcards}`);
+        
+        bootstrap.Modal.getInstance(document.getElementById('exportModal'))?.hide();
+        location.reload(); // Atualiza a tela para carregar os dados novos
+
+    } catch (e) {
+        console.error("Erro na importação:", e);
+        alert("Erro ao importar dados: " + e.message);
+    } finally {
+        ui.loading.style.display = 'none';
+    }
+};
