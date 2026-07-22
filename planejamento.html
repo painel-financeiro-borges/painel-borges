@@ -135,7 +135,7 @@
     new Sortable(document.getElementById('listaCustosMensal'), { animation: 150 });
     new Sortable(document.getElementById('listaCustosAnual'), { animation: 150 });
     new Sortable(document.getElementById('listaSprints'), { animation: 150 });
-    function att(c, id) { 
+    window.att = function(c, id) { 
         let v = parseFloat(document.getElementById(id).value); 
         if(!isNaN(v)) {
             const mensagem = (c.startsWith('g')) ? "SUCESSO: Ganho injetado com êxito!" : "SUCESSO: Meta definida com êxito!";
@@ -145,7 +145,7 @@
         }
     }
     
-    function addSprint() {
+    window.addSprint = function() {
         let n = document.getElementById('nSprint').value, 
             dI = document.getElementById('dInicio').value, 
             dF = document.getElementById('dFim').value, 
@@ -180,7 +180,7 @@
         });
     }
 
-    function injetarSem() {
+    window.injetarSem = function() {
         let v = parseFloat(document.getElementById('inGSem').value);
         if(!v) return;
         db.runTransaction(async t => {
@@ -191,14 +191,14 @@
         });
     }
 
-    function zerar(m, g) { if(confirm("ZERAR?")) ref.set({[m]: 0, [g]: 0}, {merge: true}); }
+    window.zerar = function(m, g) { if(confirm("ZERAR?")) ref.set({[m]: 0, [g]: 0}, {merge: true}); }
 
-    function addCusto() {
+    window.addCusto = function() {
         let n = document.getElementById('nCusto').value, v = parseFloat(document.getElementById('vCusto').value), t = document.getElementById('tipoCusto').value;
         if(n && v) ref.set({ lista: firebase.firestore.FieldValue.arrayUnion({n, v, t, pago: false, id: Date.now()}) }, {merge: true});
     }
 
-    function editarCusto(id) {
+    window.editarCusto = function(id) {
         ref.get().then(doc => {
             let l = doc.data().lista;
             let i = l.find(x => x.id === id);
@@ -207,7 +207,7 @@
         });
     }
 
-    function removeCusto(id) {
+    window.removeCusto = function(id) {
         if(confirm("Tem certeza que deseja excluir este custo?")) {
             ref.get().then(doc => {
                 let l = doc.data().lista.filter(x => x.id !== id);
@@ -216,7 +216,7 @@
         }
     }
     
-    function toggle(id) {
+    window.toggle = function(id) {
         ref.get().then(doc => {
             let l = doc.data().lista;
             let i = l.find(x => x.id === id);
