@@ -115,6 +115,129 @@
     let currentUserEmail = null;
     let ref = null;
 
+    new Sortable(document.getElementById('listaCustosMensal'), { animation: 150 });
+    new Sortable(document.getElementById('listaCustosAnual'), { animation: 150 });
+    new Sortable(document.getElementById('listaSprints'), { animation: 150 });
+
+    window.att = function(c, id) { 
+        let v = parseFloat(document.getElementById(id).value); 
+        if(!isNaN(v) && ref) {
+            const mensagem = (c.startsWith('g')) ? "SUCESSO: Ganho injetado com êxito!" : "SUCESSO: Meta definida com êxito!";
+            setDoc(ref, {[c]: v}, {merge: true}).then(() => alert(mensagem));
+        }
+    }
+    
+    window.addSprint = function() {
+        let n = document.getElementById('nSprint').value, 
+            dI = document.getElementById('dInicio').value, 
+            dF = document.getElementById('dFim').value, 
+            m = parseFloat(document.getElementById('mSprint').value);
+            
+        if(n && dI.length === 10 && dF.length === 10 && m && ref) { 
+            getDoc(ref).then(docSnap => {
+                const dados = docSnap.exists() ? docSnap.data() : {};
+                const listaSprints = dados.sprints || [];
+                listaSprints.push({n, dI, dF, m, ganhoAtual: 0, id: Date.now()});
+                setDoc(ref, { sprints: listaSprints }, {merge: true})
+                .then(() => alert("SUCESSO: Objetivo criado!"));
+            });
+        } else {
+            alert("ERRO: Verifique se as datas estão no formato DD/MM/AAAA");
+        }
+    }
+
+    window.removeSprint = function(id) {
+        if(confirm("Tem certeza que deseja excluir este objetivo?") && ref) {
+            getDoc(ref).then(docSnap => {
+                if(docSnap.exists()) {
+                    let s = (docSnap.data().sprints || []).filter(x => x.id !== id);
+                    updateDoc(ref, { sprints: s });
+                }
+            });
+        }
+    }
+
+    window.editarSprint = function(id) {
+        if(!ref) return;
+        getDoc(ref).then(docSnap => {
+            if(docSnap.exists()) {
+                let s = docSnap.data().sprints || [];
+                let i = s.find(x => x.id === id);
+                if(!i) return;
+                let n = prompt("Nome:", i.n), dI = prompt("Data Início (DD/MM/AAAA):", i.dI), dF = prompt("Data Término (DD/MM/AAAA):", i.dF), m = prompt("Meta:", i.m);
+                if(n && dI && dF && m) { 
+                    i.n = n; i.dI = dI; i.dF = dF; i.m = parseFloat(m); 
+                    updateDoc(ref, { sprints: s }); 
+                }
+            }
+        });
+    }
+
+    window.injetarSem = function() {
+        let v = parseFloat(document.getElementById('inGSem').value);
+        if(!v || !ref) return;
+        getDoc(ref).then(docSnap => {
+            const d = docSnap.exists() ? docSnap.data() : {};
+            setDoc(ref, { gSem: (d.gSem||0)+v, gMes: (d.gMes||0)+v }, {merge: true}).then(() => {
+                alert("SUCESSO: Ganho injetado nos ciclos Semanal e Mensal!");
+            });
+        });
+    }
+
+    window.zerar = function(m, g) { 
+        if(confirm("ZERAR?") && ref) setDoc(ref, {[m]: 0, [g]: 0}, {merge: true}); 
+    }
+
+    window.addCusto = function() {
+        let n = document.getElementById('nCusto').value, v = parseFloat(document.getElementById('vCusto').value), t = document.getElementById('tipoCusto').value;
+        if(n && v && ref) {
+            getDoc(ref).then(docSnap => {
+                const dados = docSnap.exists() ? docSnap.data() : {};
+                const lista = dados.lista || [];
+                lista.push({n, v, t, pago: false, id: Date.now()});
+                setDoc(ref, { lista: lista }, {merge: true});
+            });
+        }
+    }
+
+    window.editarCusto = function(id) {
+        if(!ref) return;
+        getDoc(ref).then(docSnap => {
+            if(docSnap.exists()) {
+                let l = docSnap.data().lista || [];
+                let i = l.find(x => x.id === id);
+                if(!i) return;
+                let n = prompt("Nome:", i.n), v = prompt("Valor:", i.v);
+                if(n && v) { i.n = n; i.v = parseFloat(v); updateDoc(ref, { lista: l }); }
+            }
+        });
+    }
+
+    window.removeCusto = function(id) {
+        if(confirm("Tem certeza que deseja excluir este custo?") && ref) {
+            getDoc(ref).then(docSnap => {
+                if(docSnap.exists()) {
+                    let l = (docSnap.data().lista || []).filter(x => x.id !== id);
+                    updateDoc(ref, { lista: l });
+                }
+            });
+        }
+    }
+    
+    window.toggle = function(id) {
+        if(!ref) return;
+        getDoc(ref).then(docSnap => {
+            if(docSnap.exists()) {
+                let l = docSnap.data().lista || [];
+                let i = l.find(x => x.id === id);
+                if(i) {
+                    i.pago = !i.pago;
+                    updateDoc(ref, { lista: l });
+                }
+            }
+        });
+    }
+
     onAuthStateChanged(auth, (user) => {
         if (user) {
             currentUserEmail = user.email;
@@ -130,120 +253,6 @@
 
     function iniciarAppPlanejamento() {
         ref_onSnapshot_wrapper();
-    }
-
-    new Sortable(document.getElementById('listaCustosMensal'), { animation: 150 });
-    new Sortable(document.getElementById('listaCustosAnual'), { animation: 150 });
-    new Sortable(document.getElementById('listaSprints'), { animation: 150 });
-    window.att = function(c, id) { 
-        let v = parseFloat(document.getElementById(id).value); 
-        if(!isNaN(v)) {
-            const mensagem = (c.startsWith('g')) ? "SUCESSO: Ganho injetado com êxito!" : "SUCESSO: Meta definida com êxito!";
-            ref.set({[c]: v}, {merge: true}).then(() => {
-                alert(mensagem);
-            });
-        }
-    }
-    
-    window.addSprint = function() {
-        let n = document.getElementById('nSprint').value, 
-            dI = document.getElementById('dInicio').value, 
-            dF = document.getElementById('dFim').value, 
-            m = parseFloat(document.getElementById('mSprint').value);
-            
-        if(n && dI.length === 10 && dF.length === 10 && m) { 
-            ref.set({ sprints: firebase.firestore.FieldValue.arrayUnion({n, dI, dF, m, ganhoAtual: 0, id: Date.now()}) }, {merge: true})
-            .then(() => alert("SUCESSO: Objetivo criado!"));
-        } else {
-            alert("ERRO: Verifique se as datas estão no formato DD/MM/AAAA");
-        }
-    }
-
-    function removeSprint(id) {
-        if(confirm("Tem certeza que deseja excluir este objetivo? Esta ação não pode ser desfeita.")) {
-            ref.get().then(doc => {
-                let s = doc.data().sprints.filter(x => x.id !== id);
-                ref.update({ sprints: s });
-            });
-        }
-    }
-
-    function editarSprint(id) {
-        ref.get().then(doc => {
-            let s = doc.data().sprints;
-            let i = s.find(x => x.id === id);
-            let n = prompt("Nome:", i.n), dI = prompt("Data Início (AAAA-MM-DD):", i.dI), dF = prompt("Data Término (AAAA-MM-DD):", i.dF), m = prompt("Meta:", i.m);
-            if(n && dI && dF && m) { 
-                i.n = n; i.dI = dI; i.dF = dF; i.m = parseFloat(m); 
-                ref.update({ sprints: s }); 
-            }
-        });
-    }
-
-    window.injetarSem = function() {
-        let v = parseFloat(document.getElementById('inGSem').value);
-        if(!v) return;
-        db.runTransaction(async t => {
-            const d = (await t.get(ref)).data() || {};
-            t.set(ref, { gSem: (d.gSem||0)+v, gMes: (d.gMes||0)+v }, {merge: true});
-        }).then(() => {
-            alert("SUCESSO: Ganho injetado nos ciclos Semanal e Mensal!");
-        });
-    }
-
-    window.zerar = function(m, g) { if(confirm("ZERAR?")) ref.set({[m]: 0, [g]: 0}, {merge: true}); }
-
-    window.addCusto = function() {
-        let n = document.getElementById('nCusto').value, v = parseFloat(document.getElementById('vCusto').value), t = document.getElementById('tipoCusto').value;
-        if(n && v) ref.set({ lista: firebase.firestore.FieldValue.arrayUnion({n, v, t, pago: false, id: Date.now()}) }, {merge: true});
-    }
-
-    window.editarCusto = function(id) {
-        ref.get().then(doc => {
-            let l = doc.data().lista;
-            let i = l.find(x => x.id === id);
-            let n = prompt("Nome:", i.n), v = prompt("Valor:", i.v);
-            if(n && v) { i.n = n; i.v = v; ref.update({ lista: l }); }
-        });
-    }
-
-    window.removeCusto = function(id) {
-        if(confirm("Tem certeza que deseja excluir este custo?")) {
-            ref.get().then(doc => {
-                let l = doc.data().lista.filter(x => x.id !== id);
-                ref.update({ lista: l });
-            });
-        }
-    }
-    
-    window.toggle = function(id) {
-        ref.get().then(doc => {
-            let l = doc.data().lista;
-            let i = l.find(x => x.id === id);
-            i.pago = !i.pago;
-            ref.update({ lista: l });
-        });
-    }
-
-    // Monitora a sessão herdada do Dashboard
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            currentUserEmail = user.email;
-            console.log("✅ Usuário autenticado no Planejamento:", currentUserEmail);
-            
-            // Cria um documento dinâmico por usuário para isolar os dados com segurança
-            const safeId = currentUserEmail.replace(/[^a-zA-Z0-9]/g, "_");
-            ref = doc(db, "planejamento_financeiro", safeId);
-            
-            iniciarAppPlanejamento();
-        } else {
-            console.warn("⚠️ Nenhum usuário logado. Redirecionando...");
-            window.location.href = 'dashboard.html';
-        }
-    });
-
-    function iniciarAppPlanejamento() {
-    ref_onSnapshot_wrapper();
     }
 
     function ref_onSnapshot_wrapper() {
