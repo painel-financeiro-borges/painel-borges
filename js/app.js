@@ -17,6 +17,11 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 let currentUser = null;
 let activeProjectId = null;
+
+// Torna acessível globalmente para ferramentas e robôs de console
+window.db = db;
+window.auth = auth;
+window.currentUser = () => currentUser;
 let tempChecklistItems = [];
 let tempLinks = [];
 let tempTexts = [];
