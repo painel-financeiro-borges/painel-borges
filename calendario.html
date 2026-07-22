@@ -242,15 +242,25 @@ for (let i = 1; i <= diasNoMes; i++) {
             if (!titulo || !texto) return;
 
             if (id) {
-                await updateDoc(doc(db, "calendario_anotacoes", id), { titulo, texto, cor });
+                await updateDoc(doc(db, "calendario_anotacoes", id), { titulo, texto, cor, email: currentUserEmail });
             } else {
-                await addDoc(collection(db, "calendario_anotacoes"), { data: dataSelecionada, titulo, texto, cor, timestamp: new Date() });
+                await addDoc(collection(db, "calendario_anotacoes"), { data: dataSelecionada, titulo, texto, cor, email: currentUserEmail, timestamp: new Date() });
             }
             iniciarRenderizacao();
             fecharModal();
         };
 
-        iniciarRenderizacao();
+        // Escuta o estado de autenticação herdando do Dashboard
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUserEmail = user.email;
+                console.log("✅ Usuário autenticado no Calendário:", currentUserEmail);
+                iniciarRenderizacao();
+            } else {
+                console.warn("⚠️ Nenhum usuário logado. Redirecionando para o Dashboard...");
+                window.location.href = 'dashboard.html';
+            }
+        });
     </script>
 </body>
 </html>
