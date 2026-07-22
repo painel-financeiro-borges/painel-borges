@@ -174,10 +174,40 @@ window.exportData = async (format) => {
 };
 
 window.navigate = (target, title = 'Painel Org. Borges', extra = null) => {
-    Object.values(ui.views).forEach(el => el.style.display = 'none'); ui.nav.back.style.display = 'none';
-    if (target === 'home') { ui.views.projects.style.display = 'block'; ui.nav.title.innerHTML = '<i class="fas fa-cube text-primary me-2"></i>Painel Org. Borges'; activeProjectId = null; addToHistory('NAVEGAÇÃO', 'Home'); } 
-    else if (target === 'kanban') { ui.views.kanban.style.display = 'block'; ui.nav.back.style.display = 'block'; ui.nav.title.innerText = title; activeProjectId = extra.id; initKanban(extra.id); initSubCards(extra.id); const savedMode = extra.viewMode || 'hybrid'; document.getElementById('viewModeSelector').value = savedMode; applyViewMode(savedMode); addToHistory('NAVEGAÇÃO', `Projeto: ${title}`); }
-    else if (target === 'iframe') { ui.views.iframe.src = extra; ui.views.iframe.style.display = 'block'; ui.nav.back.style.display = 'block'; ui.nav.title.innerText = title; addToHistory('NAVEGAÇÃO', `Módulo: ${title}`); }
+    Object.values(ui.views).forEach(el => el.style.display = 'none'); 
+    ui.nav.back.style.display = 'none';
+    
+    const fab = document.getElementById('fabBtn');
+
+    if (target === 'home') { 
+        ui.views.projects.style.display = 'block'; 
+        ui.nav.title.innerHTML = '<i class="fas fa-cube text-primary me-2"></i>Painel Org. Borges'; 
+        activeProjectId = null; 
+        if(fab) fab.style.display = 'flex'; // Exibe o botão apenas na Home (Projetos)
+        addToHistory('NAVEGAÇÃO', 'Home'); 
+    } 
+    else if (target === 'kanban') { 
+        ui.views.kanban.style.display = 'block'; 
+        ui.nav.back.style.display = 'block'; 
+        ui.nav.title.innerText = title; 
+        activeProjectId = extra.id; 
+        initKanban(extra.id); 
+        initSubCards(extra.id); 
+        const savedMode = extra.viewMode || 'hybrid'; 
+        document.getElementById('viewModeSelector').value = savedMode; 
+        applyViewMode(savedMode); 
+        if(fab) fab.style.display = 'flex'; // Exibe o botão dentro do Kanban do projeto
+        addToHistory('NAVEGAÇÃO', `Projeto: ${title}`); 
+    }
+    else if (target === 'iframe') { 
+        ui.views.iframe.src = extra; 
+        ui.views.iframe.style.display = 'block'; 
+        ui.nav.back.style.display = 'block'; 
+        ui.nav.title.innerText = title; 
+        if(fab) fab.style.display = 'none'; // Oculta o botão automaticamente nos iframes (Calendário, Financeiro, etc.)
+        addToHistory('NAVEGAÇÃO', `Módulo: ${title}`); 
+    }
+    
     bootstrap.Offcanvas.getInstance(document.getElementById('sidebarMenu'))?.hide();
 };
 document.getElementById('backBtn').onclick = () => window.navigate('home');
