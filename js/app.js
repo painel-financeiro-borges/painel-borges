@@ -638,11 +638,19 @@ window.importDataBackup = async function() {
         let countTasks = 0;
         let countSubcards = 0;
 
+        // Função auxiliar segura para tratar datas
+        const parseDateSafe = (val) => {
+            if (!val) return new Date();
+            const d = new Date(val);
+            return isNaN(d.getTime()) ? new Date() : d;
+        };
+
         if (rawData.projects && Array.isArray(rawData.projects)) {
             rawData.projects.forEach(proj => {
                 const { id, ...data } = proj;
-                if(data.createdAt) data.createdAt = new Date(data.createdAt);
-                if(data.updatedAt) data.updatedAt = new Date(data.updatedAt);
+                data.createdAt = parseDateSafe(data.createdAt);
+                if (data.updatedAt) data.updatedAt = parseDateSafe(data.updatedAt);
+                
                 const newRef = doc(collection(db, `users/${currentUser.uid}/projects`));
                 batch.set(newRef, data);
                 countProjects++;
@@ -652,8 +660,9 @@ window.importDataBackup = async function() {
         if (rawData.tasks && Array.isArray(rawData.tasks)) {
             rawData.tasks.forEach(task => {
                 const { id, ...data } = task;
-                if(data.createdAt) data.createdAt = new Date(data.createdAt);
-                if(data.updatedAt) data.updatedAt = new Date(data.updatedAt);
+                data.createdAt = parseDateSafe(data.createdAt);
+                if (data.updatedAt) data.updatedAt = parseDateSafe(data.updatedAt);
+                
                 const newRef = doc(collection(db, `users/${currentUser.uid}/tasks`));
                 batch.set(newRef, data);
                 countTasks++;
@@ -663,8 +672,9 @@ window.importDataBackup = async function() {
         if (rawData.subcards && Array.isArray(rawData.subcards)) {
             rawData.subcards.forEach(card => {
                 const { id, ...data } = card;
-                if(data.createdAt) data.createdAt = new Date(data.createdAt);
-                if(data.updatedAt) data.updatedAt = new Date(data.updatedAt);
+                data.createdAt = parseDateSafe(data.createdAt);
+                if (data.updatedAt) data.updatedAt = parseDateSafe(data.updatedAt);
+                
                 const newRef = doc(collection(db, `users/${currentUser.uid}/subcards`));
                 batch.set(newRef, data);
                 countSubcards++;
