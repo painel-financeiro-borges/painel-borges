@@ -346,13 +346,24 @@ window.removeTempItem = async (index) => {
     window.renderTempChecklist(); 
 };
 //TARJA DE CLASSIFICAÇÃO
-window.addTempItem = () => { 
-    const input = document.getElementById('newCheckItem'); 
+window.addTempItem = () => {
+    const input = document.getElementById('newCheckItem');
     const category = document.getElementById('newCheckCategory').value;
     const color = document.getElementById('newCheckColorText').value;
     const priority = document.getElementById('newCheckPriority').value;
     const note = document.getElementById('newCheckNote').value;
     
+    const monthlyInput = document.getElementById('newCheckMonthly');
+    const yearlyInput = document.getElementById('newCheckYearly');
+    
+    const monthlyValue = monthlyInput && monthlyInput.value ? parseFloat(monthlyInput.value) || 0 : 0;
+    const yearlyValue = yearlyInput && yearlyInput.value ? parseFloat(yearlyInput.value) || 0 : 0;
+
+    if (monthlyValue > 0 && yearlyValue > 0) {
+        alert("⚠️ Trava de segurança: Preencha apenas o Valor Mensal ou o Valor Anual por item, nunca ambos.");
+        return;
+    }
+
     if(!input.value.trim()) return; 
 
     const newItem = { 
@@ -361,20 +372,23 @@ window.addTempItem = () => {
         category: category, 
         color: color, 
         priority: priority,
-        note: note 
+        note: note,
+        monthlyValue: monthlyValue,
+        yearlyValue: yearlyValue
     };
 
-    // Se estiver editando um item existente, substitui exatamente no mesmo índice. Senão, adiciona no fim.
     if (window.editingChecklistIndex !== undefined && window.editingChecklistIndex > -1) {
-        newItem.done = tempChecklistItems[window.editingChecklistIndex].done; // Mantém o estado de concluído se já estava marcado
+        newItem.done = tempChecklistItems[window.editingChecklistIndex].done;
         tempChecklistItems[window.editingChecklistIndex] = newItem;
-        window.editingChecklistIndex = undefined; // Reseta o modo de edição
+        window.editingChecklistIndex = undefined;
     } else {
         tempChecklistItems.push(newItem); 
     }
     
     input.value = ''; 
     document.getElementById('newCheckNote').value = ''; 
+    if(monthlyInput) monthlyInput.value = '';
+    if(yearlyInput) yearlyInput.value = '';
     window.renderTempChecklist(); 
 };
 // UPGRADE BOTÃO VOLTAR E EDIÇÃO DE CHECKLIST
