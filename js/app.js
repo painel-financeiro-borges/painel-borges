@@ -333,21 +333,30 @@ window.addTempItem = () => {
     const category = document.getElementById('newCheckCategory').value;
     const color = document.getElementById('newCheckColorText').value;
     const priority = document.getElementById('newCheckPriority').value;
-    const note = document.getElementById('newCheckNote').value; // Novo
+    const note = document.getElementById('newCheckNote').value;
     
     if(!input.value.trim()) return; 
-    
-    tempChecklistItems.push({ 
+
+    const newItem = { 
         text: input.value, 
         done: false, 
         category: category, 
         color: color, 
         priority: priority,
-        note: note // Novo
-    }); 
+        note: note 
+    };
+
+    // Se estiver editando um item existente, substitui exatamente no mesmo índice. Senão, adiciona no fim.
+    if (window.editingChecklistIndex !== undefined && window.editingChecklistIndex > -1) {
+        newItem.done = tempChecklistItems[window.editingChecklistIndex].done; // Mantém o estado de concluído se já estava marcado
+        tempChecklistItems[window.editingChecklistIndex] = newItem;
+        window.editingChecklistIndex = undefined; // Reseta o modo de edição
+    } else {
+        tempChecklistItems.push(newItem); 
+    }
     
     input.value = ''; 
-    document.getElementById('newCheckNote').value = ''; // Limpa a nota
+    document.getElementById('newCheckNote').value = ''; 
     window.renderTempChecklist(); 
 };
 // UPGRADE BOTÃO VOLTAR E EDIÇÃO DE CHECKLIST
