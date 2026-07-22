@@ -8,7 +8,7 @@
         :root { --bg: #050505; --card: #0a0a0a; --neon: #39ff14; --alert: #ff003c; --gold: #ffd700; }
         body { background: var(--bg); color: #fff; font-family: 'Courier New', monospace; padding: 20px; }
         .title-main { text-align: center; font-size: 2.5rem; margin-bottom: 40px; color: var(--gold); 
-                      text-shadow: 0 0 15px rgba(255,215,0,0.5); border-bottom: 2px solid var(--gold); padding-bottom: 10px; }
+                    text-shadow: 0 0 15px rgba(255,215,0,0.5); border-bottom: 2px solid var(--gold); padding-bottom: 10px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
         .box { background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid var(--gold); 
                box-shadow: 0 0 15px rgba(255,215,0,0.1), inset 0 0 10px rgba(0,0,0,0.5); }
@@ -125,7 +125,7 @@
             const mensagem = (c.startsWith('g')) ? "SUCESSO: Ganho injetado com êxito!" : "SUCESSO: Meta definida com êxito!";
             setDoc(ref, {[c]: v}, {merge: true}).then(() => alert(mensagem));
         }
-    }
+    };
     
     window.addSprint = function() {
         let n = document.getElementById('nSprint').value, 
@@ -144,7 +144,7 @@
         } else {
             alert("ERRO: Verifique se as datas estão no formato DD/MM/AAAA");
         }
-    }
+    };
 
     window.removeSprint = function(id) {
         if(confirm("Tem certeza que deseja excluir este objetivo?") && ref) {
@@ -155,7 +155,7 @@
                 }
             });
         }
-    }
+    };
 
     window.editarSprint = function(id) {
         if(!ref) return;
@@ -171,7 +171,7 @@
                 }
             }
         });
-    }
+    };
 
     window.injetarSem = function() {
         let v = parseFloat(document.getElementById('inGSem').value);
@@ -182,11 +182,11 @@
                 alert("SUCESSO: Ganho injetado nos ciclos Semanal e Mensal!");
             });
         });
-    }
+    };
 
     window.zerar = function(m, g) { 
         if(confirm("ZERAR?") && ref) setDoc(ref, {[m]: 0, [g]: 0}, {merge: true}); 
-    }
+    };
 
     window.addCusto = function() {
         let n = document.getElementById('nCusto').value, v = parseFloat(document.getElementById('vCusto').value), t = document.getElementById('tipoCusto').value;
@@ -198,7 +198,7 @@
                 setDoc(ref, { lista: lista }, {merge: true});
             });
         }
-    }
+    };
 
     window.editarCusto = function(id) {
         if(!ref) return;
@@ -211,7 +211,7 @@
                 if(n && v) { i.n = n; i.v = parseFloat(v); updateDoc(ref, { lista: l }); }
             }
         });
-    }
+    };
 
     window.removeCusto = function(id) {
         if(confirm("Tem certeza que deseja excluir este custo?") && ref) {
@@ -222,7 +222,7 @@
                 }
             });
         }
-    }
+    };
     
     window.toggle = function(id) {
         if(!ref) return;
@@ -236,88 +236,30 @@
                 }
             }
         });
-    }
+    };
 
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            currentUserEmail = user.email;
-            console.log("✅ Usuário autenticado no Planejamento:", currentUserEmail);
-            const safeId = currentUserEmail.replace(/[^a-zA-Z0-9]/g, "_");
-            ref = doc(db, "planejamento_financeiro", safeId);
-            iniciarAppPlanejamento();
-        } else {
-            console.warn("⚠️ Nenhum usuário logado. Redirecionando...");
-            window.location.href = 'dashboard.html';
-        }
-    });
-
-    function iniciarAppPlanejamento() {
-        ref_onSnapshot_wrapper();
-    }
-
-    function ref_onSnapshot_wrapper() {
-    onSnapshot(ref, docSnap => {
-        const d = docSnap.exists() ? docSnap.data() : { lista: [], sprints: [] };
-       ['Sem','Mes','Ano'].forEach(p => {
-            let g = d['g'+p]||0, m = d['m'+p]||0, s = g-m;
-            let elG = document.getElementById('g'+p), elS = document.getElementById('s'+p);
-            if(elG) elG.innerText = 'R$ '+g;
-            if(elS) { 
-                elS.innerText = 'SAÚDE: R$ '+s; 
-                elS.className = 'saude ' + (s >= 0 ? 'pos' : 'neg'); 
+    window.adicionarGanhoSprint = function(id) {
+        if(!ref) return;
+        getDoc(ref).then(docSnap => {
+            if(docSnap.exists()) {
+                let s = docSnap.data().sprints || [];
+                let i = s.find(x => x.id === id);
+                if(!i) return;
+                let novoGanho = prompt("Quanto ganhou para este objetivo?", i.ganhoAtual || 0);
+                if (novoGanho !== null) {
+                    i.ganhoAtual = parseFloat(novoGanho);
+                    updateDoc(ref, { sprints: s });
+                }
             }
         });
-        
-        document.getElementById('listaCustosMensal').innerHTML = '';
-        document.getElementById('listaCustosAnual').innerHTML = '';
-        
-        (d.lista || []).forEach(i => {
-            let div = document.createElement('div');
-            div.className = 'item ' + (i.pago ? 'pago' : 'pendente');
-            div.innerHTML = `<span>${i.n} - R$${i.v}</span> 
-                             <div class="controls"><button onclick="editarCusto(${i.id})">✏️</button><button onclick="toggle(${i.id})">${i.pago ? '✅' : '❌'}</button><button onclick="removeCusto(${i.id})">🗑️</button></div>`;
-            
-            if(i.t === 'mensal') document.getElementById('listaCustosMensal').appendChild(div);
-            else document.getElementById('listaCustosAnual').appendChild(div);
-        });
+    };
 
-        document.getElementById('listaSprints').innerHTML = '';
-        (d.sprints || []).forEach(s => {
-            let perc = Math.min(((s.ganhoAtual || 0) / s.m) * 100, 100);
-            document.getElementById('listaSprints').innerHTML += `
-                <div class="sprint-card" onclick="abrirCalendarioVisual([${JSON.stringify(s).replace(/"/g, "'")}])" style="cursor:pointer;">
-                    <div style="display:flex; justify-content:space-between; width:100%;">
-                        <span><strong>${s.n}</strong> | ${s.dI} a ${s.dF}</span>
-                        <div class="controls">
-                            <button onclick="event.stopPropagation(); adicionarGanhoSprint(${s.id})">💰</button>
-                            <button onclick="event.stopPropagation(); editarSprint(${s.id})">✏️</button>
-                            <button onclick="event.stopPropagation(); removeSprint(${s.id})">🗑️</button>
-                        </div>
-                    </div>
-                    <div style="width:100%;">Meta: R$${s.m} | Atual: R$${s.ganhoAtual || 0}</div>
-                    <div class="progress-bar"><div class="progress-fill" style="width:${perc}%"></div></div>
-                </div>`;
-        });
-    });
-
-    function adicionarGanhoSprint(id) {
-        ref.get().then(doc => {
-            let s = doc.data().sprints;
-            let i = s.find(x => x.id === id);
-            let novoGanho = prompt("Quanto ganhou para este objetivo?", i.ganhoAtual || 0);
-            if (novoGanho !== null) {
-                i.ganhoAtual = parseFloat(novoGanho);
-                ref.update({ sprints: s });
-            }
-        });
-    }
-
-    function abrirCalendarioVisual(sprints) {
+    window.abrirCalendarioVisual = function(sprints) {
         const overlay = document.createElement('div');
         overlay.id = 'timelineVisual';
         overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.98); z-index:9999; padding:40px; box-sizing:border-box; color:white; font-family:Courier New; overflow-y:auto;';
         
-       const hoje = new Date();
+        const hoje = new Date();
         const gerarDias = (y, m, diaHoje) => {
             const diasNoMes = new Date(y, m + 1, 0).getDate();
             let html = "";
@@ -364,15 +306,73 @@
             </div>
         `;
         document.body.appendChild(overlay);
-    }
+    };
 
-    function formatarData(input) {
-        let v = input.value.replace(/\D/g, ''); // Remove tudo que não é número
+    window.formatarData = function(input) {
+        let v = input.value.replace(/\D/g, ''); 
         if (v.length > 2) v = v.substring(0, 2) + '/' + v.substring(2);
         if (v.length > 5) v = v.substring(0, 5) + '/' + v.substring(5, 9);
         input.value = v;
+    };
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            currentUserEmail = user.email;
+            console.log("✅ Usuário autenticado no Planejamento:", currentUserEmail);
+            const safeId = currentUserEmail.replace(/[^a-zA-Z0-9]/g, "_");
+            ref = doc(db, "planejamento_financeiro", safeId);
+            iniciarAppPlanejamento();
+        } else {
+            console.warn("⚠️ Nenhum usuário logado. Redirecionando...");
+            window.location.href = 'dashboard.html';
+        }
+    });
+
+    function iniciarAppPlanejamento() {
+        onSnapshot(ref, docSnap => {
+            const d = docSnap.exists() ? docSnap.data() : { lista: [], sprints: [] };
+            ['Sem','Mes','Ano'].forEach(p => {
+                let g = d['g'+p]||0, m = d['m'+p]||0, s = g-m;
+                let elG = document.getElementById('g'+p), elS = document.getElementById('s'+p);
+                if(elG) elG.innerText = 'R$ '+g;
+                if(elS) { 
+                    elS.innerText = 'SAÚDE: R$ '+s; 
+                    elS.className = 'saude ' + (s >= 0 ? 'pos' : 'neg'); 
+                }
+            });
+            
+            document.getElementById('listaCustosMensal').innerHTML = '';
+            document.getElementById('listaCustosAnual').innerHTML = '';
+            
+            (d.lista || []).forEach(i => {
+                let div = document.createElement('div');
+                div.className = 'item ' + (i.pago ? 'pago' : 'pendente');
+                div.innerHTML = `<span>${i.n} - R$${i.v}</span> 
+                                 <div class="controls"><button onclick="editarCusto(${i.id})">✏️</button><button onclick="toggle(${i.id})">${i.pago ? '✅' : '❌'}</button><button onclick="removeCusto(${i.id})">🗑️</button></div>`;
+                
+                if(i.t === 'mensal') document.getElementById('listaCustosMensal').appendChild(div);
+                else document.getElementById('listaCustosAnual').appendChild(div);
+            });
+
+            document.getElementById('listaSprints').innerHTML = '';
+            (d.sprints || []).forEach(s => {
+                let perc = Math.min(((s.ganhoAtual || 0) / s.m) * 100, 100);
+                document.getElementById('listaSprints').innerHTML += `
+                    <div class="sprint-card" onclick="abrirCalendarioVisual([${JSON.stringify(s).replace(/"/g, "'")}])" style="cursor:pointer;">
+                        <div style="display:flex; justify-content:space-between; width:100%;">
+                            <span><strong>${s.n}</strong> | ${s.dI} a ${s.dF}</span>
+                            <div class="controls">
+                                <button onclick="event.stopPropagation(); adicionarGanhoSprint(${s.id})">💰</button>
+                                <button onclick="event.stopPropagation(); editarSprint(${s.id})">✏️</button>
+                                <button onclick="event.stopPropagation(); removeSprint(${s.id})">🗑️</button>
+                            </div>
+                        </div>
+                        <div style="width:100%;">Meta: R$${s.m} | Atual: R$${s.ganhoAtual || 0}</div>
+                        <div class="progress-bar"><div class="progress-fill" style="width:${perc}%"></div></div>
+                    </div>`;
+            });
+        });
     }
-    
 </script>
 </body>
 </html>
