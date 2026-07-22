@@ -115,6 +115,23 @@
     let currentUserEmail = null;
     let ref = null;
 
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            currentUserEmail = user.email;
+            console.log("✅ Usuário autenticado no Planejamento:", currentUserEmail);
+            const safeId = currentUserEmail.replace(/[^a-zA-Z0-9]/g, "_");
+            ref = doc(db, "planejamento_financeiro", safeId);
+            iniciarAppPlanejamento();
+        } else {
+            console.warn("⚠️ Nenhum usuário logado. Redirecionando...");
+            window.location.href = 'dashboard.html';
+        }
+    });
+
+    function iniciarAppPlanejamento() {
+        ref_onSnapshot_wrapper();
+    }
+
     new Sortable(document.getElementById('listaCustosMensal'), { animation: 150 });
     new Sortable(document.getElementById('listaCustosAnual'), { animation: 150 });
     new Sortable(document.getElementById('listaSprints'), { animation: 150 });
