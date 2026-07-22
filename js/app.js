@@ -41,8 +41,21 @@ document.getElementById('btnLogout').onclick = () => signOut(auth);
 
 onAuthStateChanged(auth, (user) => {
     ui.loading.style.display = 'none';
-    if (user) { currentUser = user; ui.nav.user.innerText = user.email; ui.loginScreen.style.opacity = '0'; setTimeout(() => ui.loginScreen.style.display = 'none', 400); initProjects(); initHistory(); } 
-    else { currentUser = null; ui.loginScreen.style.display = 'flex'; setTimeout(() => ui.loginScreen.style.opacity = '1', 10); }
+    if (user) { 
+        currentUser = user; 
+        window.currentUserObj = user;
+        ui.nav.user.innerText = user.email; 
+        ui.loginScreen.style.opacity = '0'; 
+        setTimeout(() => ui.loginScreen.style.display = 'none', 400); 
+        initProjects(); 
+        initHistory(); 
+    } 
+    else { 
+        currentUser = null; 
+        window.currentUserObj = null;
+        ui.loginScreen.style.display = 'flex'; 
+        setTimeout(() => ui.loginScreen.style.opacity = '1', 10); 
+    }
 });
 
 async function addToHistory(action, details) {
