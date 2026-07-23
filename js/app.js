@@ -365,10 +365,6 @@ const btnNote = item.note ? `<i class="fas fa-eye text-info" style="cursor:point
     const totalGeralRestante = restanteMensal + (restanteAnual / 12); // Projeção combinada ou exibição separada conforme preferir
 
     // Renderiza a tarja de rodapé financeiro se houver valores
-    // Se houver valores
-    if (totalMensal > 0 || totalAnual > 0) {
-        const footerDiv = document.createElement('div');
-        footerDiv.className = 'p-3 mt-3 bg-dark rounded border border-secondary text-white small';
         // Se houver valores
     if (totalMensal > 0 || totalAnual > 0) {
         const footerDiv = document.createElement('div');
