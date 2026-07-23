@@ -378,6 +378,7 @@ const btnNote = item.note ? `<i class="fas fa-eye text-info" style="cursor:point
         `;
         container.appendChild(footerDiv);
     }
+};
 window.removeTempItem = async (index) => { 
     if (!confirm("Tem certeza que deseja excluir este item?")) return;
     const removedItem = tempChecklistItems[index]; 
