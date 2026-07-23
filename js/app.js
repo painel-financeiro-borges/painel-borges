@@ -365,18 +365,19 @@ const btnNote = item.note ? `<i class="fas fa-eye text-info" style="cursor:point
     const totalGeralRestante = restanteMensal + (restanteAnual / 12); // Projeção combinada ou exibição separada conforme preferir
 
     // Renderiza a tarja de rodapé financeiro se houver valores
+    // Se houver valores
     if (totalMensal > 0 || totalAnual > 0) {
         const footerDiv = document.createElement('div');
         footerDiv.className = 'p-3 mt-3 bg-dark rounded border border-secondary text-white small';
         footerDiv.innerHTML = `
             <div class="d-flex justify-content-between mb-1"><span>Total Mensal:</span><strong>R$ ${totalMensal.toFixed(2)}</strong></div>
-            <div class="d-flex justify-content-between mb-1"><span>Total Anual:</span><strong>R$ ${totalAnual.toFixed(2)}</strong></div>
+            <div class="d-flex justify-content-between text-info mb-1"><span>Restante Mensal (Pendente):</span><strong>R$ ${restanteMensal.toFixed(2)}</strong></div>
             <hr class="my-1 border-secondary">
-            <div class="d-flex justify-content-between text-warning fw-bold"><span>Total Restante (Pendente):</span><span>R$ ${(restanteMensal + restanteAnual).toFixed(2)}</span></div>
+            <div class="d-flex justify-content-between mb-1"><span>Total Anual:</span><strong>R$ ${totalAnual.toFixed(2)}</strong></div>
+            <div class="d-flex justify-content-between text-warning mb-1"><span>Restante Anual (Pendente):</span><strong>R$ ${restanteAnual.toFixed(2)}</strong></div>
         `;
         container.appendChild(footerDiv);
     }
-};
 window.removeTempItem = async (index) => { 
     if (!confirm("Tem certeza que deseja excluir este item?")) return;
     const removedItem = tempChecklistItems[index]; 
