@@ -370,11 +370,11 @@ const btnNote = item.note ? `<i class="fas fa-eye text-info" style="cursor:point
         const footerDiv = document.createElement('div');
         footerDiv.className = 'p-3 mt-3 bg-dark rounded border border-secondary text-white small';
         footerDiv.innerHTML = `
-            <div class="d-flex justify-content-between mb-1"><span>Total Mensal:</span><strong>R$ ${totalMensal.toFixed(2)}</strong></div>
-            <div class="d-flex justify-content-between text-info mb-1"><span>Restante Mensal (Pendente):</span><strong>R$ ${restanteMensal.toFixed(2)}</strong></div>
+            <div class="d-flex justify-content-between mb-1 text-white-50"><span>Total Mensal:</span><strong class="text-white">R$ ${totalMensal.toFixed(2)}</strong></div>
+            <div class="d-flex justify-content-between mb-1"><span>Restante Mensal (Pendente):</span><strong class="text-warning">R$ ${restanteMensal.toFixed(2)}</strong></div>
             <hr class="my-1 border-secondary">
-            <div class="d-flex justify-content-between mb-1"><span>Total Anual:</span><strong>R$ ${totalAnual.toFixed(2)}</strong></div>
-            <div class="d-flex justify-content-between text-warning mb-1"><span>Restante Anual (Pendente):</span><strong>R$ ${restanteAnual.toFixed(2)}</strong></div>
+            <div class="d-flex justify-content-between mb-1 text-white-50"><span>Total Anual:</span><strong class="text-white">R$ ${totalAnual.toFixed(2)}</strong></div>
+            <div class="d-flex justify-content-between mb-1"><span>Restante Anual (Pendente):</span><strong class="text-info">R$ ${restanteAnual.toFixed(2)}</strong></div>
         `;
         container.appendChild(footerDiv);
     }
