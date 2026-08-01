@@ -1775,6 +1775,53 @@
       URL.revokeObjectURL(url);
     }
 
+    function exportarResumoAnualTxt() {
+      let anosMap = {};
+      
+      // Agrupa o fluxo diário por ano
+      (state.fluxo || []).forEach(f => {
+        if (!f.date) return;
+        let ano = f.date.slice(0, 4);
+        if (!anosMap[ano]) anosMap[ano] = { entradas: 0, saidas: 0 };
+        let val = Number(f.value || 0);
+        if (f.type === 'entrada') anosMap[ano].entradas += val;
+        if (f.type === 'saida') anosMap[ano].saidas += val;
+      });
+
+      let textoRelatorio = `====================================\n`;
+      textoRelatorio += `📊 RELATÓRIO DE EVOLUÇÃO ANUAL — HOLDING\n`;
+      textoRelatorio += `====================================\n\n`;
+
+      const anosOrdenados = Object.keys(anosMap).sort();
+      if (!anosOrdenados.length) {
+        textoRelatorio += `Nenhum lançamento de fluxo registrado para gerar o consolidado anual.\n`;
+      } else {
+        anosOrdenados.forEach(ano => {
+          let e = anosMap[ano].entradas;
+          let s = anosMap[ano].saidas;
+          let res = e - s;
+          textoRelatorio += `📅 Ano: ${ano}\n`;
+          textoRelatorio += `   • Entradas:   R$ ${e.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
+          textoRelatorio += `   • Saídas:     R$ ${s.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
+          textoRelatorio += `   • Resultado:  R$ ${res.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
+          textoRelatorio += `------------------------------------\n`;
+        });
+      }
+
+      // Cria o arquivo TXT limpo e leve para download automático
+      const blob = new Blob([textoRelatorio], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'resumo_anual_borges_' + new Date().toISOString().slice(0, 10) + '.txt';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      
+      alert('✅ Resumo anual limpo gerado e baixado com sucesso! Pronto para colar aqui na IA sem travar.');
+    }
+    
     function importAll() {
       const f = el('#fileImport').files[0];
       if (!f) return alert('Escolha um arquivo JSON');
