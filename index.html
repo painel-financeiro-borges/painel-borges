@@ -1448,7 +1448,11 @@
       showModal('Editar Fluxo', `
     <label>Data</label><input id="modal_fx_date" class="input" type="date" value="${f.date}"/>
     <label>Descrição</label><input id="modal_fx_desc" class="input" value="${f.desc}"/>
-    <label>Tipo</label><select id="modal_fx_type" class="input"><option value="entrada">Entrada</option><option value="saida">Saída</option></select>
+    <label>Tipo</label>
+    <select id="modal_fx_type" class="input">
+      <option value="entrada" ${f.type === 'entrada' ? 'selected' : ''}>Entrada</option>
+      <option value="saida" ${f.type === 'saida' ? 'selected' : ''}>Saída</option>
+    </select>
     <label>Pagamento</label><input id="modal_fx_payment" class="input" value="${f.payment}"/>
     <label>Valor</label><input id="modal_fx_valor" class="input" type="number" value="${f.value}"/>
   `, function () {
@@ -1458,6 +1462,7 @@
         f.payment = document.getElementById('modal_fx_payment').value;
         f.value = Number(document.getElementById('modal_fx_valor').value) || 0;
         saveLocal();
+        renderAll();
       });
     }
     function removeFlux(id) { if (!confirm('Excluir lançamento?')) return; state.fluxo = state.fluxo.filter(f => f.id !== id); saveLocal(); }
