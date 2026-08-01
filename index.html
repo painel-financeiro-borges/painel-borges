@@ -1778,48 +1778,81 @@
     function exportarResumoAnualTxt() {
       let anosMap = {};
       
-      // Agrupa o fluxo diário por ano
+      // 1. Agrupa Fluxo por Ano
       (state.fluxo || []).forEach(f => {
         if (!f.date) return;
         let ano = f.date.slice(0, 4);
-        if (!anosMap[ano]) anosMap[ano] = { entradas: 0, saidas: 0 };
+        if (!anosMap[ano]) anosMap[ano] = { entradas: 0, saidas: 0, custos: 0 };
         let val = Number(f.value || 0);
         if (f.type === 'entrada') anosMap[ano].entradas += val;
         if (f.type === 'saida') anosMap[ano].saidas += val;
       });
 
-      let textoRelatorio = `====================================\n`;
-      textoRelatorio += `📊 RELATÓRIO DE EVOLUÇÃO ANUAL — HOLDING\n`;
-      textoRelatorio += `====================================\n\n`;
+      // 2. Agrupa Custo de Vida por Ano
+      (state.custo || []).forEach(c => {
+        if (!c.date) return;
+        let ano = c.date.slice(0, 4);
+        if (!anosMap[ano]) anosMap[ano] = { entradas: 0, saidas: 0, custos: 0 };
+        anosMap[ano].custos += Number(c.value || 0);
+      });
+
+      let textoRelatorio = `==================================================\n`;
+      textoRelatorio += `📊 SUPER RELATÓRIO EXECUTIVO — HOLDING BORGES\n`;
+      textoRelatorio += `==================================================\n\n`;
 
       const anosOrdenados = Object.keys(anosMap).sort();
       if (!anosOrdenados.length) {
-        textoRelatorio += `Nenhum lançamento de fluxo registrado para gerar o consolidado anual.\n`;
+        textoRelatorio += `Nenhum lançamento registrado no sistema.\n\n`;
       } else {
         anosOrdenados.forEach(ano => {
           let e = anosMap[ano].entradas;
           let s = anosMap[ano].saidas;
-          let res = e - s;
-          textoRelatorio += `📅 Ano: ${ano}\n`;
-          textoRelatorio += `   • Entradas:   R$ ${e.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
-          textoRelatorio += `   • Saídas:     R$ ${s.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
-          textoRelatorio += `   • Resultado:  R$ ${res.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
-          textoRelatorio += `------------------------------------\n`;
+          let c = anosMap[ano].custos;
+          let resFluxo = e - s;
+          
+          textoRelatorio += `📅 ANO DE REFERÊNCIA: ${ano}\n`;
+          textoRelatorio += `   • Total de Entradas (Receitas): R$ ${e.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
+          textoRelatorio += `   • Total de Saídas (Fluxo Diário): R$ ${s.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
+          textoRelatorio += `   • Custo de Vida Registrado: R$ ${c.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
+          textoRelatorio += `   • Resultado Líquido do Fluxo: R$ ${resFluxo.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
+          textoRelatorio += `--------------------------------------------------\n`;
         });
       }
 
-      // Cria o arquivo TXT limpo e leve para download automático
+      // 3. Panorama Patrimonial Atual (Reservas e Investimentos)
+      const totalReservas = (state.reservas || []).reduce((acc, r) => acc + Number(r.saldo || 0), 0);
+      const totalInvestimentos = (state.investimentos || []).reduce((acc, i) => acc + (Number(i.quantidade || 0) * Number(i.preco || 0)), 0);
+
+      textoRelatorio += `\n💎 PANORAMA PATRIMONIAL ATUAL:\n`;
+      textoRelatorio += `   • Total em Reservas: R$ ${totalReservas.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
+      textoRelatorio += `   • Total em Investimentos: R$ ${totalInvestimentos.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n\n`;
+
+      textoRelatorio += `Detalhamento das Reservas:\n`;
+      (state.reservas || []).forEach(r => {
+        textoRelatorio += `   - ${r.name}: Saldo ${Number(r.saldo || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} / Meta ${Number(r.meta || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
+      });
+
+      textoRelatorio += `\nDetalhamento dos Investimentos:\n`;
+      (state.investimentos || []).forEach(i => {
+        let valInv = Number(i.quantidade || 0) * Number(i.preco || 0);
+        textoRelatorio += `   - ${i.ativo} (${i.categoria}): ${i.quantidade} un. x R$ ${Number(i.preco || 0).toFixed(2)} = R$ ${valInv.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
+      });
+
+      textoRelatorio += `\n==================================================\n`;
+      textoRelatorio += `Fim do Relatório Executivo.\n`;
+
+      // Gera o download do TXT executivo
       const blob = new Blob([textoRelatorio], { type: 'text/plain;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'resumo_anual_borges_' + new Date().toISOString().slice(0, 10) + '.txt';
+      a.download = 'super_relatorio_executivo_' + new Date().toISOString().slice(0, 10) + '.txt';
       document.body.appendChild(a);
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
       
-      alert('✅ Resumo anual limpo gerado e baixado com sucesso! Pronto para colar aqui na IA sem travar.');
+      alert('✅ Super Relatório Executivo gerado com sucesso! Pronto para análise estratégica.');
     }
     
     function importAll() {
