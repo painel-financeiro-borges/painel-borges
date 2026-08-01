@@ -1493,16 +1493,47 @@
 
     /* ====== PLANEJAMENTO (mantive) ====== */
     function getMonthOptions() {
-      const sel = el('#plan_mes'); if (!sel) return;
-      sel.innerHTML = '';
       const today = new Date();
+      let optionsHtml = '';
       for (let i = 0; i < 12; i++) {
         const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
         const key = d.toISOString().slice(0, 7);
-        const opt = document.createElement('option'); opt.value = key; opt.innerText = key;
-        sel.appendChild(opt);
+        optionsHtml += `<option value="${key}">${key}</option>`;
+      }
+
+      // Popula o seletor de planejamento antigo
+      const selPlan = el('#plan_mes'); 
+      if (selPlan) {
+        const currentVal = selPlan.value;
+        selPlan.innerHTML = optionsHtml;
+        if (currentVal) selPlan.value = currentVal;
+      }
+
+      // Popula o novo seletor global do topo
+      const selGlobal = el('#globalMonthSelector');
+      if (selGlobal) {
+        const currentGlobalVal = selGlobal.value;
+        selGlobal.innerHTML = optionsHtml;
+        if (window._currentGlobalMonth) {
+          selGlobal.value = window._currentGlobalMonth;
+        } else if (currentGlobalVal) {
+          selGlobal.value = currentGlobalVal;
+        }
       }
     }
+
+    function getSelectedMonthKey() { 
+      const globalSel = el('#globalMonthSelector');
+      if (globalSel && globalSel.value) return globalSel.value;
+      return el('#plan_mes') ? el('#plan_mes').value || null : null; 
+    }
+
+    window.onGlobalMonthChange = function(val) {
+      window._currentGlobalMonth = val;
+      const selPlan = el('#plan_mes');
+      if (selPlan) selPlan.value = val;
+      renderAll();
+    };
     function createPlanForMonth() { const key = getSelectedMonthKey(); if (!key) return alert('Selecione um mês'); if (!state.planejamento[key]) { state.planejamento[key] = { periods: { p1: { meta: 0, items: [] }, p2: { meta: 0, items: [] }, p3: { meta: 0, items: [] } } }; } renderPlanForMonth(key); }
     function getSelectedMonthKey() { return el('#plan_mes') ? el('#plan_mes').value || null : null; }
     function renderPlanForMonth(key) {
