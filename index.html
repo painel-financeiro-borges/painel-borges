@@ -2135,36 +2135,96 @@
     }
 
     /* ===== Expor bloco de notas (para colar no GPT) ===== */
+    /* ===== Expor bloco de notas (Versão Inteligente & Consolidada) ===== */
     function compileExportText() {
-      const resumo = computeResumoFinanceiro(getSelectedMonthKey() || new Date().toISOString().slice(0, 7));
-      const topCats = computeCustoByCategory(getSelectedMonthKey()).cats || {};
-      const topCatsList = Object.keys(topCats).map(k => `${k}: ${formatMoney(topCats[k])}`).join(' • ');
-      const investSummary = (state.investimentos || []).slice(0, 8).map(i => `${i.ativo} (${i.categoria}) — ${formatMoney(Number(i.quantidade || 0) * Number(i.preco || 0))}`).join('\n');
+      const currentMonthKey = getSelectedMonthKey() || new Date().toISOString().slice(0, 7);
+      const resumo = computeResumoFinanceiro(currentMonthKey);
+      
+      // 1. Consolidados do Mês Selecionado
+      const custoMesObj = computeCustoByCategory(currentMonthKey);
+      const planRes = computePlanProgress(currentMonthKey);
+      const fluxoMesObj = computeFluxoMonthly(currentMonthKey);
 
+      // 2. Mapeamento Histórico Consolidado (Anual / Geral)
+      let anosMap = {};
+      (state.fluxo || []).forEach(f => {
+        if (!f.date) return;
+        let ano = f.date.slice(0, 4);
+        if (!anosMap[ano]) anosMap[ano] = { entradas: 0, saidas: 0 };
+        let val = Number(f.value || 0);
+        if (f.type === 'entrada') anosMap[ano].entradas += val;
+        if (f.type === 'saida') anosMap[ano].saidas += val;
+      });
+
+      let historicoAnualStr = Object.keys(anosMap).sort().map(ano => {
+        let e = anosMap[ano].entradas;
+        let s = anosMap[ano].saidas;
+        let res = e - s;
+        return `   - Ano ${ano}: Entradas R$ ${e.toFixed(2)} | Saídas R$ ${s.toFixed(2)} | Resultado R$ ${res.toFixed(2)}`;
+      }).join('\n');
+
+      // 3. Categorias de Custo do Mês
+      const topCatsList = Object.keys(custoMesObj.cats || {}).map(k => `   - ${k}: ${formatMoney(custoMesObj.cats[k])}`).join('\n');
+
+      // 4. Investimentos Detalhados
+      const investSummary = (state.investimentos || []).map(i => {
+        let valInv = Number(i.quantidade || 0) * Number(i.preco || 0);
+        return `   - ${i.ativo} (${i.categoria}): ${i.quantidade} un. x R$ ${Number(i.preco || 0).toFixed(2)} = ${formatMoney(valInv)}`;
+      }).join('\n');
+
+      // 5. Reservas Detalhadas
+      const reservasSummary = (state.reservas || []).map(r => {
+        return `   - ${r.name}: Saldo ${formatMoney(r.saldo)} / Meta ${formatMoney(r.meta)}`;
+      }).join('\n');
+
+      // 6. Caderno de Notas
       let cadernoText = '';
       if (state.caderno && state.caderno.length) {
         cadernoText = state.caderno.map(tab => {
           const blocks = (tab.blocks || []).map(b => {
-            const items = (b.items || []).map(it => `    - ${it.text} [${it.state === 1 ? '✔' : (it.state === 2 ? '✖' : ' ')}]`).join('\n');
-            return `  [Bloco: ${b.title}]\n${items}`;
-          }).join('\n\n');
-          return `[Aba: ${tab.name}]\n${blocks}`;
-        }).join('\n\n====================\n\n');
+            const items = (b.items || []).map(it => `      • ${it.text} [${it.state === 1 ? '✔' : (it.state === 2 ? '✖' : ' ')}]`).join('\n');
+            return `    [Bloco: ${b.title}]\n${items || '      (Sem itens)'}`;
+          }).join('\n');
+          return `  [Aba: ${tab.name}]\n${blocks}`;
+        }).join('\n\n');
       }
 
+      // Montagem do Relatório Executivo Consolidado
       const text = [
-        `RESUMO FINANCEIRO — ${new Date().toLocaleDateString()}`,
-        `ENTRADAS: ${formatMoney(resumo.totalEntradas)}`,
-        `SAÍDAS: ${formatMoney(resumo.totalSaidas)}`,
-        `RESULTADO: ${formatMoney(resumo.resultado)}`,
-        `RESERVAS (total saldo): ${formatMoney(resumo.reservasTotal)}`,
-        `INVESTIMENTOS (total): ${formatMoney(resumo.investimentosTotal)}`,
-        `CUSTO DE VIDA (mês): ${formatMoney(computeCustoByCategory(getSelectedMonthKey()).total || 0)}`,
-        `PRINCIPAIS CATEGORIAS: ${topCatsList || '—'}`,
-        `INVESTIMENTOS (top 8):\n${investSummary || '—'}`,
-        `\nTRANSAÇÕES RECENTES:\n${(state.transacoes || []).slice(0, 10).map(t => `${t.date || t.date}: ${t.reserva || ''} ${t.tipo || ''} ${formatMoney(t.valor || 0)}`).join('\n')}`,
-        `\nCADERNO DE NOTAS:\n${cadernoText || '—'}`
+        `==================================================`,
+        `🧠 DOSSIÊ FINANCEIRO INTELIGENTE — HOLDING BORGES`,
+        `Data de Emissão: ${new Date().toLocaleDateString()} | Mês Foco: ${currentMonthKey}`,
+        `==================================================`,
+        ``,
+        `📊 1. RESUMO DO MÊS SELECIONADO (${currentMonthKey}):`,
+        `   • Entradas Totais: ${formatMoney(resumo.totalEntradas)}`,
+        `   • Saídas Totais (Fluxo): ${formatMoney(resumo.totalSaidas)}`,
+        `   • Resultado Líquido do Mês: ${formatMoney(resumo.resultado)} (${resumo.resultado >= 0 ? 'Positivo' : 'Negativo'})`,
+        `   • Custo de Vida Registrado no Mês: ${formatMoney(custoMesObj.total)}`,
+        `   • Progresso do Planejamento do Mês: ${planRes.pct}% (Concluído ${formatMoney(planRes.done)} de ${formatMoney(planRes.meta)})`,
+        ``,
+        `🏷️ 2. DISTRIBUIÇÃO DO CUSTO DE VIDA (MÊS ${currentMonthKey}):`,
+        topCatsList || '   (Nenhum custo registrado neste mês)',
+        ``,
+        `📈 3. EVOLUÇÃO ANUAL CONSOLIDADA (HISTÓRICO):`,
+        historicoAnualStr || '   (Sem histórico anual registrado)',
+        ``,
+        `💎 4. PANORAMA PATRIMONIAL ATUAL:`,
+        `   • Total em Reservas: ${formatMoney(resumo.reservasTotal)}`,
+        reservasSummary || '   (Nenhuma reserva cadastrada)',
+        ``,
+        `   • Total em Investimentos: ${formatMoney(resumo.investimentosTotal)}`,
+        investSummary || '   (Nenhum investimento cadastrado)',
+        ``,
+        `📝 5. TRANSAÇÕES RECENTES (Últimas 10):`,
+        (state.transacoes || []).slice(0, 10).map(t => `   - ${t.date ? t.date.slice(0, 10) : '—'}: [${t.reserva || 'Geral'}] ${t.tipo || ''} ${formatMoney(t.valor || 0)} (${t.nota || ''})`).join('\n') || '   (Sem transações recentes)',
+        ``,
+        `📒 6. CADERNO DE NOTAS E CHECKLISTS:`,
+        cadernoText || '   (Caderno vazio)',
+        `==================================================`,
+        `Fim do Dossiê Inteligente. Pronto para Auditoria de IA.`
       ].join('\n');
+
       return text;
     }
     function exportToClipboardAndModal() {
