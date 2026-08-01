@@ -546,6 +546,14 @@
         </div>
       </div>
       <div id="content_recent" style="margin-top:8px;overflow:auto">
+        <!-- Barra de Filtros de Transações Unificadas -->
+        <div style="margin-bottom: 8px; display: flex; gap: 6px; flex-wrap: wrap;">
+          <button class="btn-ghost" style="font-size: 11px; padding: 4px 8px;" onclick="window.filtroTransacaoAtual = 'todas'; renderDashboard();">🌐 Todas</button>
+          <button class="btn-ghost" style="font-size: 11px; padding: 4px 8px;" onclick="window.filtroTransacaoAtual = 'fluxo'; renderDashboard();">📊 Fluxo</button>
+          <button class="btn-ghost" style="font-size: 11px; padding: 4px 8px;" onclick="window.filtroTransacaoAtual = 'custo'; renderDashboard();">🏠 Custo</button>
+          <button class="btn-ghost" style="font-size: 11px; padding: 4px 8px;" onclick="window.filtroTransacaoAtual = 'reservas'; renderDashboard();">🛡️ Reservas</button>
+          <button class="btn-ghost" style="font-size: 11px; padding: 4px 8px;" onclick="window.filtroTransacaoAtual = 'investimentos'; renderDashboard();">💎 Investimentos</button>
+        </div>
         <table class="table" id="dash_recent">
           <thead>
             <tr>
