@@ -2100,13 +2100,18 @@
         });
       } catch (e) {/*silent*/ }
 
-      // Plan small chart (donut)
+      // Planejamento Mensal — Progresso Corrigido
       const planRes = computePlanProgress(monthKey);
-      el('#dash_plan_meta').innerText = `Meta: ${formatMoney(planRes.meta || 0)}`;
-      el('#dash_plan_done').innerText = `Concluído: ${formatMoney(planRes.done || 0)}`;
-      const pct = Math.min(100, Math.max(0, planRes.pct || 0));
-      el('#dash_plan_bar').style.width = pct + '%';
-      el('#dash_plan_pct').innerText = pct + '%';
+      if (el('#dash_plan_meta')) el('#dash_plan_meta').innerText = `Meta: ${formatMoney(planRes.meta || 0)}`;
+      if (el('#dash_plan_done')) el('#dash_plan_done').innerText = `Concluído: ${formatMoney(planRes.done || 0)}`;
+      
+      const pctPlan = Math.min(100, Math.max(0, planRes.pct || 0));
+      const barPlan = el('#dash_plan_bar');
+      if (barPlan) {
+        barPlan.style.width = pctPlan + '%';
+        barPlan.style.transition = 'width 0.4s ease';
+      }
+      if (el('#dash_plan_pct')) el('#dash_plan_pct').innerText = pctPlan + '%';
       if (chartPlan) { chartPlan.destroy(); chartPlan = null; }
       try {
         const ctxP = document.getElementById('chartPlan').getContext('2d');
