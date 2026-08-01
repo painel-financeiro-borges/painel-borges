@@ -1491,7 +1491,51 @@
     }
     function removeCusto(id) { if (!confirm('Excluir custo?')) return; state.custo = state.custo.filter(x => x.id !== id); saveLocal(); }
     function clearCustoMonth() { const month = getSelectedMonthKey(); if (!month) return alert('Selecione um mês no planejamento para aplicar a filtragem mensal.'); if (!confirm('Remover todos os custos do mês ' + month + '?')) return; state.custo = state.custo.filter(c => c.date.slice(0, 7) !== month); saveLocal(); }
+    function clonarCustoMesAnterior() {
+      const monthKey = getSelectedMonthKey();
+      if (!monthKey) return alert('Selecione um mês válido no topo.');
+      
+      // Descobre o mês anterior com base na string YYYY-MM
+      const [ano, mes] = monthKey.split('-').map(Number);
+      const dataAnt = new Date(ano, mes - 2, 1); // mes - 2 porque o mês no JS começa em 0
+      const mesAntKey = dataAnt.toISOString().slice(0, 7);
 
+      // Pega os custos do mês anterior
+      const custosAnt = state.custo.filter(c => c.date && c.date.slice(0, 7) === mesAntKey);
+      
+      if (!custosAnt.length) {
+        return alert(`Não foram encontrados custos cadastrados no mês anterior (${mesAntKey}) para clonar.`);
+      }
+
+      // Verifica se já existem custos no mês atual para evitar duplicidade acidental
+      const custosAtuais = state.custo.filter(c => c.date && c.date.slice(0, 7) === monthKey);
+      if (custosAtuais.length > 0) {
+        if (!confirm(`Já existem ${custosAtuais.length} lançamento(s) em ${monthKey}. Deseja adicionar os custos do mês anterior mesmo assim?`)) {
+          return;
+        }
+      }
+
+      // Clona cada custo ajustando a data para o mês atual (mantendo o mesmo dia ou dia 01)
+      let clonadosCount = 0;
+      custosAnt.forEach(c => {
+        const diaOriginal = c.date.slice(8, 10) || '01';
+        const novaData = `${monthKey}-${diaOriginal}`;
+        
+        state.custo.unshift({
+          id: uid('c'),
+          date: novaData,
+          desc: c.desc,
+          cat: c.cat,
+          value: c.value
+        });
+        clonadosCount++;
+      });
+
+      saveLocal();
+      renderCusto();
+      alert(`✅ Sucesso! ${clonadosCount} custos fixos do mês ${mesAntKey} foram clonados para ${monthKey}.`);
+    }
+    
     /* ====== PLANEJAMENTO (mantive) ====== */
     function getMonthOptions() {
       const today = new Date();
