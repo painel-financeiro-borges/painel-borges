@@ -1423,7 +1423,20 @@
       const tbody = el('#fluxoTable tbody'); if (!tbody) return;
       tbody.innerHTML = '';
       if (!state.fluxo.length) { tbody.innerHTML = '<tr><td colspan="6" class="small">Sem lançamentos</td></tr>'; return; }
-      state.fluxo.slice(0, 200).forEach(f => {
+      
+      const month = getSelectedMonthKey();
+      const rows = state.fluxo.filter(f => {
+        if (!month) return true;
+        if (!f.date) return false;
+        return f.date.slice(0, 7) === month;
+      });
+
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="small">Sem lançamentos para este mês</td></tr>';
+        return;
+      }
+
+      rows.forEach(f => {
         const tr = document.createElement('tr');
         tr.innerHTML = `<td>${new Date(f.date + 'T00:00:00').toLocaleDateString()}</td><td>${f.desc}</td><td>${f.type}</td><td>${f.payment}</td><td>${formatMoney(f.value)}</td>
       <td><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-ghost" onclick="editFlux('${f.id}')">Editar</button><button class="btn-ghost" onclick="removeFlux('${f.id}')">Excluir</button></div></td>`;
