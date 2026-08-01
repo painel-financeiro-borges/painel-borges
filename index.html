@@ -816,9 +816,10 @@
       <h2>Backup / Import / Export</h2>
       <div class="small">Exporta todo o painel (JSON) ou importa backup.</div>
 
-      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+     <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn" onclick="exportAll()">Exportar Tudo (.json)</button>
         <button class="btn" onclick="exportToClipboardAndModal()">Exportar Tudo (Bloco de Notas)</button>
+        <button class="btn-ghost" onclick="exportarResumoAnualTxt()" style="color:var(--accent-2)">📊 Exportar Resumo Anual (.txt)</button>
 
         <input id="fileImport" type="file" accept=".json" style="background:transparent;color:var(--muted)" />
         <button class="btn-ghost" onclick="importAll()">Importar Backup</button>
