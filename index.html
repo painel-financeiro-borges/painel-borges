@@ -2118,16 +2118,41 @@
         }
       } catch (e) {/*silent*/ }
 
-      // Recents
+     // Recents (Unificado com todas as abas e suporte a filtros)
       const tbody = el('#dash_recent tbody'); if (!tbody) return;
       tbody.innerHTML = '';
-      const recent = [].concat(state.transacoes || [], state.fluxo || []).slice(0, 10);
-      if (!recent.length) tbody.innerHTML = '<tr><td colspan="4" class="small">Sem registros</td></tr>';
-      else {
+      
+      let listaUnificada = [];
+      (state.transacoes || []).forEach(t => {
+        listaUnificada.push({ date: t.date || '', tipo: t.tipo || 'Transação', origem: t.reserva || 'Fluxo', valor: Number(t.valor || 0), mod: 'fluxo' });
+      });
+      (state.custo || []).forEach(c => {
+        listaUnificada.push({ date: c.date || '', tipo: 'Saída (Custo)', origem: c.cat || 'Custo de Vida', valor: Number(c.value || 0), mod: 'custo' });
+      });
+      (state.reservas || []).forEach(r => {
+        if (Number(r.saldo || 0) > 0) {
+          listaUnificada.push({ date: r.updated ? r.updated.slice(0, 10) : new Date().toISOString().slice(0, 10), tipo: 'Reserva', origem: r.name || 'Reserva', valor: Number(r.saldo || 0), mod: 'reservas' });
+        }
+      });
+      (state.investimentos || []).forEach(i => {
+        let valInv = Number(i.quantidade || 0) * Number(i.preco || 0);
+        if (valInv > 0) {
+          listaUnificada.push({ date: i.updated ? i.updated.slice(0, 10) : new Date().toISOString().slice(0, 10), tipo: 'Investimento', origem: `${i.ativo || 'Ativo'} (${i.categoria || ''})`, valor: valInv, mod: 'investimentos' });
+        }
+      });
+
+      listaUnificada.sort((a, b) => new Date(b.date) - new Date(a.date));
+      const filtroAtual = window.filtroTransacaoAtual || 'todas';
+      let transFiltradas = filtroAtual === 'todas' ? listaUnificada : listaUnificada.filter(item => item.mod === filtroAtual);
+      const recent = transFiltradas.slice(0, 10);
+
+      if (!recent.length) {
+        tbody.innerHTML = '<tr><td colspan="4" class="small">Nenhuma transação encontrada</td></tr>';
+      } else {
         recent.forEach(r => {
           const tr = document.createElement('tr');
           const dateStr = r.date ? (r.date.length === 10 ? new Date(r.date + 'T00:00:00').toLocaleDateString() : new Date(r.date).toLocaleDateString()) : '-';
-          tr.innerHTML = `<td>${dateStr}</td><td>${r.tipo || r.type || 'mov'}</td><td>${r.reserva || r.desc || r.ativo || ''}</td><td>${formatMoney(r.valor || r.value || 0)}</td>`;
+          tr.innerHTML = `<td>${dateStr}</td><td><span style="padding:2px 6px; border-radius:4px; font-size:11px; background:var(--surface-2, rgba(255,255,255,0.05))">${r.tipo}</span></td><td>${r.origem}</td><td style="font-weight:600">${formatMoney(r.valor)}</td>`;
           tbody.appendChild(tr);
         });
       }
