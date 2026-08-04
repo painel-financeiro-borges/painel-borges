@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Controle Emocional & Performance</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --danger: #ef4444;
+            --primary: #3b82f6;
+            --success: #10b981;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        header {
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 16px;
+        }
+
+        h1 {
+            font-size: 1.4rem;
+            margin: 0 0 8px 0;
+            letter-spacing: -0.5px;
+        }
+
+        p.subtitle {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+            color: var(--primary);
+        }
+
+        /* Estrutura do Formulário */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        input[type="date"], input[type="number"] {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 8px 12px;
+            border-radius: 6px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        input[type="checkbox"] {
+            accent-color: var(--primary);
+            width: 16px;
+            height: 16px;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        /* Lista de Registros Recentes */
+        .record-item {
+            background-color: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+        }
+
+        .record-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 700;
+            margin-bottom: 6px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 4px;
+        }
+
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .status-success { background: var(--success); color: #000; }
+        .status-fail { background: var(--danger); color: #fff; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>SISTEMA DE GESTÃO DE PERFORMANCE & DESAPEGO</h1>
+            <p class="subtitle">Registros Diários Conectados ao Firebase</p>
+        </header>
+
+        <!-- Formulário de Registro Diário -->
+        <div class="card">
+            <div class="card-title">REGISTRAR KPI DO DIA</div>
+            <form id="kpi-form">
+                <div class="form-group">
+                    <label for="data-registro">Data do Registro:</label>
+                    <input type="date" id="data-registro" required>
+                </div>
+
+                <div class="form-group">
+                    <label>KPI 1: Segurança (Gatigos Digitais & Mensagens)</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="kpi-seguranca"> 100% Limpo (Zero Acessos / Zero Gatilhos)
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>KPI 2: Alocação de Recursos (Blocos Executados)</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-item"><input type="checkbox" id="bloco-treino"> Treino / Alta Intensidade</label>
+                        <label class="checkbox-item"><input type="checkbox" id="bloco-estudo"> Estudo / Carreira</label>
+                        <label class="checkbox-item"><input type="checkbox" id="bloco-financas"> Gestão Financeira / Aportes</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="kpi-latencia">KPI 3: Latência de Foco (Nota de 1 a 5):</label>
+                    <input type="number" id="kpi-latencia" min="1" max="5" placeholder="Ex: 5 (corte rápido em < 5 seg)" required>
+                </div>
+
+                <button type="submit" id="btn-salvar">Salvar Dados no Firebase</button>
+            </form>
+        </div>
+
+        <!-- Histórico de Registros -->
+        <div class="card">
+            <div class="card-title">HISTÓRICO DE AUDITORIA</div>
+            <div id="historico-container">
+                <p style="color: var(--text-muted); font-size: 0.85rem;">Carregando registros...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Módulo Firebase Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBnOexg7KChfV2OsKBCDCuMCRT2xcAwKx8",
+            authDomain: "painel-financeiro-borges.firebaseapp.com",
+            projectId: "painel-financeiro-borges",
+            storageBucket: "painel-financeiro-borges.firebasestorage.app",
+            messagingSenderId: "354997627208",
+            appId: "1:354997627208:web:90604d0a7dcd45b6e4eb7d",
+            measurementId: "G-KH9BDWN2WH"
+        };
+
+        // Inicialização do Firebase
+        const appFirebase = initializeApp(firebaseConfig);
+        const db = getFirestore(appFirebase);
+        const auth = getAuth(appFirebase);
+
+        let usuarioAtual = null;
+
+        // Definir a data atual no input por padrão
+        document.getElementById('data-registro').valueToDate = new Date();
+        document.getElementById('data-registro').value = new Date().toISOString().split('T')[0];
+
+        // Monitorar Estado de Autenticação
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                usuarioAtual = user;
+                carregarHistorico();
+            } else {
+                document.getElementById('historico-container').innerHTML = `<p style="color: var(--danger);">Usuário não autenticado. Faça login na sua aplicação principal.</p>`;
+            }
+        });
+
+        // Enviar Dados para o Firestore
+        document.getElementById('kpi-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!usuarioAtual) {
+                alert("Erro: Você precisa estar logado para salvar os dados.");
+                return;
+            }
+
+            const data = document.getElementById('data-registro').value;
+            const kpiSeguranca = document.getElementById('kpi-seguranca').checked;
+            const treino = document.getElementById('bloco-treino').checked;
+            const estudo = document.getElementById('bloco-estudo').checked;
+            const financas = document.getElementById('bloco-financas').checked;
+            const kpiLatencia = parseInt(document.getElementById('kpi-latencia').value);
+
+            try {
+                await addDoc(collection(db, "kpis_performance"), {
+                    userId: usuarioAtual.uid,
+                    data: data,
+                    kpiSeguranca: kpiSeguranca,
+                    blocos: {
+                        treino: treino,
+                        estudo: estudo,
+                        financas: financas
+                    },
+                    kpiLatencia: kpiLatencia,
+                    timestamp: new Date()
+                });
+
+                alert("KPI registrado com sucesso!");
+                document.getElementById('kpi-form').reset();
+                document.getElementById('data-registro').value = new Date().toISOString().split('T')[0];
+                carregarHistorico();
+            } catch (error) {
+                console.error("Erro ao salvar no Firestore: ", error);
+                alert("Erro ao salvar os dados.");
+            }
+        });
+
+        // Carregar Histórico do Banco de Dados
+        async function carregarHistorico() {
+            const container = document.getElementById('historico-container');
+            container.innerHTML = "";
+
+            try {
+                const q = query(
+                    collection(db, "kpis_performance"),
+                    where("userId", "==", usuarioAtual.uid),
+                    orderBy("data", "desc")
+                );
+
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    container.innerHTML = `<p style="color: var(--text-muted);">Nenhum registro encontrado.</p>`;
+                    return;
+                }
+
+                querySnapshot.forEach((doc) => {
+                    const item = doc.data();
+                    
+                    const el = document.createElement('div');
+                    el.className = 'record-item';
+
+                    const statusSeguranca = item.kpiSeguranca 
+                        ? `<span class="status-badge status-success">Zero Gatilhos (100%)</span>`
+                        : `<span class="status-badge status-fail">Falha de Risco</span>`;
+
+                    el.innerHTML = `
+                        <div class="record-header">
+                            <span>Data: ${item.data}</span>
+                            ${statusSeguranca}
+                        </div>
+                        <div>
+                            * Blocos Concluídos: 
+                            ${item.blocos.treino ? ' Treino ' : ''}
+                            ${item.blocos.estudo ? ' Estudo ' : ''}
+                            ${item.blocos.financas ? ' Finanças ' : ''}
+                        </div>
+                        <div>
+                            * Latência de Foco (Redirecionamento): <strong>${item.kpiLatencia} / 5</strong>
+                        </div>
+                    `;
+
+                    container.appendChild(el);
+                });
+            } catch (error) {
+                console.error("Erro ao buscar histórico: ", error);
+                container.innerHTML = `<p style="color: var(--danger);">Erro ao carregar os dados. Verifique suas regras do Firestore.</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
